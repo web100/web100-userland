@@ -13,7 +13,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: readconn.c,v 1.2 2002/09/05 20:18:56 jheffner Exp $
+ * $Id: readconn.c,v 1.3 2002/09/05 20:21:30 jheffner Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,16 +69,16 @@ int main(int argc, char *argv[])
         web100_perror("web100_var_find: LocalAddress");
         exit(EXIT_FAILURE);
     }
-    if ((raddr = web100_var_find(read_grp, "RemoteAddress")) == NULL) {
-        web100_perror("web100_var_find: RemoteAddress");
+    if ((raddr = web100_var_find(read_grp, "RemAddress")) == NULL) {
+        web100_perror("web100_var_find: RemAddress");
         exit(EXIT_FAILURE);
     }
     if ((lport = web100_var_find(read_grp, "LocalPort")) == NULL) {
         web100_perror("web100_var_find: LocalPort");
         exit(EXIT_FAILURE);
     }
-    if ((rport = web100_var_find(read_grp, "RemotePort")) == NULL) {
-        web100_perror("web100_var_find: RemotePort");
+    if ((rport = web100_var_find(read_grp, "RemPort")) == NULL) {
+        web100_perror("web100_var_find: RemPort");
         exit(EXIT_FAILURE);
     }
 

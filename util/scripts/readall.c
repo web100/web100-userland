@@ -11,7 +11,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: readall.c,v 1.2 2002/09/05 20:02:48 jheffner Exp $
+ * $Id: readall.c,v 1.3 2002/09/05 20:21:29 jheffner Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,12 +30,13 @@ int main(int argc, char *argv[])
         web100_perror("web100_attach");
         exit(EXIT_FAILURE);
     }
-    
+
     if ((read_grp = web100_group_find(agent, "read")) == NULL) {
         web100_perror("web100_group_find: read");
         exit(EXIT_FAILURE);
     }
-    if ((addr_type = web100_var_find(read_grp, "LocalAddressType")) == NULL) {
+    if ((addr_type =
+         web100_var_find(read_grp, "LocalAddressType")) == NULL) {
         web100_perror("web100_var_find: LocalAddressType");
         exit(EXIT_FAILURE);
     }
@@ -43,21 +44,21 @@ int main(int argc, char *argv[])
         web100_perror("web100_var_find: LocalAddress");
         exit(EXIT_FAILURE);
     }
-    if ((raddr = web100_var_find(read_grp, "RemoteAddress")) == NULL) {
-        web100_perror("web100_var_find: RemoteAddress");
+    if ((raddr = web100_var_find(read_grp, "RemAddress")) == NULL) {
+        web100_perror("web100_var_find: RemAddress");
         exit(EXIT_FAILURE);
     }
     if ((lport = web100_var_find(read_grp, "LocalPort")) == NULL) {
         web100_perror("web100_var_find: LocalPort");
         exit(EXIT_FAILURE);
     }
-    if ((rport = web100_var_find(read_grp, "RemotePort")) == NULL) {
-        web100_perror("web100_var_find: RemotePort");
+    if ((rport = web100_var_find(read_grp, "RemPort")) == NULL) {
+        web100_perror("web100_var_find: RemPort");
         exit(EXIT_FAILURE);
     }
-    
+
     group = web100_group_head(agent);
-    
+
     while (group) {
         web100_connection *conn;
 
@@ -74,13 +75,17 @@ int main(int argc, char *argv[])
 
             cid = web100_get_connection_cid(conn);
             printf("Connection %d (", cid);
-            
-            if (web100_raw_read(addr_type, conn, buf) != WEB100_ERR_SUCCESS) {
+
+            if (web100_raw_read(addr_type, conn, buf) !=
+                WEB100_ERR_SUCCESS) {
                 web100_perror("web100_raw_read");
                 exit(EXIT_FAILURE);
             }
-            type = *(int *)buf;
-            type = (type == WEB100_ADDRTYPE_IPV4 ? WEB100_TYPE_INET_ADDRESS_IPV4 : WEB100_TYPE_INET_ADDRESS_IPV6);
+            type = *(int *) buf;
+            type =
+                (type ==
+                 WEB100_ADDRTYPE_IPV4 ? WEB100_TYPE_INET_ADDRESS_IPV4 :
+                 WEB100_TYPE_INET_ADDRESS_IPV6);
             if (web100_raw_read(laddr, conn, buf) != WEB100_ERR_SUCCESS) {
                 web100_perror("web100_raw_read");
                 exit(EXIT_FAILURE);
@@ -90,7 +95,9 @@ int main(int argc, char *argv[])
                 web100_perror("web100_raw_read");
                 exit(EXIT_FAILURE);
             }
-            printf("%s  ", web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, buf));
+            printf("%s  ",
+                   web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER,
+                                        buf));
             if (web100_raw_read(raddr, conn, buf) != WEB100_ERR_SUCCESS) {
                 web100_perror("web100_raw_read");
                 exit(EXIT_FAILURE);
@@ -100,7 +107,9 @@ int main(int argc, char *argv[])
                 web100_perror("web100_raw_read");
                 exit(EXIT_FAILURE);
             }
-            printf("%s)\n", web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, buf));
+            printf("%s)\n",
+                   web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER,
+                                        buf));
 
             if ((snap = web100_snapshot_alloc(group, conn)) == NULL) {
                 web100_perror("web100_snapshot_alloc");
