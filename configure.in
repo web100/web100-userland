@@ -4,9 +4,9 @@ PACKAGE=web100_userland
 VERSION=alpha1.2pre2
 
 dnl libweb100 libtool versioning
-LT_CURRENT=1
+LT_CURRENT=2
 LT_REVISION=0
-LT_AGE=1
+LT_AGE=2
 
 AC_SUBST(LT_CURRENT)
 AC_SUBST(LT_REVISION)
