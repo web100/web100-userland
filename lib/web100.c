@@ -1,8 +1,21 @@
 /*
- * Copyright (c) 2001
- *      Carnegie Mellon University, The Board of Trustees of the University
- *      of Illinois, and University Corporation for Atmospheric Research.
- *      All rights reserved.  This software comes with NO WARRANTY.
+ * Copyright (c) 2001 Carnegie Mellon University,
+ *                    The Board of Trustees of the University of Illinois,
+ *                    and University Corporation for Atmospheric Research.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation; either version 2.1 of the License, or (at your
+ * option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
  *
  * Since our code is currently under active development we prefer that
  * everyone gets the it directly from us.  This will permit us to
@@ -12,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.4 2002/01/25 21:14:20 engelhar Exp $
+ * $Id: web100.c,v 1.5 2002/02/06 22:28:26 engelhar Exp $
  */
 #include <assert.h>
 #include <stdio.h>
