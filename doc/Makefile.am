@@ -1,4 +1,4 @@
-# SUBDIRS = man
+SUBDIRS = man
 DOC_FILES = developer-guide.txt user-guide.txt
 
 docdir = $(prefix)/doc/$(PACKAGE)-$(VERSION)
