@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.21 2002/05/22 16:31:07 jestabro Exp $
+ * $Id: web100.c,v 1.22 2002/06/17 21:17:38 jestabro Exp $
  */
 
 #include <assert.h>
@@ -107,7 +107,7 @@ size_from_type(WEB100_TYPE type)
     case WEB100_TYPE_UNSIGNED16:
         return 2;
     default:
-        assert(FALSE);
+//        assert(FALSE);
         return 0;
     }
 }
@@ -202,7 +202,15 @@ _web100_agent_attach_header(FILE *header)
 
             IFDEBUG(printf("_web100_agent_attach_local: new var: %s %d %d\n", vp->name, vp->offset, vp->type));
             
-            gp->size += size_from_type(vp->type);
+	    /* if type unrecognized, forgo adding the variable */
+	    if(size_from_type(vp->type))
+	       	gp->size += size_from_type(vp->type);
+	    else {
+		free(vp);
+		gp->size += 8;
+		continue;
+	    }
+
             gp->nvars++;
             
             vp->info.local.next = gp->info.local.var_head;
@@ -794,7 +802,7 @@ web100_snap(web100_snapshot *snap)
         return -WEB100_ERR_NOCONNECTION;
     }
     
-    if (fread(snap->data, snap->group->size, 1, fp) != 1) {
+    if ((fread(snap->data, snap->group->size, 1, fp) != 1) && !feof(fp)){
         web100_errno = WEB100_ERR_NOCONNECTION;
         return -WEB100_ERR_NOCONNECTION;
     }
@@ -1365,7 +1373,7 @@ web100_free_connection_info(struct web100_connection_info *res)
 	free(tmp);
     }
 }
-
+#if 0
 int
 web100_diagnose_start(web100_connection *conn)
 {
@@ -1424,7 +1432,7 @@ Cleanup:
     conn->logstate = TRUE;
     return WEB100_ERR_SUCCESS;
 }
-
+#endif
 int
 web100_diagnose_stop(web100_connection *conn)
 {
@@ -1724,7 +1732,7 @@ web100_snap_from_log(web100_snapshot* snap, web100_log *log)
         return -WEB100_ERR_FILE; 
     }        
 
-    if((fread(snap->data, snap->group->size, 1, log->fp)) != 1) {
+    if((fread(snap->data, snap->group->size, 1, log->fp) != 1) && !feof(log->fp)) {
 	web100_errno = WEB100_ERR_FILE; 
 	return -WEB100_ERR_FILE; 
     }
