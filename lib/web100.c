@@ -12,7 +12,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.3 2002/01/23 18:53:05 jestabro Exp $
+ * $Id: web100.c,v 1.4 2002/01/25 21:14:20 engelhar Exp $
  */
 #include <assert.h>
 #include <stdio.h>
@@ -114,6 +114,9 @@ _web100_agent_attach_local(void)
         web100_errno = WEB100_ERR_NOMEM;
         goto Cleanup;
     }
+
+    /* agent must be 0-filled to get the correct list adding semantics */
+    bzero(agent, sizeof(web100_agent));
 
     agent->type = WEB100_AGENT_TYPE_LOCAL;
     
