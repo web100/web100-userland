@@ -97,8 +97,8 @@ III. Tools
 	Launch the DTB tool by running the following command in
 	util/gui directory:
 
-		util dtb &		on the local  machine;
-		util dtb -r &	on the remote machine
+		gutil dtb &		on the local  machine;
+		gutil dtb -r &	on the remote machine 
 
 	This brings up the DTB window.  Please see the note above on
 	"Customization" to set the colors for these windows.
