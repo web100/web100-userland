@@ -1,4 +1,4 @@
-bin_PROGRAMS = util
+bin_PROGRAMS = gutil
 RC_FILES = web100.rc lcl.rc rmt.rc
 
 INCLUDES = @STRIP_BEGIN@ \
@@ -7,11 +7,11 @@ INCLUDES = @STRIP_BEGIN@ \
 	-DWEB100_CONF_DIR=\"$(WEB100_CONF_DIR)\" \
 	@STRIP_END@
 
-util_LDADD = \
+gutil_LDADD = \
 	$(top_builddir)/lib/libweb100.la \
 	@GTK_LIBS@
 
-util_SOURCES = \
+gutil_SOURCES = \
 	avd_list_wgt.c \
 	avd_list_wgt.h \
 	avd_table_wgt.c \
@@ -35,8 +35,14 @@ util_SOURCES = \
 	triage_wgt.h \
 	ur_launch.c \
 	ur_launch.h \
-	util.c \
+	gutil.c \
 	vars.h \
+	vdt_wgt.c \
+	vdt_wgt.h \
+	wcmeter.c \
+	wcmeter.h \
+	wcgraph.c \
+	wcgraph.h \
 	wcpie.c \
 	wcpie.h \
 	web100obj.c \
