@@ -87,7 +87,11 @@ AC_SUBST(GTK_LIBS)
 AC_SUBST(GTK_CFLAGS)
 
 dnl checks for header files
+AC_CHECK_HEADER(malloc.h, [AC_DEFINE(HAVE_MALLOC_H)], [])
+
 dnl checks for typedefs
+AC_TYPE_SOCKLEN_T
+
 dnl checks for structures
 dnl checks for compiler characteristics
 dnl checks for library functions

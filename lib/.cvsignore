@@ -1,6 +1,7 @@
+.deps
 .libs
-Makefile.in
 Makefile
-web100.lo
+Makefile.in
 libweb100.la
 man
+web100.lo

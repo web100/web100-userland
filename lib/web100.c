@@ -25,9 +25,10 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.23 2002/06/18 05:37:38 jestabro Exp $
+ * $Id: web100.c,v 1.24 2002/07/31 04:50:47 engelhar Exp $
  */
 
+#include "config.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>

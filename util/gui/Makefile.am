@@ -51,4 +51,4 @@ gutil_SOURCES = \
 confdir = $(WEB100_CONF_DIR)
 conf_DATA = $(RC_FILES)
 
-EXTRA_DIST += $(RC_FILES)
+EXTRA_DIST = $(RC_FILES)

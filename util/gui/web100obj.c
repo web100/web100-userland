@@ -1,7 +1,10 @@
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <malloc.h>
+#ifdef HAVE_MALLOC_H
+# include <malloc.h>
+#endif
 #include <gtk/gtk.h> 
 #include "web100.h" 
 #include "web100sync.h"

@@ -23,5 +23,5 @@ all_manpages := libweb100.3 \
                 web100_var_head.3 \
                 web100_var_next.3
 
-man_MANS += $(all_manpages)
-EXTRA_DIST += $(all_manpages)
+man_MANS = $(all_manpages)
+EXTRA_DIST = $(all_manpages)
