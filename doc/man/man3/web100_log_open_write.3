@@ -1,0 +1,56 @@
+.\" $Id: web100_log_open_write.3,v 1.1 2002/06/27 21:16:45 jestabro Exp $
+.TH WEB100_LOG 3 "27 JUNE 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_log_open_write, web100_log_open_read, web100_log_write,
+web100_log_close_write, web100_log_close_read,
+web100_snap_from_log, web100_snapshot_alloc_from_log
+\- read/write the values of Web100 variables from/to a file
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "web100_log* web100_log_open_write(char* " logname ", web100_connection* " conn ", web100_group* " group ");"
+.BI "web100_log* web100_log_open_read(char* " logname ");"
+.BI "int web100_log_write(web100_log* " log ", web100_snapshot* " snap ");"
+.BI "int web100_log_close_write(web100_log* " log ");"
+.BI "int web100_log_close_read(web100_log* " log "); " 
+.BI "int web100_snap_from_log(web100_snapshot* " snap ", web100_log* " log ");
+.BI "web100_snapshot* web100_snapshot_alloc_from_log(web100_log* " log ");"
+.fi
+.SH DESCRIPTION
+The values of Web100 variables are read atomically from the kernel
+on a per connection, per
+\fIgroup\fR basis; these atomic snapshots may be written to a file, and later
+recovered using the \fIweb100_log\fR functions. Snapshots are written to a file
+using \fBweb100_log_write\fR. The manner of reading snapshots
+from a log file mirrors that of reading live data, as follows: to read live
+data, one first calls \fBweb100_snapshot_alloc\fR, and obtains an atomic
+snapshot with \fBweb100_snap\fR; to read logged data, one first calls
+\fBweb100_snapshot_alloc_from_log\fR, and then obtains the logged snapshot with
+\fBweb100_snap_from_log\fR. \fIweb100_log\fR file handling is done through the
+appropriate open and close functions.
+.PP
+\fBweb100_log_open_write\fR opens a \fIweb100_log\fR file for writing live
+data.
+\fBweb100_log_open_read\fR opens a web100_log file for reading logged data.
+.PP
+\fBweb100_log_write\fR writes a snapshot to a writable \fIweb100_log\fR file.
+.PP
+\fBweb100_log_close_write\fR closes a writable \fIweb100_log\fR file.
+\fBweb100_log_close_read\fR closes a readable \fIweb100_log\fR file.
+.PP
+\fBweb100_snapshot_alloc_from_log\fR allocates a snapshot structure of
+sufficient size for reading from a given \fIweb100_log\fR file.
+\fBweb100_snap_from_log\fR reads the next snapshot from the \fIweb100_log\fR file.  
+.SH RETURN VALUES
+\fBweb100_log_open_write\fR, respectively, \fBweb100_log_open_read\fR return the
+writable, resp., readable \fIweb100_log\fR file, or NULL upon failure.
+.PP
+\fBweb100_log_write\fR, \fBweb100_log_close_write\fR, \fBweb100_log_close_read\fR,
+and \fBweb100_snap_from_log\fR, return 0 upon success, or \fIweb100_errno\fR
+upon failure.
+.PP
+\fBweb100_snapshot_alloc_from_log\fR returns \fIweb100_snapshot\fR, or NULL
+upon failure.
+.SH SEE ALSO
+.BR libweb100 (3)
