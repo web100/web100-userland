@@ -5,6 +5,10 @@ News
 the last release.
 
   Alpha 1.2pre1:
+    o NOTE: The binary interface to libweb100 has changed slightly.  This
+      means that existing applications must be recompiled and relinked
+      with libweb100.  However, it is very likely that the recompile will
+      not require changes to existing source code.
     o Added support for both IPv4 and IPv6 types from the kernel (previous
       versions of the library would crash if the kernel returned IPv6
       values).
