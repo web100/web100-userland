@@ -302,6 +302,9 @@ select_button_callback (GtkButton *button, gpointer data)
   GtkTreeSelection *listselect;
 #else
 #endif
+  static char hostname[64];
+  size_t len;
+  char titlebar[128];
 
   connselect = CONNECTION_SELECT (data);
 
@@ -310,6 +313,11 @@ select_button_callback (GtkButton *button, gpointer data)
   connselect->connection_list = connlist;
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gethostname (hostname, len);
+  strcpy (titlebar, "Connection list");
+  strcat (titlebar, "@");
+  strncat (titlebar, hostname, 64);
+  gtk_window_set_title (GTK_WINDOW (window), titlebar);
 
   gtk_window_set_default_size (GTK_WINDOW (window), 400, 200);
 
