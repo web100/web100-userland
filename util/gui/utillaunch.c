@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <gtk/gtk.h>
 #include "config.h"
 #include "utillaunch.h"
@@ -88,6 +89,9 @@ util_launch (char *name, Web100Object *web100obj, gboolean master, gboolean loca
   GtkWidget *label;
   GtkWidget *hscale;
 
+  static char hostname[64];
+  size_t len;
+  char titlebar[128];
   static gint xpos = 0, ypos = 0;
   GdkRectangle bbox;
 
@@ -111,6 +115,11 @@ util_launch (char *name, Web100Object *web100obj, gboolean master, gboolean loca
   }
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gethostname (hostname, len);
+  strncpy (titlebar, name, UTIL_NAME_LEN_MAX);
+  strcat (titlebar, "@");
+  strncat (titlebar, hostname, 64);
+  gtk_window_set_title (GTK_WINDOW (window), titlebar);
 
   if (master) {
     gtk_signal_connect (GTK_OBJECT (window), "destroy", GTK_SIGNAL_FUNC (gtk_main_quit), NULL);
