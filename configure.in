@@ -73,7 +73,7 @@ AC_SUBST(STRIP_BEGIN)
 AC_SUBST(STRIP_END)
 
 dnl checks for libraries
-AM_PATH_GTK(1.2.0,,AC_MSG_ERROR(web100 requires GTK))
+AM_PATH_GTK(1.2.0,[LIBS="$LIBS $GTK_LIBS" CFLAGS="$CFLAGS $GTK_CFLAGS"],AC_MSG_ERROR(web100 requires GTK))
 
 dnl checks for header files
 dnl checks for typedefs
@@ -89,4 +89,5 @@ doc/Makefile
 lib/Makefile
 util/Makefile
 util/scripts/Makefile
+util/gui/Makefile
 ], [chmod +x web100-config])
