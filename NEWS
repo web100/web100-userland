@@ -4,6 +4,9 @@ News
     This document gives an overview of the major changes of the software since
 the last release.
 
+  Alpha 1.2:
+    o No changes from Alpha 1.2pre2.
+
   Alpha 1.2pre2:
     o Fixed the binary interface incompatibilities that were introduced
       in Alpha 1.2pre1.  This means that programs which were compiled
