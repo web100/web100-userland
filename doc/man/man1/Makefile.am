@@ -1,7 +1,7 @@
 all_manpages := deltavar.1 \
                 readall.1 \
                 readvar.1 \
-                util.1 \
+                gutil.1 \
                 web100-config.1 \
                 writevar.1
 
