@@ -49,6 +49,8 @@ How To Make A Release
   warnings.
 - Run 'make distcheck' to verify the distribution can be built from
   the tarball.
+- Do any last-minute checking of the final tarball
+- Make sure all changes are checked in
 - Run 'cvs tag VERSION_NUMBER' to tag the entire source code tree as version
   VERSION_NUMBER.  To see what tags already exist, use 'cvs status -v
   <file>'.  Note: This doesn't create an branch, and seems to be a fairly
