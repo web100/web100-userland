@@ -41,7 +41,7 @@ II. Brief Overview of the TCP Kernel Instrument Set (TCP-KIS)
 
 III. Tools
 
-    The userland distribution contains the web100 library and set
+    The userland distribution contains the web100 library and a set
     of tools.  Please see the README and INSTALL documents for
     additional details about the contents of the distribution and
     the procedure for installation.
@@ -51,25 +51,25 @@ III. Tools
 
     Please keep in mind the following things about using these tools:
 
-      - Customization: The following customization files can be used for
-	customizing the colors and fonts of the windows that are opened
-	by the tools:
+      - Customization: If you are starting a monitoring session on a local
+	machine and a remote machine, both displaying X-windows on the
+	local host, there needs to be a way to distinguish between the
+	windows from the local machine versus the windows from the
+	remote machine.  The following customization files can be used
+	for customizing the colors and fonts of the windows that are
+	opened by the tools:
 
 	     web100.rc - the .rc file used by the tools by default
 	     lcl.rc    - the .rc file used by the tools with "-l" option
 	     rmt.rc    - the .rc file used by the tools when "-r" option
 
-	If you are monitoring a session on a local machine and a remote
-	machine, both displaying X-windows on the local host there needs
-	to be a way to distinguish between the windows from the local
-	machine versus the windows from the remote machine.  Using the
-	"-l" option when running the tools on the remote machine causes
-	the tools to display colors using the choices in "lcl.rc" file.
-	Similarly using the "-r" option when running the tools on the
-	remote machine causes the tools to display colors using the
-	choices in "rmt.rc" file.  Alternatively, one can simply edit
-	"web100.rc" on different machine so that tools bring up windows
-	in different colors.
+	Using the "-l" option when running the tools on the local
+	machine causes the tools to display colors using the choices
+	in "lcl.rc" file.  Similarly using the "-r" option when
+	running the tools on the remote machine causes the tools to
+	display colors using the choices in "rmt.rc" file.
+	Alternatively, one can simply edit "web100.rc" on different
+	machine so that tools bring up windows in different colors.
 
     The current tool set consists of the following GUI tools/applications
     based on GTK (Version 1.27):
@@ -97,9 +97,9 @@ III. Tools
 	util/gui directory:
 
 		gutil dtb &		on the local  machine;
-		gutil dtb -r &	on the remote machine 
+		gutil dtb -r &	        on the remote machine 
 
-	This brings up the DTB window.  Please see the note above on
+	This brings up the DTB windows.  Please see the note above on
 	"Customization" to set the colors for these windows.
 
 	The titlebar of the DTB window has the name of the host on
@@ -354,3 +354,11 @@ IV. Trouble-shooting TCP Performance With Web100
     ultimate performance limit and it will be reported by the triage
     tool.
 
+IV. Documentation/Help
+
+    Please see the man pages for additional information.  A good place
+    to start is the man page for gutil.  Manual pages generally
+    expected to be more current than this document.
+
+    If you have any problems/comments, please feel free to send email
+    to support@web100.org.
