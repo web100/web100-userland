@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.34 2003/02/12 17:59:26 jestabro Exp $
+ * $Id: web100.c,v 1.35 2004/04/29 17:19:51 mathis Exp $
  */
 
 #include "config.h"
@@ -1023,9 +1023,14 @@ web100_raw_write(web100_var *var, web100_connection *conn, void *buf)
         web100_errno = WEB100_ERR_FILE;
         return -WEB100_ERR_FILE;
     }
-    
+
+    if (fflush(fp)) {
+	perror("web100_raw_write: flush failed");
+	return -WEB100_ERR_FILE;
+    }
+
     if (fclose(fp))
-        perror("web100_raw_read: fclose");
+        perror("web100_raw_write: fclose");
     
     return WEB100_ERR_SUCCESS;
 }
