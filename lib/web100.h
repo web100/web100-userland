@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * * $Id: web100.h,v 1.5 2002/02/06 22:28:27 engelhar Exp $
+ * * $Id: web100.h,v 1.6 2002/02/12 16:48:26 engelhar Exp $
  */
 #ifndef _WEB100_H
 #define _WEB100_H
@@ -79,6 +79,7 @@ struct web100_socket_data {
 #define WEB100_ERR_INVAL           5
 #define WEB100_ERR_HEADER          6
 #define WEB100_ERR_NOVAR           7
+#define WEB100_ERR_NOGROUP         8
 
 extern int               web100_errno;
 extern const char* const web100_sys_errlist[];

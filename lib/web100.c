@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.5 2002/02/06 22:28:26 engelhar Exp $
+ * $Id: web100.c,v 1.6 2002/02/12 16:48:25 engelhar Exp $
  */
 #include <assert.h>
 #include <stdio.h>
@@ -64,10 +64,11 @@ const char* const web100_sys_errlist[] = {
     "file read/write error",               /* WEB100_ERR_FILE */
     "unsupported agent type",              /* WEB100_ERR_AGENT_TYPE */
     "no memory",                           /* WEB100_ERR_NOMEM */
-    "unable to open connection stats",     /* WEB100_ERR_NOCONNECTION */
+    "connection not found",                /* WEB100_ERR_NOCONNECTION */
     "invalid arguments",                   /* WEB100_ERR_INVAL */
     "could not parse " WEB100_HEADER_FILE, /* WEB100_ERR_HEADER */
     "variable not found",                  /* WEB100_ERR_NOVAR */
+    "group not found",                     /* WEB100_ERR_NOGROUP */
 };
 
 /*
@@ -463,7 +464,7 @@ web100_group_find(web100_agent *agent, char *name)
         gp = gp->info.local.next;
     }
     
-    web100_errno = WEB100_ERR_SUCCESS;
+    web100_errno = (gp == NULL ? WEB100_ERR_NOGROUP : WEB100_ERR_SUCCESS);
     return gp;
 }
 
@@ -519,8 +520,8 @@ web100_var_find(web100_group *group, const char *name)
             break;
         vp = vp->info.local.next;
     }
-    
-    web100_errno = WEB100_ERR_SUCCESS;
+
+    web100_errno = (vp == NULL ? WEB100_ERR_NOVAR : WEB100_ERR_SUCCESS);
     return vp;
 }
 
@@ -612,6 +613,7 @@ web100_connection_find(web100_agent *agent,
         cp = cp->info.local.next;
     }
     
+    web100_errno = (cp == NULL ? WEB100_ERR_NOCONNECTION : WEB100_ERR_SUCCESS);
     return cp;
 }
 
@@ -640,7 +642,8 @@ web100_connection_lookup(web100_agent *agent, int cid)
             break;
         cp = cp->info.local.next;
     }
-    
+
+    web100_errno = (cp == NULL ? WEB100_ERR_NOCONNECTION : WEB100_ERR_SUCCESS);
     return cp;
 }
 
