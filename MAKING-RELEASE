@@ -47,6 +47,14 @@ How To Make A Release
 - Run autogen.sh, configure, and 'make dist'
 - Run 'make distcheck' to verify the distribution can be built from
   the tarball.
+- Run 'cvs tag VERSION_NUMBER' to tag the entire source code tree as version
+  VERSION_NUMBER.  To see what tags already exist, use 'cvs status -v
+  <file>'.  Note: This doesn't create an branch, and seems to be a fairly
+  quick action.
+- Update the current tags below:
+
+  Current tags:
+    ALPHA_1_0 - Alpha1.0 release
 
 Notes About libweb100 Versioning
 ================================
