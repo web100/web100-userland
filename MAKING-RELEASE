@@ -43,7 +43,7 @@ How To Make A Release
   COPYING
   INSTALL
   NEWS
-  README (including version number at top)
+  README
   doc/developers-guide.txt
   doc/users-guide.txt
   man3/libweb100.3's routine name table

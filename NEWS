@@ -4,6 +4,19 @@ News
     This document gives an overview of the major changes of the software since
 the last release.
 
+  Alpha 1.2pre1:
+    o Added support for both IPv4 and IPv6 types from the kernel (previous
+      versions of the library would crash if the kernel returned IPv6
+      values).
+    o Added support for logging values from the kernel
+    o Addition of 'readvarm' and 'readconn' scripts
+    o Addition of man pages for many functions, such as the snapshot and
+      logging functions (some are only stubs).
+    o Many GUI improvements and cleanups
+    o Updates and cleanups to the developer's and user's guide.
+    o Removed some items from web100.h that were not meant to be public
+    o Support building on systems which do not have socklen_t
+
   Alpha 1.1:
     o GUI fixes: Renamed "util" to "gutil", fixed the vdt display,
       consolidation of code, miscellaneous bug and display fixes.
