@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.13 2002/02/28 17:29:54 engelhar Exp $
+ * $Id: web100.c,v 1.14 2002/03/13 19:12:17 jestabro Exp $
  */
 
 #include <assert.h>
@@ -637,6 +637,36 @@ web100_connection_data_copy(web100_connection *dest, web100_connection *src)
     return WEB100_ERR_SUCCESS;
 }
 
+web100_connection*
+web100_connection_new_local_copy(web100_connection *src)
+{
+    web100_connection *conn;
+
+    if (!src) {
+	web100_errno = WEB100_ERR_INVAL;
+	return NULL;
+    }
+
+    if ((conn = malloc(sizeof (web100_connection))) == NULL ) {
+       	web100_errno = WEB100_ERR_NOMEM;
+       	return NULL;
+    }
+    conn->agent = src->agent;
+    conn->cid = src->cid;
+    memcpy(&conn->spec, &src->spec, sizeof(struct web100_connection_spec));
+
+    return conn;
+}
+
+void
+web100_connection_free_local_copy(web100_connection *conn)
+{
+    if (!conn) {
+	web100_errno = WEB100_ERR_INVAL;
+	return;
+    }
+    free(conn);
+}
 
 /*@
 web100_snapshot_alloc - allocate a snapshot
