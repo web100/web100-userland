@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.26 2002/08/06 18:09:00 jheffner Exp $
+ * $Id: web100.c,v 1.27 2002/08/06 18:17:21 jheffner Exp $
  */
 
 #include "config.h"
@@ -744,7 +744,7 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
     struct sockaddr_in6 ne6, fe6; /* near and far ends */
     socklen_t namelen; /* may not be POSIX */
     struct web100_connection_spec spec; /* connection tuple */
-    struct web100_connection_spec_v6 spec_v6;
+    struct web100_connection_spec_v6 spec6;
 
     /* XXX TODO XXX: Should we only allow local agents? */
     
@@ -773,7 +773,11 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
         return web100_connection_find(agent, &spec);
     }
     case AF_INET6:
-        /* XXX TODO:  Add ipv6 support. */
+        memcpy(&spec6.src_addr, &ne6.sin6_addr, 16);
+        spec6.src_port = ntohs(ne6.sin6_port);
+        memcpy(&spec6.dst_addr, &fe6.sin6_addr, 16);
+        spec6.dst_port = ntohs(fe6.sin6_port);
+        return web100_connection_find_v6(agent, &spec6);
     default:
         web100_errno = WEB100_ERR_SOCK;
         return NULL;
