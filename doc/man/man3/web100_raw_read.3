@@ -1,0 +1,37 @@
+.\" $Id: web100_raw_read.3,v 1.1 2002/12/12 19:54:25 engelhar Exp $
+.TH web100_raw_read 3 "12 December 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_raw_read, web100_raw_write \- immediate read and write of Web100
+variables
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "int web100_raw_read(web100_var* " var ", web100_connection* " conn ", void* " buf ");"
+.BI "int web100_raw_write(web100_var* " var ", web100_connection* " conn ", void* " buf ");"
+.fi
+.SH DESCRIPTION
+These functions are for immediate reading and writing of variables in
+Web100 connections.
+.SH RETURN VALUES
+Both \fBweb100_raw_read()\fR and \fBweb100_raw_write()\fR return
+WEB100_ERR_SUCCESS on success, and an error code on failure.
+.SH EXAMPLE USE
+.nf
+/* Warning: no errorhandling below... */
+web100_agent* agent;
+web100_connection* conn;
+web100_group* group;
+web100_var* var;
+char buf[256];
+int cid;
+
+/* Initialize cid... */
+agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL);
+conn = web100_connection_lookup(agent, cid);
+web100_agent_find_var_and_group(agent, "RemotePort", &group, &var);
+web100_raw_read(var, conn, buf);
+.fi
+.SH SEE ALSO
+.BR web100_value_to_text (3),
+.BR libweb100 (3)

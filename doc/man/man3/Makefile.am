@@ -1,33 +1,66 @@
 all_manpages := libweb100.3 \
+                web100_agent_accessors.3 \
                 web100_agent_find_var_and_group.3 \
                 web100_attach.3 \
+                web100_connection_accessors.3 \
+                web100_connection_copy.3 \
+                web100_connection_data_copy.3 \
                 web100_connection_find.3 \
                 web100_connection_find_v6.3 \
+                web100_connection_free_local_copy.3 \
                 web100_connection_from_socket.3 \
                 web100_connection_head.3 \
                 web100_connection_lookup.3 \
+                web100_connection_new_local_copy.3 \
                 web100_connection_next.3 \
                 web100_delta_any.3 \
                 web100_detach.3 \
+                web100_get_agent_type.3 \
+                web100_get_agent_version.3 \
+                web100_get_connection_agent.3 \
+                web100_get_connection_cid.3 \
+                web100_get_connection_spec.3 \
+                web100_get_group_name.3 \
+                web100_get_group_nvars.3 \
+                web100_get_group_size.3 \
+                web100_get_log_agent.3 \
+                web100_get_log_connection.3 \
+                web100_get_log_group.3 \
+                web100_get_log_time.3 \
+                web100_get_snap_group.3 \
+                web100_get_snap_group_name.3 \
+                web100_get_var_name.3 \
+                web100_get_var_size.3 \
+                web100_get_var_type.3 \
+                web100_group_accessors.3 \
                 web100_group_find.3 \
                 web100_group_head.3 \
                 web100_group_next.3 \
+                web100_log_accessors.3 \
                 web100_log_close_read.3 \
                 web100_log_close_write.3 \
                 web100_log_open_read.3 \
                 web100_log_open_write.3 \
                 web100_log_write.3 \
                 web100_perror.3 \
-                web100_snap.3 \
-                web100_snap_from_log.3 \
-                web100_snap_read.3 \
-                web100_snapshot_alloc.3 \
-                web100_snapshot_free.3 \
-                web100_snapshot_alloc_from_log.3 \
-                web100_strerror.3 \
-                web100_var_find.3 \
-                web100_var_head.3 \
-                web100_var_next.3
+                web100_raw_read.3 \
+		web100_raw_write.3 \
+		web100_snap.3 \
+		web100_snap_accessors.3 \
+		web100_snap_data_copy.3 \
+		web100_snap_from_log.3 \
+		web100_snap_group.3 \
+		web100_snap_read.3 \
+		web100_snapshot_alloc.3 \
+		web100_snapshot_alloc_from_log.3 \
+		web100_snapshot_free.3 \
+		web100_strerror.3 \
+		web100_value_to_text.3 \
+		web100_value_to_textn.3 \
+		web100_var_accessors.3 \
+		web100_var_find.3 \
+		web100_var_head.3 \
+		web100_var_next.3
 
 man_MANS = $(all_manpages)
 EXTRA_DIST = $(all_manpages)

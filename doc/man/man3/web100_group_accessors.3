@@ -1,0 +1,26 @@
+.\" $Id: web100_group_accessors.3,v 1.1 2002/12/12 19:54:25 engelhar Exp $
+.TH WEB100_GROUP 3 "12 December 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_get_group_name, web100_get_group_nvars, web100_get_group_size \-
+get values from the Web100 group opaque structure
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "const char* web100_get_group_name(web100_group* " group ");"
+.BI "int         web100_get_group_size(web100_group* " group ");"
+.BI "int         web100_get_group_nvars(web100_group* " group ");"
+.fi
+.SH DESCRIPTION
+As the \fIweb100_group\fR structure is opaque, these functions exist to
+fetch values from it without exposing its structure.
+.SH RETURN VALUES
+\fBweb100_get_group_name()\fR returns the name of the group.
+.PP
+\fBweb100_get_group_size()\fR returns the total size of all the group
+variables in bytes.
+.PP
+\fBweb100_get_group_nvars()\fR returns the number of variables in the
+group.
+.SH SEE ALSO
+.BR libweb100 (3)

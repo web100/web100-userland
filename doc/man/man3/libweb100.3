@@ -1,5 +1,9 @@
-.\" $Id: libweb100.3,v 1.7 2002/09/30 20:24:08 engelhar Exp $
-.TH libweb100 3 "26 February 2002" "Web100 Userland" "Web100"
+.\" $Id: libweb100.3,v 1.8 2002/12/12 19:54:22 engelhar Exp $
+.\" TODO:
+.\" - web100_log_eof()
+.\" - DEF_GAUGE/DEF_COUNTER?
+.\" - web100_types?  (what is a WEB100_TYPE, WEB100_ADDRTYPE, ...)
+.TH libweb100 3 "12 December 2002" "Web100 Userland" "Web100"
 .SH NAME
 libweb100 \- Web100 connection staticstics handling and manipulation library
 .SH SYNOPSIS
@@ -18,42 +22,69 @@ A program using these routines must be linked with the \fB-lweb100\fR
 option.  Using the output from \fIweb100-config --libs\fR is a simple
 way to ensure that the library is found and linked in correctly.
 .PP
-.SS Routine Name Index The following table lists each \fBlibweb100\fR
+.SS Routine Name Index
+The following table lists each \fBlibweb100\fR
 routine and the name of the master manual page on which it is described
 (man "\fIroutine_name\fR" redirects to this page):
 .PP
 .nf
-\fBlibweb100\fR Routine Name           Manual Page Name
-======================           =====================
-web100_agent_find_var_and_group  \fBweb100_agent_find_var_and_group\fR(3)
-web100_attach                    \fBweb100_attach\fR(3)
-web100_connection_find           \fBweb100_connection_find\fR(3)
-web100_connection_find_v6        \fBweb100_connection_find\fR(3)
-web100_connection_from_socket    \fBweb100_connection_find\fR(3)
-web100_connection_head           \fBweb100_connection_find\fR(3)
-web100_connection_lookup         \fBweb100_connection_find\fR(3)
-web100_connection_next           \fBweb100_connection_find\fR(3)
-web100_delta_any                 \fBweb100_snap_read\fR(3)
-web100_detach                    \fBweb100_attach\fR(3)
-web100_group_find                \fBweb100_group_find\fR(3)
-web100_group_head                \fBweb100_group_find\fR(3)
-web100_group_next                \fBweb100_group_find\fR(3)
-web100_log_close_read            \fBweb100_log_open_write\fR(3)
-web100_log_close_write           \fBweb100_log_open_write\fR(3)
-web100_log_open_read             \fBweb100_log_open_write\fR(3)
-web100_log_open_write            \fBweb100_log_open_write\fR(3)
-web100_log_write                 \fBweb100_log_open_write\fR(3)
-web100_perror                    \fBweb100_perror\fR(3)
-web100_snap                      \fBweb100_snap\fR(3)
-web100_snap_from_log             \fBweb100_log_open_write\fR(3)
-web100_snap_read                 \fBweb100_snap_read\fR(3)
-web100_snapshot_alloc            \fBweb100_snap\fR(3)
-web100_snapshot_alloc_from_log   \fBweb100_log_open_write\fR(3)
-web100_snapshot_free             \fBweb100_snap\fR(3)
-web100_strerror                  \fBweb100_strerror\fR(3)
-web100_var_find                  \fBweb100_var_find\fR(3)
-web100_var_head                  \fBweb100_var_find\fR(3)
-web100_var_next                  \fBweb100_var_find\fR(3)
+\fBlibweb100\fR Routine Name             Manual Page Name
+======================             =====================
+web100_agent_find_var_and_group    \fBweb100_agent_find_var_and_group\fR(3)
+web100_attach                      \fBweb100_attach\fR(3)
+web100_connection_data_copy        \fBweb100_connection_copy\fR(3)
+web100_connection_find             \fBweb100_connection_find\fR(3)
+web100_connection_find_v6          \fBweb100_connection_find\fR(3)
+web100_connection_free_local_copy  \fBweb100_connection_copy\fR(3)
+web100_connection_from_socket      \fBweb100_connection_find\fR(3)
+web100_connection_head             \fBweb100_connection_find\fR(3)
+web100_connection_lookup           \fBweb100_connection_find\fR(3)
+web100_connection_new_local_copy   \fBweb100_connection_copy\fR(3)
+web100_connection_next             \fBweb100_connection_find\fR(3)
+web100_delta_any                   \fBweb100_snap_read\fR(3)
+web100_detach                      \fBweb100_attach\fR(3)
+web100_get_agent_type              \fBweb100_agent_accessors\fR(3)
+web100_get_agent_version           \fBweb100_agent_accessors\fR(3)
+web100_get_connection_agent        \fBweb100_connection_accessors\fR(3)
+web100_get_connection_cid          \fBweb100_connection_accessors\fR(3)
+web100_get_connection_spec         \fBweb100_connection_accessors\fR(3)
+web100_get_group_name              \fBweb100_group_accessors\fR(3)
+web100_get_group_nvars             \fBweb100_group_accessors\fR(3)
+web100_get_group_size              \fBweb100_group_accessors\fR(3)
+web100_get_log_agent               \fBweb100_log_accessors\fR(3)
+web100_get_log_group               \fBweb100_log_accessors\fR(3)
+web100_get_log_connection          \fBweb100_log_accessors\fR(3)
+web100_get_log_time                \fBweb100_log_accessors\fR(3)
+web100_get_snap_group              \fBweb100_snap_accessors\fR(3)
+web100_get_snap_group_name         \fBweb100_snap_accessors\fR(3)
+web100_get_var_name                \fBweb100_var_accessors\fR(3)
+web100_get_var_size                \fBweb100_var_accessors\fR(3)
+web100_get_var_type                \fBweb100_var_accessors\fR(3)
+web100_group_find                  \fBweb100_group_find\fR(3)
+web100_group_head                  \fBweb100_group_find\fR(3)
+web100_group_next                  \fBweb100_group_find\fR(3)
+web100_log_close_read              \fBweb100_log_open_write\fR(3)
+web100_log_close_write             \fBweb100_log_open_write\fR(3)
+web100_log_open_read               \fBweb100_log_open_write\fR(3)
+web100_log_open_write              \fBweb100_log_open_write\fR(3)
+web100_log_write                   \fBweb100_log_open_write\fR(3)
+web100_perror                      \fBweb100_perror\fR(3)
+web100_raw_read                    \fBweb100_raw_read\fR(3)
+web100_raw_write                   \fBweb100_raw_read\fR(3)
+web100_snap                        \fBweb100_snap\fR(3)
+web100_snap_data_copy              \fBweb100_snap_data_copy\fR(3)
+web100_snap_from_log               \fBweb100_log_open_write\fR(3)
+web100_snap_group                  \fBweb100_snap_accessors\fR(3)
+web100_snap_read                   \fBweb100_snap_read\fR(3)
+web100_snapshot_alloc              \fBweb100_snap\fR(3)
+web100_snapshot_alloc_from_log     \fBweb100_log_open_write\fR(3)
+web100_snapshot_free               \fBweb100_snap\fR(3)
+web100_strerror                    \fBweb100_strerror\fR(3)
+web100_value_to_text               \fBweb100_value_to_text\fR(3)
+web100_value_to_textn              \fBweb100_value_to_text\fR(3)
+web100_var_find                    \fBweb100_var_find\fR(3)
+web100_var_head                    \fBweb100_var_find\fR(3)
+web100_var_next                    \fBweb100_var_find\fR(3)
 .fi
 .SH SEE ALSO
 .BR web100-config (1),

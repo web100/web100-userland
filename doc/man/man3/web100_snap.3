@@ -1,5 +1,5 @@
-.\" $Id: web100_snap.3,v 1.1 2002/09/05 21:28:04 engelhar Exp $
-.TH WEB100_SNAP 3 "5 September 2002" "Web100 Userland" "Web100"
+.\" $Id: web100_snap.3,v 1.2 2002/12/12 19:54:25 engelhar Exp $
+.TH WEB100_SNAP 3 "12 December 2002" "Web100 Userland" "Web100"
 .SH NAME
 web100_snap, web100_snapshot_alloc, web100_snapshot_free \- take an
 atomic snapshot of a Web100 group
@@ -7,17 +7,46 @@ atomic snapshot of a Web100 group
 .B #include <web100/web100.h>
 .PP
 .nf
-.BI "web100_snapshot* web100_snapshot_alloc(web100_group* " group ","
-.BI "                                       web100_connection* " connection ");"
+.BI "web100_snapshot* web100_snapshot_alloc(web100_group* " group ", web100_connection* " connection ");"
 .BI "void             web100_snapshot_free(web100_snapshot* " snap ");"
 .BI "int              web100_snap(web100_snapshot* " snap ");"
 .fi
 .SH DESCRIPTION
-Description goes here...
+\fBweb100_snapshot_alloc()\fR allocates the memory necessary to take a
+snapshot of the group \fIgroup\fR on the connection \fIconnection\fR.
+.PP
+\fBweb100_snapshot_free()\fR frees the previously allocated snapshot.
+.PP
+\fBweb100_snap()\fR takes a snapshot.
 .SH RETURN VALUES
-Return values go here...
+\fBweb100_snapshot_alloc()\fR returns the allocated snapshot structure,
+or \fBNULL\fR if there is an error.
+.PP
+\fBweb100_snap()\fR returns WEB100_ERR_SUCCESS if it succeeds, or an
+error code otherwise.
 .SH EXAMPLE USE
-Example use goes here
+.nf
+/* Warning: no errorhandling below...*/
+web100_agent* agent;
+web100_group* group;
+web100_connection* conn;
+web100_snapshot* snap;
+int cid, i;
+
+/* Initialize cid */
+agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL);
+group = web100_group_find(agent, "read");
+conn = web100_connection_lookup(agent, cid);
+snap = web100_snapshot_alloc(group, conn);
+for (i = 0; i < 100; i++) {
+    web100_snap(snap);
+
+    /* Use web100_snap_read, etc. */
+
+    sleep(1);
+}
+web100_snapshot_free(snap);
+.fi
 .SH SEE ALSO
 .BR web100_snap_read (3),
 .BR web100_delta_any (3),

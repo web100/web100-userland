@@ -1,0 +1,23 @@
+.\" $Id: web100_agent_accessors.3,v 1.1 2002/12/12 19:54:23 engelhar Exp $
+.TH WEB100_AGENT 3 "12 December 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_get_agent_type, web100_get_agent_version \- get values from the
+Web100 agent opaque structure
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "int         web100_get_agent_type(web100_agent* " agent ");"
+.BI "const char* web100_get_agent_version(web100_agent* " agent ");"
+.fi
+.SH DESCRIPTION
+As the \fIweb100_agent\fR structure is opaque, these functions exist to
+fetch values from it without exposing its structure.
+.SH RETURN VALUES
+\fBweb100_get_agent_type()\fR returns the type of the agent, which is
+one of WEB100_AGENT_TYPE_LOCAL or WEB100_AGENT_TYPE_LOG.
+.PP
+\fBweb100_get_agent_version()\fR returns the version of the agent as a
+string, which is custom-defined by the particular type of agent.
+.SH SEE ALSO
+.BR libweb100 (3)

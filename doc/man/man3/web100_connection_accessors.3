@@ -1,0 +1,31 @@
+.\" $Id: web100_connection_accessors.3,v 1.1 2002/12/12 19:54:23 engelhar Exp $
+.TH WEB100_CONNECTION 3 "12 December 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_get_connection_agent, web100_get_connection_cid,
+web100_get_connection_spec \- get values from the Web100 connection
+opaque structure
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "web100_agent* web100_get_connection_agent(web100_connection* " conn ");"
+.BI "int           web100_get_connection_cid(web100_connection* " conn ");"
+.BI "void          web100_get_connection_spec(web100_connection* " conn ", struct web100_connection_spec* " spec ");"
+.fi
+.SH DESCRIPTION
+As the \fIweb100_connection\fR structure is opaque, these functions
+exist to fetch values from it without exposing its structure.
+.SH RETURN VALUES
+\fBweb100_get_connection_agent()\fR returns the agent that the
+connection was obtained from.
+.PP
+\fBweb100_get_connection_cid()\fR returns the integer connection
+identifier that this connection corresponds to.
+.PP
+\fBweb100_get_connection_spec()\fR returns the
+\fIweb100_connection_spec\fR structure which corresponds with the
+connection.  This structure is defined in
+\fBweb100_connection_find\fR(3).
+.SH SEE ALSO
+.BR web100_connection_find (3),
+.BR libweb100 (3)

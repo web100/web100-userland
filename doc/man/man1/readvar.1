@@ -1,5 +1,5 @@
-.\" $Id: readvar.1,v 1.2 2002/09/03 17:36:31 engelhar Exp $
-.TH readvar 1 "26 February 2002" "Web100 Userland" "Web100"
+.\" $Id: readvar.1,v 1.3 2002/12/12 19:54:21 engelhar Exp $
+.TH readvar 1 "12 December 2002" "Web100 Userland" "Web100"
 .SH NAME
 readvar \- read the current value of a single Web100 variable from one
 connection.
@@ -7,11 +7,12 @@ connection.
 .B readvar
 .I connection_id
 .I var_name
+[\fIvar_name\fR ...]
 .SH DESCRIPTION
-\fBreadvar\fR prints out the current value of the single variable
-\fIvar_name\fR from the connection \fIconnection_id\fR.  It is one of
-the simplest programs one can write to use \fIlibweb100\fR, and thus may
-be a useful reference for developers.
+\fBreadvar\fR prints out the current value of one or more variables with
+name \fIvar_name\fR from the connection \fIconnection_id\fR.  It is one
+of the simplest programs one can write to use \fIlibweb100\fR, and thus
+may be a useful reference for developers.
 .SH SEE ALSO
 .BR gutil (1),
 .BR readall (1),

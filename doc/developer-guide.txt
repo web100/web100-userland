@@ -1,18 +1,22 @@
+                            Web100 Developer's Guide
+                            ------------------------
+
 Introduction
 ============
 
-This is the Developer's Guide for the Web100 library API.  The companion
-document, "User's Guide", provides a quick overview of the Web100 software.
+This is the Developer's Guide for the Web100 library API.  The
+companion document, "User's Guide", provides a quick overview of
+the Web100 software.
 
 This document provides examples and suggestions for those interested
-in writing applications using the web100 library API. This is an Alpha1 
-release of the API, and there will certainly be tweaks in subsequent 
-releases, however, the basic form is presumed stable, so that future 
-modifications necessitated at the application level should be minor. 
-Application programmers may rely on the library API for development, 
-though may want to familiarize themselves with issues at the level of 
-the kernel API; for this, one should refer to the document 
-proc_interface.txt to be found in
+in writing applications using the web100 library API. This is an
+alpha-level release of the API, and there will certainly be tweaks
+in subsequent releases, however, the basic form is presumed stable,
+so that future modifications necessitated at the application level
+should be minor.  Application programmers may rely on the library
+API for development, though may want to familiarize themselves with
+issues at the level of the kernel API; for this, one should refer
+to the document proc_interface.txt to be found in
 
 	 /usr/src/linux/Documentation/web100
 
@@ -21,12 +25,12 @@ after installing the Web100 patch.
 Overview of the Primary Objects in the Library
 ==============================================
 
-As mentioned in the User Guide, the web100 software has added a number
-of variables or "Instruments" to the kernel "sock" structure which
-track a number of critical events on each of the TCP connections on
-the system.  The primary goal of this library is to enable developers
-to mointor and tune these variables.  These variables are exposed to
-the outside world through the /proc file system.
+As mentioned in the User Guide, the web100 software has added a
+number of variables or "Instruments" to the kernel "sock" structure
+which track a number of critical events on each of the TCP connections
+on the system.  The primary goal of this library is to enable
+developers to mointor and tune these variables.  These variables
+are exposed to the outside world through the /proc file system.
 
 The list of variables that are monitored can be found in the file
 
@@ -143,8 +147,7 @@ and selecting variable from the list.
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-
-#include "web100/web100.h"
+#include <web100/web100.h>
 
 int main(int argc, char *argv[])
 {
@@ -152,8 +155,8 @@ int main(int argc, char *argv[])
     web100_connection  *conn;
     web100_group       *group;
     web100_var         *var;
-    char buf[8];
-    int cid;
+    char                buf[256];
+    int                 cid;
 
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <connection id> <var name>\n", argv[0]);
@@ -162,14 +165,16 @@ int main(int argc, char *argv[])
 
     cid = atoi(argv[1]);
     
-    agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL);   // Get an Agent object
-    conn  = web100_connection_lookup(agent, cid);           // Get a connection object
-// 
-// Get a variable object from the name (which is a string)
-//
+    agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL);   /* Get an agent object */
+    conn  = web100_connection_lookup(agent, cid);           /* Get a connection object */
+
+    /* Get a variable object from the name (which is a string) */
     web100_agent_find_var_and_group(agent, argv[2], &group, &var);
 
-    web100_raw_read(var, conn, buf);  // This needs a var object and conn object
+    /* Read the current value of the variable 'var' into buf */
+    web100_raw_read(var, conn, buf);
+
+    /* Convert the result to a string and display it */
     printf("%s: %s\n", argv[2], web100_value_to_text(web100_get_var_type(var), buf));
     
     return 0;

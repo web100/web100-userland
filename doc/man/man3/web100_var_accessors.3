@@ -1,0 +1,31 @@
+.\" $Id: web100_var_accessors.3,v 1.1 2002/12/12 19:54:26 engelhar Exp $
+.TH WEB100_VAR 3 "12 December 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_get_var_name, web100_get_var_size, web100_get_var_type \- get
+values from the Web100 variable opaque structure
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "const char* web100_get_var_name(web100_var* " var ");"
+.BI "int         web100_get_var_type(web100_var* " var ");"
+.BI "size_t      web100_get_var_size(web100_var* " var ");"
+.fi
+.SH DESCRIPTION
+As the \fIweb100_var\fR structure is opaque, these functions exist to
+fetch values from it without exposing its structure.
+.SH RETURN VALUES
+\fBweb100_get_var_name()\fR returns the text name of the variable.
+.PP
+\fBweb100_get_var_type()\fR returns the type of the variable, which can
+be one of the following: WEB100_TYPE_INTEGER, WEB100_TYPE_INTEGER32,
+WEB100_TYPE_INET_ADDRESS_IPV4, WEB100_TYPE_COUNTER32,
+WEB100_TYPE_GAUGE32, WEB100_TYPE_UNSIGNED32, WEB100_TYPE_TIME_TICKS,
+WEB100_TYPE_COUNTER64, WEB100_TYPE_INET_PORT_NUMBER,
+WEB100_TYPE_INET_ADDRESS, WEB100_TYPE_INET_ADDRESS_IPV6.
+.PP
+\fBweb100_get_var_size()\fR returns the size of the variable in bytes.
+For example, the size of a WEB100_TYPE_INET_ADDRESS_IPV6 variable is 16
+(128 bits).
+.SH SEE ALSO
+.BR libweb100 (3)

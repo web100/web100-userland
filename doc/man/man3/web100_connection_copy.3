@@ -1,0 +1,27 @@
+.\" $Id: web100_connection_copy.3,v 1.1 2002/12/12 19:54:23 engelhar Exp $
+.TH web100_connection_copy 3 "12 December 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_connection_data_copy, web100_connection_free_local_copy,
+web100_connection_new_local_copy \- copy Web100 connection structures
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "int                web100_connection_data_copy(web100_connection* " dest ", web100_connection* " src ");"
+.BI "web100_connection* web100_connection_new_local_copy(web100_connection* " src ");"
+.BI "void               web100_connection_free_local_copy(web100_connection* " conn ");"
+.fi
+.SH DESCRIPTION
+These functions allow users to copy the data from one Web100 connection
+structure to another.  \fBweb100_connection_data_copy()\fR copies the
+data directly over, while \fBweb100_connection_new_local_copy()\fR
+creates a new structure and copies that.
+\fBweb100_connection_free_local_copy()\fR frees a copy created by
+\fBweb100_connection_new_local_copy(0\fR.
+.SH RETURN VALUES
+\fBweb100_connection_data_copy()\fR returns WEB100_ERR_SUCCESS on
+succes, and a failure code otherwise.
+\fBweb100_connection_new_local_copy()\fR returns a newly allocated
+web100_connection structure on success, or \fBNULL\fI on failure.
+.SH SEE ALSO
+.BR libweb100 (3)

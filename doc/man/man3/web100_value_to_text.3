@@ -1,0 +1,28 @@
+.\" $Id: web100_value_to_text.3,v 1.1 2002/12/12 19:54:26 engelhar Exp $
+.TH web100_value_to_text 3 "12 December 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_value_to_text, web100_value_to_textn \- convert a measured Web100
+value to a string.
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "char* web100_value_to_text(WEB100_TYPE " type ", void* " buf ");"
+.BI "int   web100_value_to_textn(char* " dest ", size_t " size ", WEB100_TYPE " type ", void* " buf ");"
+.fi
+.SH DESCRIPTION
+These functions convert a value measured using a function such as
+\fBweb100_raw_read()\fR to a string, for ease of printing.  A Web100
+value is passed as a pair of \fItype\fR and \fIbuf\fR.
+.PP
+\fBweb100_value_to_textn()\fR also takes in a character buffer and its
+length into which it will write the answer.
+.SH RETURN VALUES
+\fBweb100_value_to_text()\fR returns a pointer to a static buffer which
+contains the string representation of the value.  Note that this is
+\fBnot reentrant\fR and \fBnot threadsafe\fR.
+.PP
+\fBweb100_value_to_textn()\fR returns the number of characters printed
+into \fIdest\fR.
+.SH SEE ALSO
+.BR libweb100 (3)

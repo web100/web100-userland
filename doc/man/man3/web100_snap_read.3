@@ -1,5 +1,5 @@
-.\" $Id: web100_snap_read.3,v 1.1 2002/09/05 21:28:04 engelhar Exp $
-.TH WEB100_SNAP_READ 3 "5 September 2002" "Web100 Userland" "Web100"
+.\" $Id: web100_snap_read.3,v 1.2 2002/12/12 19:54:26 engelhar Exp $
+.TH WEB100_SNAP_READ 3 "12 December 2002" "Web100 Userland" "Web100"
 .SH NAME
 web100_snap_read, web100_delta_any \- read the values of variables from
 a snapshot
@@ -7,17 +7,18 @@ a snapshot
 .B #include <web100/web100.h>
 .PP
 .nf
-.BI "int web100_snap_read(web100_var* " var ", web100_snapshot* " snap ","
-.BI "                     void* " buf ");"
-.BI "int web100_delta_any(web100_var* " var ", web100_snapshot* " s1 ","
-.BI "                     web100_snapshot* " s2 ", void* " buf ");"
+.BI "int web100_snap_read(web100_var* " var ", web100_snapshot* " snap ", void* " buf ");"
+.BI "int web100_delta_any(web100_var* " var ", web100_snapshot* " s1 ", web100_snapshot* " s2 ", void* " buf ");"
 .fi
 .SH DESCRIPTION
-Description goes here
+\fBweb100_snap_read()\fR reads variables out of a snapshot that was
+taken using \fBweb100_snap()\fR.
+.PP
+\fBweb100_delta_any()\fR computes the difference (delta) of a certain
+variable between any two snapshots.
 .SH RETURN VALUES
-Return values go here
-.SH EXAMPLE USE
-Example use goes here
+Both \fBwe100_snap_read()\fR and \fBweb100_delta_any()\fR return
+WEB100_ERR_SUCCESS on success, and an error code otherwise.
 .SH SEE ALSO
 .BR web100_snap (3),
 .BR libweb100 (3)
