@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100-int.h,v 1.7 2002/05/20 20:51:14 jestabro Exp $
+ * $Id: web100-int.h,v 1.8 2002/05/22 16:31:07 jestabro Exp $
  */
 #ifndef _WEB100_INT_H
 #define _WEB100_INT_H
@@ -123,18 +123,11 @@ struct web100_snapshot {
     void*                     data;
 };
 
-struct web100_snapfile {
-    struct web100_group*      group;
-    struct web100_connection* connection;
-    FILE*                     fp;
-};
-
 struct web100_log {
     struct web100_agent*           agent;
     struct web100_group*           group;
     struct web100_connection*      connection; 
     time_t                         time;
-    mode_t                         mode;
     FILE*                          fp;
 };
 
