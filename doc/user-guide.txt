@@ -60,17 +60,17 @@ III. Tools
 	     lcl.rc    - the .rc file used by the tools with "-l" option
 	     rmt.rc    - the .rc file used by the tools when "-r" option
 
-	If you are starting monitoring session on a local machine and
-	a remote machine, both displaying X-windows on the local host
-	there needs to be a way to distinguish between the windows
-	from the local machine versus the windows from the remote
-	machine.  Using the "-l" option when running the tools on the
+	If you are monitoring a session on a local machine and a remote
+	machine, both displaying X-windows on the local host there needs
+	to be a way to distinguish between the windows from the local
+	machine versus the windows from the remote machine.  Using the
+	"-l" option when running the tools on the remote machine causes
+	the tools to display colors using the choices in "lcl.rc" file.
+	Similarly using the "-r" option when running the tools on the
 	remote machine causes the tools to display colors using the
-	choices in "lcl.rc" file.  Similarly using the "-r" option
-	when running the tools on the remote machine causes the tools
-	to display colors using the choices in "rmt.rc" file.
-	Alternatively, one can simply edit "web100.rc" on different
-	machine so that tools bring up windows in different colors.
+	choices in "rmt.rc" file.  Alternatively, one can simply edit
+	"web100.rc" on different machine so that tools bring up windows
+	in different colors.
 
     The current tool set consists of the following GUI tools/applications
     based on GTK (Version 1.27):

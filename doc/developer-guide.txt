@@ -41,7 +41,7 @@ The list of variables that are monitored can be found in the file
 We highly recommend that you read the "proc_interface.txt" document
 referred to in the pargraphs above for full details about the format
 of this file.  Please see the document "tcp-kis.txt" for a detailed
-descritpion of the variables and what they measure.
+description of the variables and what they measure.
 
 As mentioned in proc_interace.txt, it should be observed that the
 variables are grouped in one or more files, which are referred to as
@@ -261,7 +261,7 @@ Processing of a group involves the following steps:
 
 It should be noted that unlike reading one variable at a time, taking
 snap gets the values of all the variables atomically at one instant
-and stores them snapshot.
+and stores them as a snapshot.
 
 Once the snap shot is taken, the values are printed out one variable
 at a time.  Since the value are already stored in snapshot, the values
