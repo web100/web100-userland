@@ -39,8 +39,6 @@ gutil_SOURCES = \
 	vars.h \
 	vdt_wgt.c \
 	vdt_wgt.h \
-	wcmeter.c \
-	wcmeter.h \
 	wcgraph.c \
 	wcgraph.h \
 	wcpie.c \

@@ -5,7 +5,7 @@
 #include "web100.h"
 #include "web100obj.h"
 #include "wcgraph.h"
-#include "wcmeter.h"
+//#include "wcmeter.h"
 #include "vdt_wgt.h"
 #include "sockset_wgt.h"
 
