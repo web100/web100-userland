@@ -1,11 +1,13 @@
 bin_PROGRAMS = util
 
 INCLUDES = @STRIP_BEGIN@ \
+	@GTK_CFLAGS@ \
 	-I$(top_srcdir)/lib \
 	@STRIP_END@
 
 util_LDADD = \
-	$(top_builddir)/lib/libweb100.la
+	$(top_builddir)/lib/libweb100.la \
+	@GTK_LIBS@
 
 util_SOURCES = \
 	util.c \
