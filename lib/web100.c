@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.22 2002/06/17 21:17:38 jestabro Exp $
+ * $Id: web100.c,v 1.23 2002/06/18 05:37:38 jestabro Exp $
  */
 
 #include <assert.h>
@@ -125,8 +125,9 @@ _web100_agent_attach_header(FILE *header)
 //    FILE* header = NULL;
     int c;
     web100_group* gp;
-    web100_var* vp;
+    web100_var* vp; 
     int discard;
+    int fsize;
 
     if ((agent = malloc(sizeof(web100_agent))) == NULL) {
         web100_errno = WEB100_ERR_NOMEM;
@@ -201,13 +202,15 @@ _web100_agent_attach_header(FILE *header)
             }
 
             IFDEBUG(printf("_web100_agent_attach_local: new var: %s %d %d\n", vp->name, vp->offset, vp->type));
+
+	    /* increment group (== file) size if necessary */ 
+	    fsize = vp->offset + size_from_type(vp->type);
+	    gp->size = ((gp->size < fsize) ? fsize : gp->size); 
             
-	    /* if type unrecognized, forgo adding the variable */
-	    if(size_from_type(vp->type))
-	       	gp->size += size_from_type(vp->type);
-	    else {
+	    /* if size_from_type 0 (i.e., type unrecognized),
+	       or variable deprecated, forgo adding the variable */
+	    if(!size_from_type(vp->type) || (vp->name[0] == '_')) {
 		free(vp);
-		gp->size += 8;
 		continue;
 	    }
 
@@ -802,7 +805,7 @@ web100_snap(web100_snapshot *snap)
         return -WEB100_ERR_NOCONNECTION;
     }
     
-    if ((fread(snap->data, snap->group->size, 1, fp) != 1) && !feof(fp)){
+    if (fread(snap->data, snap->group->size, 1, fp) != 1){
         web100_errno = WEB100_ERR_NOCONNECTION;
         return -WEB100_ERR_NOCONNECTION;
     }
@@ -1732,7 +1735,7 @@ web100_snap_from_log(web100_snapshot* snap, web100_log *log)
         return -WEB100_ERR_FILE; 
     }        
 
-    if((fread(snap->data, snap->group->size, 1, log->fp) != 1) && !feof(log->fp)) {
+    if(fread(snap->data, snap->group->size, 1, log->fp) != 1) {
 	web100_errno = WEB100_ERR_FILE; 
 	return -WEB100_ERR_FILE; 
     }
