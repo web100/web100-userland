@@ -31,7 +31,7 @@ struct _RcvTuner
 {
   Web100Widget web100widget;
 
-  web100_var *LimRwin, *Rcvbuf, *RBufMode;
+  web100_var *LimRwin, *Rcvbuf;
 
   u_int32_t limrwin_val, limrwin_max, limrwin_min;
   u_int32_t rcvbuf_val, rcvbuf_max, rcvbuf_min;
@@ -40,7 +40,6 @@ struct _RcvTuner
 
   GtkAdjustment *limrwin_adjustment, *rcvbuf_adjustment;
   GtkLabel *limrwin_label, *rcvbuf_label;
-  GtkButton *autotuning_button;
 };
 
 struct _RcvTunerClass

@@ -31,7 +31,7 @@ struct _SndTuner
 {
   Web100Widget web100widget;
 
-  web100_var *LimCwnd, *Sndbuf, *SBufMode;
+  web100_var *LimCwnd, *Sndbuf;
 
   u_int32_t limcwnd_val, limcwnd_max, limcwnd_min;
   u_int32_t sndbuf_val, sndbuf_max, sndbuf_min;
@@ -40,7 +40,6 @@ struct _SndTuner
 
   GtkAdjustment *limcwnd_adjustment, *sndbuf_adjustment;
   GtkLabel *limcwnd_label, *sndbuf_label;
-  GtkButton *autotuning_button;
 };
 
 struct _SndTunerClass

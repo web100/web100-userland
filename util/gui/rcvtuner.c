@@ -18,7 +18,6 @@ static void rcv_tuner_write_limrwin_value  (GtkWidget *button, gpointer data);
 static void rcv_tuner_write_rcvbuf_value  (GtkWidget *button, gpointer data); 
 static void rcv_tuner_limrwin_value_changed  (GtkAdjustment *adj, gpointer data);
 static void rcv_tuner_rcvbuf_value_changed  (GtkAdjustment *adj, gpointer data);
-static void rcv_tuner_toggle_autotuning (GtkWidget *button, gpointer data);
 static float rcv_tuner_val_to_scale (u_int32_t val, u_int32_t max, u_int32_t min);
 static u_int32_t rcv_tuner_scale_to_val (float scale, u_int32_t max, u_int32_t min);
 
@@ -170,7 +169,6 @@ rcv_tuner_init_vars (RcvTuner *rcvtuner)
   if ((tunegp = web100_group_find (WEB100_WIDGET (rcvtuner)->web100object->agent, "tune")) != NULL) { 
     rcvtuner->Rcvbuf = web100_var_find (tunegp, "X_Rcvbuf"); 
     rcvtuner->LimRwin = web100_var_find (tunegp, "LimRwin"); 
-    rcvtuner->RBufMode = web100_var_find (tunegp, "X_RBufMode"); 
   }
   
   if ((conn = web100_connection_lookup (obj->agent, obj->cid)) != NULL) { 
@@ -206,11 +204,6 @@ rcv_tuner_init_vars (RcvTuner *rcvtuner)
       rcvtuner->limrwin_scale_val = rcv_tuner_val_to_scale (rcvtuner->limrwin_val, rcvtuner->limrwin_max, rcvtuner->limrwin_min);
 
       gtk_adjustment_set_value (rcvtuner->limrwin_adjustment, rcvtuner->limrwin_scale_val); 
-    }
-    if (rcvtuner->RBufMode) {
-      web100_raw_read (rcvtuner->RBufMode, conn, &mode);
-
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rcvtuner->autotuning_button), mode);
     }
   }
 } 
@@ -267,21 +260,6 @@ rcv_tuner_rcvbuf_value_changed  (GtkAdjustment *adj, gpointer data)
 
   sprintf(strval, "%u", (rcvtuner->rcvbuf_val));
   gtk_label_set_text (GTK_LABEL (rcvtuner->rcvbuf_label), strval);
-}
-
-static void
-rcv_tuner_toggle_autotuning (GtkWidget *button, gpointer data) 
-{
-  RcvTuner *rcvtuner = RCV_TUNER (data);
-  web100_connection *conn;
-  Web100Object *obj = WEB100_WIDGET (rcvtuner)->web100object;
-  gint mode;
-
-  mode = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button));
-
-  if ((conn = web100_connection_lookup(obj->agent, obj->cid)) != NULL) { 
-    web100_raw_write (rcvtuner->RBufMode, conn, &mode); 
-  }
 }
 
 static float
@@ -397,15 +375,4 @@ rcv_tuner_construct (RcvTuner *rcvtuner, Web100Object *web100obj)
   hbox = gtk_hbox_new (FALSE, 0);
   gtk_box_pack_start (GTK_BOX (rcvtuner), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
-
-  rcvtuner->autotuning_button = GTK_BUTTON (gtk_check_button_new_with_label ("Autotuning"));
-
-#ifdef GTK2
-  g_signal_connect (G_OBJECT (rcvtuner->autotuning_button), "clicked", G_CALLBACK (rcv_tuner_toggle_autotuning), rcvtuner);
-#else
-  gtk_signal_connect (GTK_OBJECT (rcvtuner->autotuning_button), "clicked", GTK_SIGNAL_FUNC (rcv_tuner_toggle_autotuning), rcvtuner);
-#endif
-  gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (rcvtuner->autotuning_button), FALSE, FALSE, 0);
-
-  gtk_widget_show (GTK_WIDGET (rcvtuner->autotuning_button));
 }

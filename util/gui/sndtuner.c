@@ -18,7 +18,6 @@ static void snd_tuner_write_limcwnd_value  (GtkWidget *button, gpointer data);
 static void snd_tuner_write_sndbuf_value  (GtkWidget *button, gpointer data); 
 static void snd_tuner_limcwnd_value_changed  (GtkAdjustment *adj, gpointer data);
 static void snd_tuner_sndbuf_value_changed  (GtkAdjustment *adj, gpointer data);
-static void snd_tuner_toggle_autotuning (GtkWidget *button, gpointer data);
 static float snd_tuner_val_to_scale (u_int32_t val, u_int32_t max, u_int32_t min);
 static u_int32_t snd_tuner_scale_to_val (float scale, u_int32_t max, u_int32_t min);
 
@@ -170,7 +169,6 @@ snd_tuner_init_vars (SndTuner *sndtuner)
   if ((tunegp = web100_group_find (WEB100_WIDGET (sndtuner)->web100object->agent, "tune")) != NULL) { 
     sndtuner->Sndbuf = web100_var_find (tunegp, "X_Sndbuf"); 
     sndtuner->LimCwnd = web100_var_find (tunegp, "LimCwnd"); 
-    sndtuner->SBufMode = web100_var_find (tunegp, "X_SBufMode"); 
   }
   
   if ((conn = web100_connection_lookup (obj->agent, obj->cid)) != NULL) { 
@@ -206,11 +204,6 @@ snd_tuner_init_vars (SndTuner *sndtuner)
       sndtuner->limcwnd_scale_val = snd_tuner_val_to_scale (sndtuner->limcwnd_val, sndtuner->limcwnd_max, sndtuner->limcwnd_min);
 
       gtk_adjustment_set_value (sndtuner->limcwnd_adjustment, sndtuner->limcwnd_scale_val); 
-    }
-    if (sndtuner->SBufMode) {
-      web100_raw_read (sndtuner->SBufMode, conn, &mode);
-
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (sndtuner->autotuning_button), mode);
     }
   }
 } 
@@ -267,21 +260,6 @@ snd_tuner_sndbuf_value_changed  (GtkAdjustment *adj, gpointer data)
 
   sprintf(strval, "%u", (sndtuner->sndbuf_val));
   gtk_label_set_text (GTK_LABEL (sndtuner->sndbuf_label), strval);
-}
-
-static void
-snd_tuner_toggle_autotuning (GtkWidget *button, gpointer data) 
-{
-  SndTuner *sndtuner = SND_TUNER (data);
-  web100_connection *conn;
-  Web100Object *obj = WEB100_WIDGET (sndtuner)->web100object;
-  gint mode;
-
-  mode = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button));
-
-  if ((conn = web100_connection_lookup(obj->agent, obj->cid)) != NULL) { 
-    web100_raw_write (sndtuner->SBufMode, conn, &mode); 
-  }
 }
 
 static float
@@ -397,15 +375,4 @@ snd_tuner_construct (SndTuner *sndtuner, Web100Object *web100obj)
   hbox = gtk_hbox_new (FALSE, 0);
   gtk_box_pack_start (GTK_BOX (sndtuner), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
-
-  sndtuner->autotuning_button = GTK_BUTTON (gtk_check_button_new_with_label ("Autotuning"));
-
-#ifdef GTK2
-  g_signal_connect (G_OBJECT (sndtuner->autotuning_button), "clicked", G_CALLBACK (snd_tuner_toggle_autotuning), sndtuner);
-#else
-  gtk_signal_connect (GTK_OBJECT (sndtuner->autotuning_button), "clicked", GTK_SIGNAL_FUNC (snd_tuner_toggle_autotuning), sndtuner);
-#endif
-  gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (sndtuner->autotuning_button), FALSE, FALSE, 0);
-
-  gtk_widget_show (GTK_WIDGET (sndtuner->autotuning_button));
 }
