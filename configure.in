@@ -86,11 +86,6 @@ AC_OUTPUT([
 Makefile
 web100-config
 doc/Makefile
-doc/man/Makefile
 lib/Makefile
 util/Makefile
-util/deltavar/Makefile
-util/readall/Makefile
-util/readvar/Makefile
-util/writevar/Makefile
 ], [chmod +x web100-config])
