@@ -2,7 +2,7 @@
 style "default"
 { 
 	font = "-adobe-times-medium-r-normal--*-100-*-*-*-*-*-*" 
-	bg[NORMAL] = { 0.269, 0.388, 0.342 }
+	bg[NORMAL] = { 0.388, 0.269, 0.342 }
 	bg[SELECTED] = { 0.3, 0.3, 1.0 }
 	bg[ACTIVE] = { 0.5, 0.5, 1.0 }
 #	fg[NORMAL] = { 0.4, 0.0, 0.0 }
