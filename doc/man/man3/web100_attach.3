@@ -1,21 +1,37 @@
-.\" $Id: web100_attach.3,v 1.1 2002/02/27 02:19:48 engelhar Exp $
+.\" $Id: web100_attach.3,v 1.2 2002/02/27 02:51:22 engelhar Exp $
 .TH WEB100_ATTACH 3 "26 February 2002" "Web100 Userland" "Web100"
 .SH NAME
 web100_attach, web100_detach \- attach to and detach from a Web100 data
 source (SNMP terminology)
 .SH SYNOPSIS
 .B #include <web100/web100.h>
-
+.PP
 .nf
 .BI "web100_agent* web100_attach(int " method ", void " *data ");"\n
 .BI "void web100_detach(web100_agent " *agent ");"
 .fi
 .SH DESCRIPTION
-The \fBweb100_attach\fR function \fIattaches\fR to a Web100 data source.
+The \fBweb100_attach()\fR function attaches to a Web100 data source.
 The data source may be the local or (in the future) a remote machine.
-It is typically the first function called by users of \fIlibweb100\fR.
+It is typically the first function called by users of \fIlibweb100\fR,
+and it returns a \fIweb100_agent\fR which may be used by subsequent
+functions.
+.PP
+The argument \fImethod\fR denotes how the data will be gathered.  Each
+\fImethod\fR has its own requirements for the contents of \fIdata\fR,
+which is enumerated below.  Choose \fImethod\fR from the following:
+.TP
+\fBWEB100_AGENT_TYPE_LOCAL\fR
+The Web100 data source is the local machine, as it is running a
+Web100-enabled kernel.  \fIdata\fR should be NULL.
+.PP
+\fBweb100_detach()\fR closes and deallocates a previously obtained
+\fIagent\fR.
 .SH RETURN VALUES
-\fBweb100_attach\fR returns a properly initialized...
+\fBweb100_attach()\fR returns an initialized \fIweb100_agent\fR that may
+be used by subsequent functions, or \fBNULL\fR if it fails for any
+reason.
+.PP
+\fBweb100_detach()\fR returns no value.
 .SH SEE ALSO
-.BR web100_detach (3),
 .BR libweb100 (3)

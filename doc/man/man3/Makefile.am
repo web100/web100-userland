@@ -1,4 +1,6 @@
 all_manpages := libweb100.3 \
+                web100_attach.3 \
+                web100_detach.3 \
                 web100_perror.3 \
 		web100_strerror.3
 
