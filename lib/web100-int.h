@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100-int.h,v 1.8 2002/05/22 16:31:07 jestabro Exp $
+ * $Id: web100-int.h,v 1.9 2002/08/05 19:33:08 jheffner Exp $
  */
 #ifndef _WEB100_INT_H
 #define _WEB100_INT_H
@@ -44,17 +44,16 @@
 #ifndef TRUE
 #define TRUE 1
 #endif
-/*
-#define WEB100_VERSTR_LEN_MAX       64
-#define WEB100_GROUPNAME_LEN_MAX    32
-#define WEB100_VARNAME_LEN_MAX      32
+
+#define WEB100_VALUE_LEN_MAX        255	/* IPv6 addr should use <=40 */
 
 #define WEB100_ROOT_DIR     "/proc/web100/"
 #define WEB100_HEADER_FILE  WEB100_ROOT_DIR "header"
-*/
+
 struct web100_agent_info_local {
     struct web100_group*      group_head;
     struct web100_connection* connection_head;
+    struct web100_group*      spec;
 };
 
 struct web100_agent {
@@ -90,7 +89,11 @@ struct web100_var {
     char                 name[WEB100_VARNAME_LEN_MAX];
     int                  type;
     int                  offset;
+    int                  len;
     struct web100_group* group;
+    int                  flags;
+#define WEB100_VAR_FL_DEP    1
+#define WEB100_VAR_FL_WARNED 2
     
     union {
         struct web100_var_info_local local;
@@ -102,15 +105,17 @@ struct web100_connection_info_local {
 };
 
 struct web100_connection {
-    int                           cid;
-    struct web100_connection_spec spec;
-    struct web100_agent*          agent;
+    int                              cid;
+    WEB100_ADDRTYPE                  addrtype;
+    struct web100_connection_spec    spec;
+    struct web100_connection_spec_v6 spec_v6;
+    struct web100_agent*             agent;
 
-    int                           error;
-    FILE                          *logfile;
-    int                           logstate;
-//    char                          tracescript[PATH_MAX]; 
-    pid_t                         tracepid;
+    int                              error;
+    FILE                             *logfile;
+    int                              logstate;
+//  char                             tracescript[PATH_MAX];
+    pid_t                            tracepid;
     
     union {
         struct web100_connection_info_local local;
@@ -130,6 +135,5 @@ struct web100_log {
     time_t                         time;
     FILE*                          fp;
 };
-
 
 #endif /* _WEB100_INT_H */

@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.18 2002/05/22 16:31:07 jestabro Exp $
+ * $Id: web100.h,v 1.19 2002/08/05 19:33:08 jheffner Exp $
  */
 
 #ifndef _WEB100_H
@@ -34,13 +34,17 @@
 typedef enum {
     WEB100_TYPE_INTEGER = 0,
     WEB100_TYPE_INTEGER32,
-    WEB100_TYPE_IP_ADDRESS,
+    WEB100_TYPE_INET_ADDRESS_IPV4,
+    WEB100_TYPE_IP_ADDRESS = WEB100_TYPE_INET_ADDRESS_IPV4, /* Depricated */
     WEB100_TYPE_COUNTER32,
     WEB100_TYPE_GAUGE32,
     WEB100_TYPE_UNSIGNED32,
     WEB100_TYPE_TIME_TICKS,
     WEB100_TYPE_COUNTER64,
-    WEB100_TYPE_UNSIGNED16
+    WEB100_TYPE_INET_PORT_NUMBER,
+    WEB100_TYPE_UNSIGNED16 = WEB100_TYPE_INET_PORT_NUMBER, /* Depricated */
+    WEB100_TYPE_INET_ADDRESS,
+    WEB100_TYPE_INET_ADDRESS_IPV6,
 } WEB100_TYPE;
 
 typedef enum {
@@ -48,11 +52,25 @@ typedef enum {
     WEB100_AGENT_TYPE_LOG   = 1<<1
 } WEB100_AGENT_TYPE;
 
+typedef enum {
+    WEB100_ADDRTYPE_UNKNOWN = 0,
+    WEB100_ADDRTYPE_IPV4,
+    WEB100_ADDRTYPE_IPV6,
+    WEB100_ADDRTYPE_DNS = 16
+} WEB100_ADDRTYPE;
+
 struct web100_connection_spec {
     u_int16_t dst_port;
     u_int32_t dst_addr;
     u_int16_t src_port;
     u_int32_t src_addr;
+};
+
+struct web100_connection_spec_v6 {
+    u_int16_t dst_port;
+    char      dst_addr[16];
+    u_int16_t src_port;
+    char      src_addr[16];
 };
 
 struct web100_connection_info { 
@@ -71,10 +89,6 @@ struct web100_connection_info {
 #define WEB100_VERSTR_LEN_MAX       64
 #define WEB100_GROUPNAME_LEN_MAX    32
 #define WEB100_VARNAME_LEN_MAX      32
-#define WEB100_VALUE_LEN_MAX        21 /* 2^64 = "18446744073709551616\0" */
-
-#define WEB100_ROOT_DIR     "/proc/web100/"
-#define WEB100_HEADER_FILE  WEB100_ROOT_DIR "header"
 
 /* Error codes.  If you update these, be sure to update web100_sys_errlist. */
 #define WEB100_ERR_SUCCESS         0
@@ -87,10 +101,13 @@ struct web100_connection_info {
 #define WEB100_ERR_NOVAR           7
 #define WEB100_ERR_NOGROUP         8
 #define WEB100_ERR_SOCK            9
+#define WEB100_ERR_KERNVER         10
 
 extern int               web100_errno;
 extern const char* const web100_sys_errlist[];
 extern int               web100_sys_nerr;
+
+extern char              web100_quiet;
 
 /* The following are opaque types. */
 typedef struct web100_agent       web100_agent;
@@ -119,6 +136,7 @@ web100_var*        web100_var_find(web100_group* _group, const char* _name);
 web100_connection* web100_connection_head(web100_agent* _agent);
 web100_connection* web100_connection_next(web100_connection* _conn);
 web100_connection* web100_connection_find(web100_agent* _agent, struct web100_connection_spec* _spec);
+web100_connection* web100_connection_find_v6(web100_agent* _agent, struct web100_connection_spec_v6* _spec_v6);
 web100_connection* web100_connection_lookup(web100_agent* _agent, int _cid);
 web100_connection* web100_connection_from_socket(web100_agent* _agent, int _sockfd);
 int                web100_connection_data_copy(web100_connection* _dest, web100_connection* _src);
@@ -150,6 +168,7 @@ int                web100_get_group_nvars(web100_group* _group);
 
 const char*        web100_get_var_name(web100_var* _var);
 int                web100_get_var_type(web100_var* _var);
+size_t             web100_get_var_size(web100_var* _var);
 
 web100_group*      web100_get_snap_group(web100_snapshot* _snap);
 const char*        web100_get_snap_group_name(web100_snapshot* _snap);

@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.24 2002/07/31 04:50:47 engelhar Exp $
+ * $Id: web100.c,v 1.25 2002/08/05 19:33:08 jheffner Exp $
  */
 
 #include "config.h"
@@ -59,6 +59,12 @@
 int web100_errno;
 char web100_errstr[128];
 
+#ifdef QUIET
+char web100_quiet = 1;
+#else
+char web100_quiet = 0;
+#endif
+
 /*
  * Array of error code -> string mappings, in the style of sys_errlist.
  * Must be kept in sync with the defined errors in web100.h.
@@ -74,6 +80,7 @@ const char* const web100_sys_errlist[] = {
     "variable not found",                  /* WEB100_ERR_NOVAR */
     "group not found",                     /* WEB100_ERR_NOGROUP */
     "socket operation failed",             /* WEB100_ERR_SOCK */
+    "unexpected error due to kernel version mismatch", /* WEB100_ERR_KERNVER */
 };
 
 /*
@@ -86,6 +93,14 @@ int web100_sys_nerr = ARRAYSIZE(web100_sys_errlist);
  * PRIVATE FUNCTIONS
  */
 
+static inline void dep_check(web100_var *var)
+{
+    if (var->flags & WEB100_VAR_FL_DEP) {
+        if (!(var->flags & WEB100_VAR_FL_WARNED) && !web100_quiet)
+            fprintf(stderr, "libweb100: warning: accessing depricated variable %s\n", var->name);
+        var->flags |= WEB100_VAR_FL_WARNED;
+    }
+}
 
 /*
  * size_from_type - Returns the size in bytes of an object of the specified
@@ -97,7 +112,7 @@ size_from_type(WEB100_TYPE type)
     switch (type) {
     case WEB100_TYPE_INTEGER:
     case WEB100_TYPE_INTEGER32:
-    case WEB100_TYPE_IP_ADDRESS:
+    case WEB100_TYPE_INET_ADDRESS_IPV4:
     case WEB100_TYPE_COUNTER32:
     case WEB100_TYPE_GAUGE32:
     case WEB100_TYPE_UNSIGNED32:
@@ -105,10 +120,12 @@ size_from_type(WEB100_TYPE type)
         return 4;
     case WEB100_TYPE_COUNTER64:
         return 8;
-    case WEB100_TYPE_UNSIGNED16:
+    case WEB100_TYPE_INET_PORT_NUMBER:
         return 2;
+    case WEB100_TYPE_INET_ADDRESS:
+    case WEB100_TYPE_INET_ADDRESS_IPV6:
+        return 17;
     default:
-//        assert(FALSE);
         return 0;
     }
 }
@@ -123,12 +140,12 @@ static web100_agent*
 _web100_agent_attach_header(FILE *header)
 {
     web100_agent* agent = NULL;
-//    FILE* header = NULL;
     int c;
     web100_group* gp;
     web100_var* vp; 
-    int discard;
     int fsize;
+    char tmpbuf[WEB100_VARNAME_LEN_MAX];
+    int have_len = 0;
 
     if ((agent = malloc(sizeof(web100_agent))) == NULL) {
         web100_errno = WEB100_ERR_NOMEM;
@@ -142,6 +159,8 @@ _web100_agent_attach_header(FILE *header)
         web100_errno = WEB100_ERR_HEADER;
         goto Cleanup;
     }
+    if (strncmp(agent->version, "1.", 2) != 0)
+        have_len = 1;
 
     /* XXX: Watch out for failure cases, be sure to deallocate memory
      * properly */
@@ -154,9 +173,6 @@ _web100_agent_attach_header(FILE *header)
         if (c < 0) {
             break;
         } else if (c == '/') {
-            if (gp && discard)
-                free(gp);
-            
             if ((gp = (web100_group*) malloc(sizeof(web100_group))) == NULL) {
                 web100_errno = WEB100_ERR_NOMEM;
                 goto Cleanup;
@@ -175,9 +191,8 @@ _web100_agent_attach_header(FILE *header)
             gp->nvars = 0;
             
             if (strcmp(gp->name, "spec") == 0) {
-                discard = 1;
+                agent->info.local.spec = gp;
             } else {
-                discard = 0;
                 gp->info.local.var_head = NULL;
                 gp->info.local.next = agent->info.local.group_head;
                 agent->info.local.group_head = gp;
@@ -197,20 +212,37 @@ _web100_agent_attach_header(FILE *header)
 
             vp->group = gp;
             
-            if (fscanf(header, "%s%d%d", vp->name, &vp->offset, &vp->type) != 3) {
-                web100_errno = WEB100_ERR_HEADER;
-                goto Cleanup;
+            if (!have_len) {
+                if (fscanf(header, "%s%d%d", vp->name, &vp->offset, &vp->type) != 3) {
+                    web100_errno = WEB100_ERR_HEADER;
+                    goto Cleanup;
+                }
+                vp->len = -1;
+            } else {
+                if (fscanf(header, "%s%d%d%d", vp->name, &vp->offset, &vp->type, &vp->len) != 4) {
+                    web100_errno = WEB100_ERR_HEADER;
+                    goto Cleanup;
+                }
+            }
+            
+            /* Depricated variable check */
+            vp->flags = 0;
+            if (vp->name[0] == '_') {
+                vp->flags |= WEB100_VAR_FL_DEP;
+                strcpy(tmpbuf, vp->name);      /* Strip off leading _ */
+                strcpy(vp->name, tmpbuf + 1);
+                IFDEBUG(printf("_web100_agent_attach_local: depricated var: %s\n", vp->name));
             }
 
             IFDEBUG(printf("_web100_agent_attach_local: new var: %s %d %d\n", vp->name, vp->offset, vp->type));
 
 	    /* increment group (== file) size if necessary */ 
-	    fsize = vp->offset + size_from_type(vp->type);
-	    gp->size = ((gp->size < fsize) ? fsize : gp->size); 
+            fsize = vp->offset + size_from_type(vp->type);
+            gp->size = ((gp->size < fsize) ? fsize : gp->size); 
             
 	    /* if size_from_type 0 (i.e., type unrecognized),
-	       or variable deprecated, forgo adding the variable */
-	    if(!size_from_type(vp->type) || (vp->name[0] == '_')) {
+	       forgo adding the variable */
+	    if(!size_from_type(vp->type)) {
 		free(vp);
 		continue;
 	    }
@@ -242,7 +274,6 @@ _web100_agent_attach_local(void)
     int c;
     web100_group* gp;
     web100_var* vp;
-    int discard;
 
     if ((header = fopen(WEB100_HEADER_FILE, "r")) == NULL) {
         web100_errno = WEB100_ERR_HEADER;
@@ -296,6 +327,8 @@ refresh_connections(web100_agent *agent)
     web100_connection *cp, *cp2;
     FILE *fp;
     char filename[PATH_MAX];
+    web100_group *spec_gp;
+    web100_var *var;
     
     cp = agent->info.local.connection_head;
     while (cp) {
@@ -312,6 +345,8 @@ refresh_connections(web100_agent *agent)
     
     while ((ent = readdir(dir))) {
         int cid;
+        char *addr_name, *port_name;
+        void *dst;
         
         cid = atoi(ent->d_name);
         if (cid == 0 && ent->d_name[0] != '0')
@@ -326,25 +361,47 @@ refresh_connections(web100_agent *agent)
         cp->info.local.next = agent->info.local.connection_head;
         agent->info.local.connection_head = cp;
         
-        strcpy(filename, WEB100_ROOT_DIR);
-        strcat(filename, ent->d_name);
-        strcat(filename, "/spec");
-        if ((fp = fopen(filename, "r")) == NULL) {
-            perror("refresh_connections: fopen");
-            return WEB100_ERR_FILE;
+        spec_gp = agent->info.local.spec;
+        
+        if ((var = web100_var_find(spec_gp, "LocalAddressType")) == NULL)
+            cp->addrtype = WEB100_ADDRTYPE_IPV4;
+        else if (web100_raw_read(var, cp, &cp->addrtype) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+        
+        if (strncmp(agent->version, "1.", 2) == 0) {
+            addr_name = "RemoteAddress";
+            port_name = "RemotePort";
+        } else {
+            addr_name = "RemAddress";
+            port_name = "RemPort";
         }
-        /* This is dangerous.  Should at least check that it
-         * actually matches header on attach. */
-        if (fread(&cp->spec.dst_port, 2, 1, fp) != 1
-            || fread(&cp->spec.dst_addr, 4, 1, fp) != 1
-            || fread(&cp->spec.src_port, 2, 1, fp) != 1
-            || fread(&cp->spec.src_addr, 4, 1, fp) != 1) {
-            perror("fread");
-            fprintf(stderr, "refresh_connections: bad spec file format\n");
+        
+        if ((var = web100_var_find(spec_gp, "LocalAddress")) == NULL)
             return WEB100_ERR_FILE;
+        if (web100_raw_read(var, cp, &cp->spec_v6.src_addr) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+        
+        if ((var = web100_var_find(spec_gp, addr_name)) == NULL)
+            return WEB100_ERR_FILE;
+        if (web100_raw_read(var, cp, &cp->spec_v6.dst_addr) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+        
+        if (cp->addrtype == WEB100_ADDRTYPE_IPV4) {
+            memcpy(&cp->spec.src_addr, &cp->spec_v6.src_addr, 4);
+            memcpy(&cp->spec.dst_addr, &cp->spec_v6.dst_addr, 4);
         }
-        if (fclose(fp))
-            perror("refresh_connections: fclose");
+        
+        if ((var = web100_var_find(spec_gp, "LocalPort")) == NULL)
+            return WEB100_ERR_FILE;
+        dst = (cp->addrtype == WEB100_ADDRTYPE_IPV4) ? &cp->spec.src_port : &cp->spec_v6.src_port;
+        if (web100_raw_read(var, cp, dst) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+        
+        if ((var = web100_var_find(spec_gp, port_name)) == NULL)
+            return WEB100_ERR_FILE;
+        dst = (cp->addrtype == WEB100_ADDRTYPE_IPV4) ? &cp->spec.dst_port : &cp->spec_v6.dst_port;
+        if (web100_raw_read(var, cp, dst) != WEB100_ERR_SUCCESS)
+            return web100_errno;
     }
     
     if (closedir(dir))
@@ -480,26 +537,36 @@ web100_group_find(web100_agent *agent, const char *name)
 web100_var*
 web100_var_head(web100_group *group)
 {
+    web100_var *vp;
+    
     if (!(group->agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
         web100_errno = WEB100_ERR_AGENT_TYPE;
         return NULL;
     }
     
+    vp = group->info.local.var_head;
+    while (vp && (vp->flags & WEB100_VAR_FL_DEP))
+        vp = vp->info.local.next;
     web100_errno = WEB100_ERR_SUCCESS;
-    return group->info.local.var_head;
+    return vp;
 }
 
 
 web100_var*
 web100_var_next(web100_var *var)
 {
+    web100_var *vp;
+    
     if (!(var->group->agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
         web100_errno = WEB100_ERR_AGENT_TYPE;
         return NULL;
     }
     
+    vp = var->info.local.next;
+    while (vp && (vp->flags & WEB100_VAR_FL_DEP))
+        vp = vp->info.local.next;
     web100_errno = WEB100_ERR_SUCCESS;
-    return var->info.local.next;
+    return vp;
 }
 
 
@@ -521,6 +588,8 @@ web100_var_find(web100_group *group, const char *name)
     }
 
     web100_errno = (vp == NULL ? WEB100_ERR_NOVAR : WEB100_ERR_SUCCESS);
+    if (vp)
+        dep_check(vp);
     return vp;
 }
 
@@ -540,6 +609,7 @@ web100_agent_find_var_and_group(web100_agent* agent, const char* name,
         if (v) {
             *group = g;
             *var = v;
+            dep_check(v);
             return WEB100_ERR_SUCCESS;
         }
         g = web100_group_next(g);
@@ -599,6 +669,32 @@ web100_connection_find(web100_agent *agent,
             cp->spec.dst_addr == spec->dst_addr &&
             cp->spec.src_port == spec->src_port &&
             cp->spec.src_addr == spec->src_addr)
+            break;
+        cp = cp->info.local.next;
+    }
+    
+    web100_errno = (cp == NULL ? WEB100_ERR_NOCONNECTION : WEB100_ERR_SUCCESS);
+    return cp;
+}
+
+
+web100_connection*
+web100_connection_find_v6(web100_agent *agent,
+                       struct web100_connection_spec_v6 *spec_v6)
+{
+    web100_connection *cp;
+    
+    if (agent->type != WEB100_AGENT_TYPE_LOCAL) {
+        web100_errno = WEB100_ERR_AGENT_TYPE;
+        return NULL;
+    }
+    
+    if ((web100_errno = refresh_connections(agent)) != WEB100_ERR_SUCCESS)
+        return NULL;
+    
+    cp = agent->info.local.connection_head;
+    while (cp) {
+        if (memcmp(&cp->spec_v6, spec_v6, sizeof (spec_v6)) != 0)
             break;
         cp = cp->info.local.next;
     }
@@ -977,7 +1073,7 @@ web100_value_to_text - return string representation of buf
 char*
 web100_value_to_text(WEB100_TYPE type, void* buf)
 {
-    static char text[WEB100_VALUE_LEN_MAX];
+    static char text[WEB100_VALUE_LEN_MAX];	/* XXX This is not threadsafe either */
 
     if (web100_value_to_textn(text, WEB100_VALUE_LEN_MAX, type, buf) == -1)
         return NULL;
@@ -992,8 +1088,13 @@ web100_value_to_textn - return string representation of buf
 int
 web100_value_to_textn(char* dest, size_t size, WEB100_TYPE type, void* buf)
 {
+    if (type == WEB100_TYPE_INET_ADDRESS)
+        type = ((char *)buf)[16] == WEB100_ADDRTYPE_IPV4 ?
+               WEB100_TYPE_INET_ADDRESS_IPV4 :
+               WEB100_TYPE_INET_ADDRESS_IPV6;
+    
     switch(type) {
-    case WEB100_TYPE_IP_ADDRESS:
+    case WEB100_TYPE_INET_ADDRESS_IPV4:
     {
         unsigned char *addr = (unsigned char *) buf; 
         return snprintf(dest, size, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]);
@@ -1007,11 +1108,52 @@ web100_value_to_textn(char* dest, size_t size, WEB100_TYPE type, void* buf)
         return snprintf(dest, size, "%u", *(u_int32_t *) buf);
     case WEB100_TYPE_COUNTER64:
         return snprintf(dest, size, "%llu", *(u_int64_t *) buf);
-    case WEB100_TYPE_UNSIGNED16:
+    case WEB100_TYPE_INET_PORT_NUMBER:
         return snprintf(dest, size, "%u", *(u_int16_t *) buf);
+    case WEB100_TYPE_INET_ADDRESS_IPV6:
+    {
+        short *addr = (short *)buf;
+        int start = -1, end = -1;
+        int i, j;
+        int pos;
+        
+        /* Find longest subsequence of 0's in addr */
+        for (i = 0; i < 8; i++) {
+            if (addr[i] == 0) {
+                for (j = i + 1; addr[j] == 0 && j < 8; j++)
+                    ;
+                if (j - i > end - start) {
+                    end = j;
+                    start = i;
+                }
+                i = j;
+            }
+        }
+        if (end - start == 1)
+            start = -1;
+        
+        pos = 0;
+        for (i = 0; i < 8; i++) {
+            if (i > 0)
+                pos += snprintf(dest + pos, size - pos, ":");
+                if (pos >= size)
+                    break;
+            if (i == start) {
+                pos += snprintf(dest + pos, size - pos, ":");
+                i += end - start - 1;
+            } else {
+                pos += snprintf(dest + pos, size - pos, "%hx", ntohs(addr[i]));
+            }
+            if (pos >= size)
+                break;
+        }
+        
+        if (pos > size)
+        	pos = size;
+        return pos;
+    }
     default:
-        snprintf(dest, size, "%s", "unknown type");
-        return -1;
+        return snprintf(dest, size, "%s", "unknown type");
     }
 
     /* never reached */
@@ -1087,10 +1229,19 @@ web100_get_var_type(web100_var *var)
     return var->type;
 }
 
+/*@
+web100_get_var_size - get the size of a variable
+@*/
+size_t
+web100_get_var_size(web100_var *var)
+{
+    return var->len;
+}
+
 web100_group*
 web100_get_snap_group(web100_snapshot *snap)
 {
-  return snap->group;
+    return snap->group;
 }
 
 /*@
@@ -1413,7 +1564,7 @@ web100_diagnose_start(web100_connection *conn)
     }
     else if(pid == 0) {
 	if(strcpy(tracescript, getenv("TRACESCRIPT"))) { 
-	    if(execlp(tracescript, tracescript, web100_value_to_text(WEB100_TYPE_UNSIGNED16, &conn->spec.src_port), web100_value_to_text(WEB100_TYPE_IP_ADDRESS, &conn->spec.dst_addr), web100_value_to_text(WEB100_TYPE_UNSIGNED16, &conn->spec.dst_port), 0) == -1) {
+	    if(execlp(tracescript, tracescript, web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, &conn->spec.src_port), web100_value_to_text(WEB100_TYPE_IP_ADDRESS, &conn->spec.dst_addr), web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, &conn->spec.dst_port), 0) == -1) {
 		web100_errno = WEB100_ERR_FILE;
 		strcpy(web100_errstr, "execlp: ");
 		goto Cleanup;
@@ -1773,5 +1924,3 @@ web100_log_eof(web100_log* log)
 {
     return feof(log->fp);
 }
-
-

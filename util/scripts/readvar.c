@@ -11,7 +11,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: readvar.c,v 1.1 2002/01/14 17:50:30 jestabro Exp $
+ * $Id: readvar.c,v 1.2 2002/08/05 19:33:09 jheffner Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +38,7 @@ main(int argc, char *argv[])
     web100_connection* conn;
     web100_group* group;
     web100_var* var;
-    char buf[8];
+    char buf[256];
     int cid;
 
     argv0 = argv[0];

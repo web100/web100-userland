@@ -301,7 +301,7 @@ void sprinttype(char *text, int type, void *buf)
     case WEB100_TYPE_GAUGE32: 
     case WEB100_TYPE_UNSIGNED32:
     case WEB100_TYPE_TIME_TICKS:
-      sprintf(text, "%lu", *(u_int32_t *) buf);
+      sprintf(text, "%u", *(u_int32_t *) buf);
       break;
     case WEB100_TYPE_COUNTER64:
       sprintf(text, "%llu", *(u_int64_t *) buf);
