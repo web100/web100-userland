@@ -88,4 +88,5 @@ web100-config
 doc/Makefile
 lib/Makefile
 util/Makefile
+util/scripts/Makefile
 ], [chmod +x web100-config])
