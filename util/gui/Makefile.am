@@ -14,8 +14,6 @@ util_SOURCES = \
 	avd_list_wgt.h \
 	avd_table_wgt.c \
 	avd_table_wgt.h \
-	avd_wgt.c \
-	avd_wgt.h \
 	cnlst_wgt.c \
 	cnlst_wgt.h \
 	cpr_wgt.c \
@@ -31,12 +29,8 @@ util_SOURCES = \
 	stuner_wgt.c \
 	stuner_wgt.h \
 	table.h \
-	triage.c \
 	triage_wgt.c \
 	triage_wgt.h \
-	tuner.c \
-	tuner_wgt.c \
-	tuner_wgt.h \
 	ur_launch.c \
 	ur_launch.h \
 	util.c \
