@@ -164,7 +164,7 @@ static void avd_list_list_vars (Avd_list *avd_list)
   web100_group *gp;
   Web100Obj *web100obj;
   struct snapshot_data *snap;
-  char buf[8]; 
+  char buf[8];
   char *text;
   int ii;
 
@@ -178,16 +178,14 @@ static void avd_list_list_vars (Avd_list *avd_list)
     var = web100_var_find(gp, vname[ii]); 
 
     snap = web100obj->snapshot_head;
-    while(snap) {
-      printf("%s\n", web100_get_group_name(snap->group));
+    while(snap) { 
       if(!strcmp(web100_get_group_name(snap->group), "read"))
 	break;
       snap = snap->next;
     }
 
     web100_snap_read (var, (snap->last), buf);
-    strcpy(valtext, web100_value_to_text(web100_get_var_type(var), buf));
-    printf("%s, %s, %d\n", web100_get_var_name(var), valtext, ii); 
+    strcpy(valtext, web100_value_to_text(web100_get_var_type(var), buf)); 
 
     gtk_clist_set_text (GTK_CLIST (avd_list->varlist), ii, 1, valtext); 
 
@@ -216,8 +214,7 @@ static void avd_list_list_vars (Avd_list *avd_list)
     } 
   } 
 
-  gtk_clist_thaw(GTK_CLIST(avd_list->varlist));  
-  printf("done\n");
+  gtk_clist_thaw(GTK_CLIST(avd_list->varlist));
 }
 
 void avd_list_web100obj_snap_update (GtkObject *object, gpointer *data)

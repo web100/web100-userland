@@ -263,8 +263,6 @@ static void select_socket(GtkWidget *parentclist, gint row, gint column,
 
   cid = GPOINTER_TO_INT(gtk_clist_get_row_data (GTK_CLIST(parentclist), row));
   sprintf(ascid, "%d", cid);
-  printf("%d\n", cid);
-  printf("ascid: %s\n", ascid);
 
 // check if the object already exists: 
 
