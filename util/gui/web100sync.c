@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <malloc.h>
-#include <gtk/gtk.h>
-
-#include "web100-int.h"
+#include <gtk/gtk.h> 
 #include "web100.h" 
 #include "web100obj.h"
 #include "web100sync.h"

@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <malloc.h>
-#include <gtk/gtk.h>
-
-#include "web100-int.h"
+#include <gtk/gtk.h> 
 #include "web100.h" 
 #include "web100sync.h"
 #include "web100obj.h"
@@ -127,7 +125,7 @@ static void web100obj_construct (Web100Obj *web100obj,
     snap = malloc (sizeof(struct snapshot_data));
 
     snap->group = gp;
-    strcpy(snap->name, gp->name);
+    strcpy(snap->name, web100_get_group_name(gp));
 
     snap->next = web100obj->snapshot_head;
     web100obj->snapshot_head = snap;
@@ -157,12 +155,16 @@ void web100obj_set_connection (Web100Obj *web100obj, int cid)
 
 // make a local copy, as connection pointers are ephemeral at the
 // library level
+#if 0
   if ((web100obj->connection = (web100_connection *) malloc (sizeof(web100_connection))) == NULL) {
     fprintf(stderr, "Out of memory\n");
     exit(1);
   }
 
   web100_connection_data_copy (web100obj->connection, connection);
+#endif
+
+  web100obj->connection = web100_connection_new_local_copy(connection);
 
 //redundancy for convenience:
   web100obj->cid = cid;
@@ -244,8 +246,7 @@ static void web100obj_destroy (GtkObject *object)
   g_return_if_fail (IS_WEB100_OBJ (object));
 
   if (WEB100_OBJ(object)->connection) {
-    free (WEB100_OBJ(object)->connection);
-
+    web100_connection_free_local_copy (WEB100_OBJ(object)->connection); 
     snap = WEB100_OBJ (object)->snapshot_head;
     while (snap) {
       web100_snapshot_free (snap->last);
@@ -264,15 +265,19 @@ static void web100obj_destroy (GtkObject *object)
 // compare web100objects by connection info
 gint web100obj_compar (web100_connection *aa, web100_connection *bb)
 { 
+  struct web100_connection_spec aa_spec, bb_spec;
+
   g_return_if_fail (aa != NULL); 
   g_return_if_fail (bb != NULL);
 
-  if (aa->agent == bb->agent &&
-      aa->cid == bb->cid &&
-      aa->spec.dst_port == bb->spec.dst_port &&
-      aa->spec.dst_addr == bb->spec.dst_addr &&
-      aa->spec.src_port == bb->spec.src_port &&
-      aa->spec.src_addr == bb->spec.src_addr)
+  web100_get_connection_spec(aa, &aa_spec);
+  web100_get_connection_spec(bb, &bb_spec);
+
+  if (web100_get_connection_cid(aa) == web100_get_connection_cid(bb) &&
+      aa_spec.dst_port == bb_spec.dst_port &&
+      aa_spec.dst_addr == bb_spec.dst_addr &&
+      aa_spec.src_port == bb_spec.src_port &&
+      aa_spec.src_addr == bb_spec.src_addr)
     return 0; 
 
   return 1;

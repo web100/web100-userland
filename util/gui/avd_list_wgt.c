@@ -6,7 +6,6 @@
 
 #include <gtk/gtk.h>
 #include "web100.h"
-#include "web100-int.h"
 #include "web100obj.h"
 #include "avd_list_wgt.h"
 #include "sockset_wgt.h"
