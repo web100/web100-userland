@@ -1,10 +1,10 @@
 AC_INIT(lib/web100.c)
 
 PACKAGE=web100_userland
-VERSION=alpha1.2pre1
+VERSION=alpha1.2pre2
 
 dnl libweb100 libtool versioning
-LT_CURRENT=2
+LT_CURRENT=1
 LT_REVISION=0
 LT_AGE=1
 

@@ -4,6 +4,12 @@ News
     This document gives an overview of the major changes of the software since
 the last release.
 
+  Alpha 1.2pre2:
+    o Fixed the binary interface incompatibilities that were introduced
+      in Alpha 1.2pre1.  This means that programs which were compiled
+      against Alpha 1.1 should continue to work unchanged with the
+      Alpha 1.2pre2 libweb100.
+
   Alpha 1.2pre1:
     o NOTE: The binary interface to libweb100 has changed slightly.  This
       means that existing applications must be recompiled and relinked
