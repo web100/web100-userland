@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.7 2002/02/15 06:07:00 engelhar Exp $
+ * $Id: web100.c,v 1.8 2002/02/21 21:58:16 engelhar Exp $
  */
 #include <assert.h>
 #include <stdio.h>
@@ -42,6 +42,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 #include <errno.h>
 
@@ -299,6 +300,20 @@ refresh_connections(web100_agent *agent)
     
     return WEB100_ERR_SUCCESS;
 }
+
+
+static void
+web100_log(web100_snapshot *snap)
+{
+    static int filesize = 0; 
+
+    fwrite(snap->group->name, WEB100_GROUPNAME_LEN_MAX, 1, snap->connection->logfile); 
+    filesize += WEB100_GROUPNAME_LEN_MAX;
+    fwrite(snap->data, snap->group->size, 1, snap->connection->logfile); 
+    filesize += snap->group->size; 
+    printf("%d\n", filesize);
+}
+
 
 /*
  * PUBLIC FUNCTIONS
@@ -628,7 +643,10 @@ web100_connection_lookup(web100_agent *agent, int cid)
 {
     web100_connection *cp;
     
-    if (!agent) return;
+    if (!agent) {
+        web100_errno = WEB100_ERR_INVAL;
+        return NULL;
+    }
 
     if (agent->type != WEB100_AGENT_TYPE_LOCAL) {
         web100_errno = WEB100_ERR_AGENT_TYPE;
@@ -688,7 +706,8 @@ int
 web100_connection_data_copy(web100_connection *dest, web100_connection *src)
 { 
 
-    if (!dest || !src) return;
+    if (!dest || !src)
+        return WEB100_ERR_INVAL;
 
     dest->agent = src->agent;
     dest->cid = src->cid;
@@ -764,7 +783,8 @@ web100_snap(web100_snapshot *snap)
         return -WEB100_ERR_NOCONNECTION;
     }
 
-    if (snap->connection->logstate) web100_log(snap);
+    if (snap->connection->logstate)
+        web100_log(snap);
     
     if (fclose(fp))
         perror("web100_snap: fclose");
@@ -930,14 +950,28 @@ web100_value_to_text - return string representation of buf
 char*
 web100_value_to_text(WEB100_TYPE type, void* buf)
 {
-    static char text[12];
+    char* text = malloc(WEB100_VALUE_LEN_MAX);
 
+    if (web100_value_to_textn(text, WEB100_VALUE_LEN_MAX, type, buf) == -1) {
+        free(text);
+        text = NULL;
+    }
+   
+    return text;
+}
+
+
+/*@
+web100_value_to_textn - return string representation of buf
+@*/
+int
+web100_value_to_textn(char* dest, size_t size, WEB100_TYPE type, void* buf)
+{
     switch(type) {
     case WEB100_TYPE_IP_ADDRESS:
     {
         unsigned char *addr = (unsigned char *) buf; 
-        sprintf(text, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]);
-        break;
+        return snprintf(dest, size, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]);
     }
     case WEB100_TYPE_INTEGER:
     case WEB100_TYPE_INTEGER32:
@@ -945,19 +979,17 @@ web100_value_to_text(WEB100_TYPE type, void* buf)
     case WEB100_TYPE_GAUGE32: 
     case WEB100_TYPE_UNSIGNED32:
     case WEB100_TYPE_TIME_TICKS:
-        sprintf(text, "%lu", *(u_int32_t *) buf);
-        break;
+        return snprintf(dest, size, "%u", *(u_int32_t *) buf);
     case WEB100_TYPE_COUNTER64:
-        sprintf(text, "%llu", *(u_int64_t *) buf);
-        break;
+        return snprintf(dest, size, "%llu", *(u_int64_t *) buf);
     case WEB100_TYPE_UNSIGNED16:
-        sprintf(text, "%u", *(u_int16_t *) buf);
-        break;
+        return snprintf(dest, size, "%u", *(u_int16_t *) buf);
     default:
-        sprintf(text, "%s", "unknown type");
+        snprintf(dest, size, "%s", "unknown type");
+        return -1;
     }
 
-    return text;
+    /* never reached */
 }
 
 
@@ -1213,18 +1245,8 @@ web100_socket_data_refresh(web100_agent *agent)
 	socket_data_arraylength = ++ii;
 	cid_data = cid_data->next;
     } 
-}
 
-int
-web100_log(web100_snapshot *snap)
-{
-    static int filesize = 0; 
-
-    fwrite(snap->group->name, WEB100_GROUPNAME_LEN_MAX, 1, snap->connection->logfile); 
-    filesize += WEB100_GROUPNAME_LEN_MAX;
-    fwrite(snap->data, snap->group->size, 1, snap->connection->logfile); 
-    filesize += snap->group->size; 
-    printf("%d\n", filesize);
+    return WEB100_ERR_SUCCESS;
 }
 
 int
@@ -1295,11 +1317,13 @@ web100_diagnose_stop(web100_connection *conn)
 	conn->logfile = NULL;
     }
     if(conn->tracepid) kill(conn->tracepid, SIGTERM);
+    return WEB100_ERR_SUCCESS;
 }
 
 int
 web100_diagnose_define(char *script)
 {
     setenv("TRACESCRIPT", script, 1);
+    return WEB100_ERR_SUCCESS;
 }
 

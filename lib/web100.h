@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * * $Id: web100.h,v 1.7 2002/02/15 06:07:01 engelhar Exp $
+ * * $Id: web100.h,v 1.8 2002/02/21 21:58:17 engelhar Exp $
  */
 #ifndef _WEB100_H
 #define _WEB100_H
@@ -66,6 +66,7 @@ struct web100_socket_data {
 #define WEB100_VERSTR_LEN_MAX       64
 #define WEB100_GROUPNAME_LEN_MAX    32
 #define WEB100_VARNAME_LEN_MAX      32
+#define WEB100_VALUE_LEN_MAX        16
 
 #define WEB100_ROOT_DIR     "/proc/web100/"
 #define WEB100_HEADER_FILE  WEB100_ROOT_DIR "header"
@@ -129,7 +130,8 @@ int                web100_snap_read(web100_var* _var, web100_snapshot* _snap, vo
 int                web100_delta_any(web100_var* _var, web100_snapshot* _s1, web100_snapshot* _s2, void* _buf);
 int                web100_snap_data_copy(web100_snapshot* _dest, web100_snapshot* _src);
 
-char*              web100_value_to_text(WEB100_TYPE _type, void* buf);
+char*              web100_value_to_text(WEB100_TYPE _type, void* _buf);
+int                web100_value_to_textn(char* _dest, size_t _size, WEB100_TYPE _type, void* _buf);
 
 int                web100_get_agent_type(web100_agent* _agent);
 const char*        web100_get_agent_version(web100_agent* _agent);
