@@ -23,7 +23,7 @@ II. Brief Overview of the TCP Kernel Instrument Set (TCP-KIS)
    The set of instruments, called the TCP Kernel Instrument Set
    (TCP-KIS), is documented in detail in the document 
 
-	      tcp-kis.txt
+       http://www.web100.org/download/tcp-kis.txt
 
    The primary objective in the design of this set of instruments is
    to collect as much of the information as possible to enable a user
@@ -42,21 +42,19 @@ II. Brief Overview of the TCP Kernel Instrument Set (TCP-KIS)
 
 III. Tools
 
-    All the tools referred to in this document are located in the
-    "util/src" directory.  Please see the installation document for
-    instructions on compiling these tools.
+    The userland distribution contains the web100 library and set
+    of tools.  Please see the README and INSTALL documents for
+    additional details about the contents of the distribution and
+    the procedure for installation.
 
-    Please keep in mind the following two things about using these
-    tools:
+    The source for the library is located in the "lib" directory, and
+    the tools are located in the "util" directory.
 
-      - Search Path: The directory containing these tools should be in
-	the search path for the tools to work correctly.  For example,
-	the DTB tool spawns off other tools and fails if the directory
-	containing the tools is not in the search path.
+    Please keep in mind the following things about using these tools:
 
-      - Customization: The following two customization files can be
-	used for customizing the colors and fonts of the windows that
-	are opened by the tools:
+      - Customization: The following customization files can be used for
+	customizing the colors and fonts of the windows that are opened
+	by the tools:
 
 	     web100.rc - the .rc file used by the tools by default
 	     lcl.rc    - the .rc file used by the tools with "-l" option
