@@ -10,17 +10,18 @@ all_manpages := libweb100.3 \
                 web100_group_find.3 \
                 web100_group_head.3 \
                 web100_group_next.3 \
+		web100_log_close_read.3 \
+		web100_log_close_write.3 \
+		web100_log_open_read.3 \
+		web100_log_open_write.3 \
+		web100_log_write.3 \
                 web100_perror.3 \
+		web100_snap_from_log.3 \
+		web100_snapshot_alloc_from_log.3 \
                 web100_strerror.3 \
                 web100_var_find.3 \
                 web100_var_head.3 \
-                web100_var_next.3 \
-		web100_log_open_read.3 \
-		web100_log_write.3 \
-		web100_log_close_write.3 \
-		web100_log_close_read.3 \
-		web100_snap_from_log.3 \
-		web100_snapshot_alloc_from_log.3
+                web100_var_next.3
 
 man_MANS += $(all_manpages)
 EXTRA_DIST += $(all_manpages)
