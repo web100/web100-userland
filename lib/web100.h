@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.12 2002/03/13 19:12:18 jestabro Exp $
+ * $Id: web100.h,v 1.13 2002/03/19 19:09:36 jestabro Exp $
  */
 
 #ifndef _WEB100_H
@@ -146,8 +146,10 @@ int                web100_get_group_nvars(web100_group* _group);
 const char*        web100_get_var_name(web100_var* _var);
 int                web100_get_var_type(web100_var* _var);
 
+web100_group*      web100_get_snap_group(web100_snapshot* _snap);
 const char*        web100_get_snap_group_name(web100_snapshot* _snap);
 
+web100_agent*      web100_get_connection_agent(web100_connection *_conn);
 int                web100_get_connection_cid(web100_connection* _conn);
 void               web100_get_connection_spec(web100_connection* _conn, struct web100_connection_spec* _spec);
 
@@ -157,7 +159,7 @@ int                web100_socket_data_refresh(web100_agent* _agent);
 int web100_get_##name(web100_snapshot* a, void* buf) {\
  static web100_var* va;\
  if (!va)\
-   if ((va=web100_var_find(a->group, #name)) == NULL)\
+   if ((va=web100_var_find(web100_get_snap_group(a), #name)) == NULL)\
      return -1;\
  return web100_snap_read(va, a, buf);\
 }
@@ -166,7 +168,7 @@ int web100_get_##name(web100_snapshot* a, void* buf) {\
 int web100_delta_##name(web100_snapshot* a, web100_snapshot* b, void* buf){\
  static web100_var* va;\
  if (!va)\
-   if ((va=web100_var_find(a->group, #name)) == NULL)\
+   if ((va=web100_var_find(web100_get_snap_group(a), #name)) == NULL)\
      return -1;\
  return web100_delta_any(va, a, b, buf);\
 }

@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.14 2002/03/13 19:12:17 jestabro Exp $
+ * $Id: web100.c,v 1.15 2002/03/19 19:09:35 jestabro Exp $
  */
 
 #include <assert.h>
@@ -1012,6 +1012,11 @@ web100_get_var_type(web100_var *var)
     return var->type;
 }
 
+web100_group*
+web100_get_snap_group(web100_snapshot *snap)
+{
+  return snap->group;
+}
 
 /*@
 web100_get_snap_group_name - get the name of the group from a snapshot
