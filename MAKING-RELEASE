@@ -36,7 +36,7 @@ How To Make A Release
   AUTHORS
   COPYING
   INSTALL
-  NEWS
+  NEWS ("cvs diff -RN -r <OLD_TAG>" may help)
   README (including version number at top)
   Automatically generated man pages within libweb100 source code
   doc/developers-guide.txt
@@ -44,7 +44,9 @@ How To Make A Release
   Handwritten man pages in doc/man
   The 'Latest Release' section of the documents part of the web page
   ... and possibly others
-- Run autogen.sh, configure, and 'make dist'
+- Run autogen.sh, configure, and 'make dist'.  Use the --enable-warnings
+  option to configure to make sure you catch and clean up any compiler
+  warnings.
 - Run 'make distcheck' to verify the distribution can be built from
   the tarball.
 - Run 'cvs tag VERSION_NUMBER' to tag the entire source code tree as version
