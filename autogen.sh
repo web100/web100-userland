@@ -18,7 +18,7 @@ autoconf || exit 1
 
 # Handle Mac OS X's non-standard naming of libtoolize
 for i in libtoolize glibtoolize; do
-    if which $i > /dev/null; then
+    if which $i > /dev/null 2>&1; then
         LIBTOOLIZE=$i
     fi
 done

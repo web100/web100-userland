@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.31 2002/09/10 21:01:08 jheffner Exp $
+ * $Id: web100.c,v 1.32 2003/01/06 19:46:31 engelhar Exp $
  */
 
 #include "config.h"
@@ -899,7 +899,10 @@ web100_snapshot_free - deallocate a snapshot
 void
 web100_snapshot_free(web100_snapshot *snap)
 {
-    free(snap->data);
+    if (snap) {
+        free(snap->data);
+        snap->data = NULL;
+    } 
     free(snap);
 }
 
