@@ -20,7 +20,7 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
     web100_var *var;
 
     char buf[256], path[PATH_MAX];
-    FILE *file; 
+    FILE *file, *file6; 
     int scan;
     DIR *dir, *fddir;
     struct dirent *direntp, *fddirentp;
@@ -30,7 +30,16 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
     pid_t pid;
     int ii=0;
     int tcp_entry, fd_entry;
-   
+
+    // read LocalAddressType
+#if 0
+    if((gp = web100_group_find(agent, "read")) == NULL)
+	return WEB100_ERR_NOGROUP;
+
+    if ((var = web100_var_find(gp, "LocalAddressType")) == NULL)
+	locaddrtype = WEB100_ADDRTYPE_IPV4;
+    else if (web100_raw_read(var, cp, &locaddrtype) != WEB100_ERR_SUCCESS)            return web100_errno;
+#endif
     // associate cid with IP 
     cid_data = NULL;
     cp = web100_connection_head(agent);
@@ -38,19 +47,19 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
 	char *addr_name, *port_name;
 	void *dst;
 
-        if((tmp = malloc(sizeof (struct connection_info))) == NULL) {
-	    web100_errno = WEB100_ERR_NOMEM;
-	    return -WEB100_ERR_NOMEM;
-	}
+        if((tmp = malloc(sizeof (struct connection_info))) == NULL) 
+	    return WEB100_ERR_NOMEM;
+	
 //
+//#if 0
         if((gp = web100_group_find(agent, "read")) == NULL) 
 	    return WEB100_ERR_NOGROUP;
-	
 
 	if ((var = web100_var_find(gp, "LocalAddressType")) == NULL)
 	    tmp->addrtype = WEB100_ADDRTYPE_IPV4;
 	else if (web100_raw_read(var, cp, &tmp->addrtype) != WEB100_ERR_SUCCESS)
 	    return web100_errno;
+//#endif 
 	
         if (strncmp(web100_get_agent_version(agent), "1.", 2) == 0) {
             addr_name = "RemoteAddress";
@@ -100,34 +109,66 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
     } 
     
     // associate IP with ino
+#if 0
     if((file = fopen("/proc/net/tcp", "r")) == NULL) {
         web100_errno = WEB100_ERR_FILE;
 	return -WEB100_ERR_FILE;
     }
+#endif
+
+    file = fopen("/proc/net/tcp", "r");
+    file6 = fopen("/proc/net/tcp6", "r");
 
     tcp_data = NULL;
-    while(fgets(buf, sizeof(buf), file) != NULL) { 
-        if((tmp = malloc(sizeof (struct connection_info))) == NULL) {
-	    web100_errno = WEB100_ERR_NOMEM;
-	    return -WEB100_ERR_NOMEM;
-	}
+    if(file) {
+	while(fgets(buf, sizeof(buf), file) != NULL) { 
+	    if((tmp = malloc(sizeof (struct connection_info))) == NULL) {
+		web100_errno = WEB100_ERR_NOMEM;
+		return -WEB100_ERR_NOMEM;
+	    }
 
-        if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
-                (u_int32_t *) &(tmp->spec.src_addr),
-                (u_int16_t *) &(tmp->spec.src_port),
-                (u_int32_t *) &(tmp->spec.dst_addr),
-                (u_int16_t *) &(tmp->spec.dst_port),
-                (u_int *) &(tmp->state),
-                (u_int *) &(tmp->uid),
-                (u_int *) &(tmp->ino))) == 7) { 
-            tmp->next = tcp_data; 
-            tcp_data = tmp; 
-       	} else {
-            free(tmp);
-        }
+	    if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
+			    (u_int32_t *) &(tmp->spec.src_addr),
+			    (u_int16_t *) &(tmp->spec.src_port),
+			    (u_int32_t *) &(tmp->spec.dst_addr),
+			    (u_int16_t *) &(tmp->spec.dst_port),
+			    (u_int *) &(tmp->state),
+			    (u_int *) &(tmp->uid),
+			    (u_int *) &(tmp->ino))) == 7) { 
+		tmp->next = tcp_data; 
+		tcp_data = tmp; 
+	    } else {
+		free(tmp);
+	    }
+	}
+	fclose(file);
+    }
+
+    if(file6) {
+	while(fgets(buf, sizeof(buf), file6) != NULL) { 
+	    if((tmp = malloc(sizeof (struct connection_info))) == NULL) {
+		web100_errno = WEB100_ERR_NOMEM;
+		return -WEB100_ERR_NOMEM;
+	    }
+
+	    if((scan = sscanf(buf, "%*u: %s:%x %s:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
+			    (char *) &(tmp->spec.src_addr),
+			    (u_int16_t *) &(tmp->spec.src_port),
+			    (char *) &(tmp->spec.dst_addr),
+			    (u_int16_t *) &(tmp->spec.dst_port),
+			    (u_int *) &(tmp->state),
+			    (u_int *) &(tmp->uid),
+			    (u_int *) &(tmp->ino))) == 7) { 
+		tmp->next = tcp_data; 
+		tcp_data = tmp; 
+	    } else {
+		free(tmp);
+	    }
+	}
+	fclose(file6);
     }
     tcp_head = tcp_data;
-    fclose(file); 
+//    fclose(file); 
 
     // associate ino with pid
     if(!(dir = opendir("/proc"))) { 
@@ -188,9 +229,17 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
     while(cid_data) {
 	tcp_entry = 0;
 	for(tcp_data = tcp_head; tcp_data; tcp_data = tcp_data->next) {
-	    if(tcp_data->spec.dst_port == cid_data->spec.dst_port &&
-               tcp_data->spec.dst_addr == cid_data->spec.dst_addr &&
-               tcp_data->spec.src_port == cid_data->spec.src_port) { 
+	    if ( ((tcp_data->addrtype == WEB100_ADDRTYPE_IPV4) &&
+
+	          (tcp_data->spec.dst_port == cid_data->spec.dst_port &&
+                   tcp_data->spec.dst_addr == cid_data->spec.dst_addr &&
+                   tcp_data->spec.src_port == cid_data->spec.src_port)) ||
+
+		 ((tcp_data->addrtype == WEB100_ADDRTYPE_IPV6) &&
+		  (tcp_data->spec_v6.dst_port == cid_data->spec_v6.dst_port &&
+           !strcmp(tcp_data->spec_v6.dst_addr, cid_data->spec_v6.dst_addr) &&
+                   tcp_data->spec_v6.src_port == cid_data->spec_v6.src_port)) ) 
+	    { 
 
 		tcp_entry = 1;
 		fd_entry = 0;
@@ -205,7 +254,13 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
 		       	ci->state = tcp_data->state; 
 
 			ci->cid = cid_data->cid;
-		       	memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+			ci->addrtype = cid_data->addrtype;
+
+			if(ci->addrtype == WEB100_ADDRTYPE_IPV4)
+			    memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+			if(ci->addrtype == WEB100_ADDRTYPE_IPV6)
+			    memcpy(&(ci->spec_v6), &cid_data->spec_v6, sizeof (struct web100_connection_spec_v6));
+
 			ci->next = *conninfo;
 			*conninfo = ci;
 		    }
@@ -218,7 +273,15 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
 		    ci->state = tcp_data->state;
 
 		    ci->cid = cid_data->cid;
-		    memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+//		    memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+
+		    ci->addrtype = cid_data->addrtype;
+
+		    if(ci->addrtype == WEB100_ADDRTYPE_IPV4)
+			memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+		    if(ci->addrtype == WEB100_ADDRTYPE_IPV6)
+			memcpy(&(ci->spec_v6), &cid_data->spec_v6, sizeof (struct web100_connection_spec_v6));
+
 		    ci->next = *conninfo;
 		    *conninfo = ci;
 		}
@@ -228,7 +291,15 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
                          // (only for consistency with entries in /proc/web100) 
 	    ci = (struct connection_info *) malloc(sizeof (struct connection_info));
 	    ci->cid = cid_data->cid;
-	    memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+//	    memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+
+	    ci->addrtype = cid_data->addrtype;
+
+	    if(ci->addrtype == WEB100_ADDRTYPE_IPV4)
+		memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+	    if(ci->addrtype == WEB100_ADDRTYPE_IPV6)
+		memcpy(&(ci->spec_v6), &cid_data->spec_v6, sizeof (struct web100_connection_spec_v6));
+
 	    ci->next = *conninfo;
 	    *conninfo = ci;
 	}
