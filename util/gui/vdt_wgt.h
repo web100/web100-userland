@@ -30,6 +30,7 @@ struct _Vdt
 
   GtkWidget *graph;
   GtkWidget *clist, *entry;
+  float graphval[20];
 };
 
 struct _VdtClass

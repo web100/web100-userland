@@ -23,11 +23,11 @@ static GtkVBoxClass *parent_class = NULL;
 #define METER 1 
 static int mode = GRAPH;
 static float ewma, oldewma, max, oldmax;
-static float graphval[20];
+//static float graphval[20];
 static int smoothing_on=1, delta_on=1;
 static char valtext[32];
 
-float get_ewma(float value, float oldewma, float weight)
+static float get_ewma(float value, float oldewma, float weight)
 {
   float ewma;
 
@@ -37,7 +37,7 @@ float get_ewma(float value, float oldewma, float weight)
 
 #define CHECKMAX(s) {if (val <= (m=(s)*decade)) { return(m); }}
 
-float newmax(float val, float oldmax)
+static float newmax(float val, float oldmax)
 {
   float m, decade;
 
@@ -239,10 +239,10 @@ void vdt_web100obj_snap_update (GtkObject *object, gpointer *data)
 //  gtk_adjustment_set_value(WC_METER(meter)->adjustment, result);
 //  gtk_widget_draw(meter, NULL);
 
-  for(ii=0;ii<19;ii++){ graphval[ii] = graphval[ii+1];}
-  graphval[19] = result;
+  for(ii=0;ii<19;ii++){ vdt->graphval[ii] = vdt->graphval[ii+1];}
+  vdt->graphval[19] = result;
   for(ii=0;ii<20;ii++){
-    wc_graph_set_value(WC_GRAPH(vdt->graph), ii, graphval[ii]);
+    wc_graph_set_value(WC_GRAPH(vdt->graph), ii, vdt->graphval[ii]);
   } 
   gtk_widget_draw(vdt->graph, NULL); 
 
@@ -326,7 +326,7 @@ static void vdt_init (Vdt *vdt)
   GTK_WIDGET_SET_FLAGS (vdt, GTK_NO_WINDOW);
 
   ewma = oldewma = max = oldmax = 0.;
-  for(ii=0;ii<20;ii++) graphval[ii] = 0.;
+  for(ii=0;ii<20;ii++) vdt->graphval[ii] = 0.;
 
   infobox = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(vdt), infobox, FALSE, FALSE, 5);
