@@ -9,7 +9,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.2 2002/01/14 18:38:00 jestabro Exp $
+ * $Id: web100.h,v 1.3 2002/01/23 18:53:05 jestabro Exp $
  */
 #ifndef _WEB100_H
 #define _WEB100_H
@@ -34,23 +34,31 @@ struct web100_connection_spec {
     u_int16_t src_port;
     u_int32_t src_addr;
 };
-/*
+
 struct web100_socket_data { 
-    char cid[MAXCIDNAME];
-    u_int32_t localadd, remoteadd;
-    u_int16_t localport, remoteport;
+    int cid; 
+    struct web100_connection_spec spec;
     ino_t ino;
     pid_t pid;
+    uid_t uid;
     int state;
-    char cmdline[MAXCMDNAME];
+    char cmdline[PATH_MAX];
+    struct web100_socket_data *next;
 };
-*/
+
 /* Agent types */
 #define WEB100_AGENT_TYPE_LOCAL 0
 
+#define WEB100_VERSTR_LEN_MAX       64
+#define WEB100_GROUPNAME_LEN_MAX    32
+#define WEB100_VARNAME_LEN_MAX      32
+
+#define WEB100_ROOT_DIR     "/proc/web100/"
+#define WEB100_HEADER_FILE  WEB100_ROOT_DIR "header"
+
 /* Error codes.  If you update these, be sure to update web100_sys_errlist. */
 #define WEB100_ERR_SUCCESS         0
-#define WEB100_ERR_SYS             1 /* DEPRECATED */
+#define WEB100_ERR_FILE            1
 #define WEB100_ERR_AGENT_TYPE      2
 #define WEB100_ERR_NOMEM           3
 #define WEB100_ERR_NOCONNECTION    4
@@ -120,6 +128,8 @@ const char*        web100_get_snap_group_name(web100_snapshot* _snap);
 
 int                web100_get_connection_cid(web100_connection* _conn);
 void               web100_get_connection_spec(web100_connection* _conn, struct web100_connection_spec* _spec);
+
+int                web100_socket_data_refresh(web100_agent* _agent);
 
 #define DEF_GAUGE(name, type)\
 int web100_get_##name(web100_snapshot* a, void* buf) {\

@@ -9,7 +9,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100-int.h,v 1.2 2002/01/14 18:37:59 jestabro Exp $
+ * $Id: web100-int.h,v 1.3 2002/01/23 18:53:06 jestabro Exp $
  */
 #ifndef _WEB100_INT_H
 #define _WEB100_INT_H
@@ -31,14 +31,14 @@
 #ifndef TRUE
 #define TRUE 1
 #endif
-
+/*
 #define WEB100_VERSTR_LEN_MAX       64
 #define WEB100_GROUPNAME_LEN_MAX    32
 #define WEB100_VARNAME_LEN_MAX      32
 
 #define WEB100_ROOT_DIR     "/proc/web100/"
 #define WEB100_HEADER_FILE  WEB100_ROOT_DIR "header"
-
+*/
 struct web100_agent_info_local {
     struct web100_group*      group_head;
     struct web100_connection* connection_head;
@@ -93,8 +93,11 @@ struct web100_connection {
     struct web100_connection_spec spec;
     struct web100_agent*          agent;
 
-    int                           errno;
-    int                           log;
+    int                           error;
+    FILE                          *logfile;
+    int                           logstate;
+//    char                          tracescript[PATH_MAX]; 
+    pid_t                         tracepid;
     
     union {
         struct web100_connection_info_local local;
@@ -106,5 +109,9 @@ struct web100_snapshot {
     struct web100_connection* connection;
     void*                     data;
 };
+
+struct web100_socket_data *socket_data;
+int socket_data_arraysize;
+int socket_data_arraylength;
 
 #endif /* _WEB100_INT_H */

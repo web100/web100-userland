@@ -12,7 +12,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.2 2002/01/14 18:37:59 jestabro Exp $
+ * $Id: web100.c,v 1.3 2002/01/23 18:53:05 jestabro Exp $
  */
 #include <assert.h>
 #include <stdio.h>
@@ -20,9 +20,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <time.h>
+#include <sys/time.h>
+#include <signal.h>
+#include <sys/wait.h>
+
+#include <errno.h>
 
 #include "web100-int.h"
 #include "web100.h" /*I <web100/web100.h> I*/
@@ -33,6 +40,7 @@
  * storage).
  */ 
 int web100_errno;
+char web100_errstr[128];
 
 /*
  * Array of error code -> string mappings, in the style of sys_errlist.
@@ -40,7 +48,7 @@ int web100_errno;
  */
 const char* const web100_sys_errlist[] = {
     "success",                             /* WEB100_ERR_SUCCESS */
-    "system error",                        /* WEB100_ERR_SYS */
+    "file read/write error",               /* WEB100_ERR_FILE */
     "unsupported agent type",              /* WEB100_ERR_AGENT_TYPE */
     "no memory",                           /* WEB100_ERR_NOMEM */
     "unable to open connection stats",     /* WEB100_ERR_NOCONNECTION */
@@ -199,6 +207,7 @@ _web100_agent_attach_local(void)
     }
     
     if (web100_errno != WEB100_ERR_SUCCESS) {
+	strcpy(web100_errstr, "_web100_agent_attach_local");
         web100_detach(agent);
         agent = NULL;
     }
@@ -226,7 +235,7 @@ refresh_connections(web100_agent *agent)
     
     if ((dir = opendir(WEB100_ROOT_DIR)) == NULL) {
         perror("refresh_connections: opendir");
-        return WEB100_ERR_SYS;
+        return WEB100_ERR_FILE;
     }
     
     while ((ent = readdir(dir))) {
@@ -239,7 +248,9 @@ refresh_connections(web100_agent *agent)
         if ((cp = (web100_connection *)malloc(sizeof (web100_connection))) == NULL)
             return WEB100_ERR_NOMEM;
         cp->agent = agent;
-        cp->cid = cid;
+       	cp->cid = cid; 
+	cp->logstate = 0; 
+
         cp->info.local.next = agent->info.local.connection_head;
         agent->info.local.connection_head = cp;
         
@@ -248,7 +259,7 @@ refresh_connections(web100_agent *agent)
         strcat(filename, "/spec");
         if ((fp = fopen(filename, "r")) == NULL) {
             perror("refresh_connections: fopen");
-            return WEB100_ERR_SYS;
+            return WEB100_ERR_FILE;
         }
         /* This is dangerous.  Should at least check that it
          * actually matches header on attach. */
@@ -258,7 +269,7 @@ refresh_connections(web100_agent *agent)
             || fread(&cp->spec.src_addr, 4, 1, fp) != 1) {
             perror("fread");
             fprintf(stderr, "refresh_connections: bad spec file format\n");
-            return WEB100_ERR_SYS;
+            return WEB100_ERR_FILE;
         }
         if (fclose(fp))
             perror("refresh_connections: fclose");
@@ -700,6 +711,8 @@ web100_snap(web100_snapshot *snap)
         web100_errno = WEB100_ERR_NOCONNECTION;
         return -WEB100_ERR_NOCONNECTION;
     }
+
+    if (snap->connection->logstate) web100_log(snap);
     
     if (fclose(fp))
         perror("web100_snap: fclose");
@@ -735,13 +748,13 @@ web100_raw_read(web100_var *var, web100_connection *conn, void *buf)
     
     if (fseek(fp, var->offset, SEEK_SET)) {
         perror("web100_raw_read: fseek");
-        web100_errno = WEB100_ERR_SYS;
-        return -WEB100_ERR_SYS;
+        web100_errno = WEB100_ERR_FILE;
+        return -WEB100_ERR_FILE;
     }
     if (fread(buf, size_from_type(var->type), 1, fp) != 1) {
         perror("web100_raw_read: fread");
-        web100_errno = WEB100_ERR_SYS;
-        return -WEB100_ERR_SYS;
+        web100_errno = WEB100_ERR_FILE;
+        return -WEB100_ERR_FILE;
     }
     
     if (fclose(fp))
@@ -778,13 +791,13 @@ web100_raw_write(web100_var *var, web100_connection *conn, void *buf)
     
     if (fseek(fp, var->offset, SEEK_SET)) {
         perror("web100_raw_write: fseek");
-        web100_errno = WEB100_ERR_SYS;
-        return -WEB100_ERR_SYS;
+        web100_errno = WEB100_ERR_FILE;
+        return -WEB100_ERR_FILE;
     }
     if (fwrite(buf, size_from_type(var->type), 1, fp) != 1) {
         perror("web100_raw_write: fread");
-        web100_errno = WEB100_ERR_SYS;
-        return -WEB100_ERR_SYS;
+        web100_errno = WEB100_ERR_FILE;
+        return -WEB100_ERR_FILE;
     }
     
     if (fclose(fp))
@@ -995,3 +1008,245 @@ web100_get_connection_spec(web100_connection *connection,
 {
     memcpy(spec, &connection->spec, sizeof (struct web100_connection_spec));
 }
+
+int
+web100_socket_data_refresh(web100_agent *agent)
+{
+    struct web100_socket_data *cid_data, *tcp_data, *fd_data, *temp,
+                                                *tcp_head, *fd_head;
+    web100_connection *cp;
+    char buf[256], path[PATH_MAX];
+    FILE *file; 
+    int scan;
+    DIR *dir, *fddir;
+    struct dirent *direntp, *fddirentp;
+    int fd;
+    struct stat st;
+    int stno;
+    pid_t pid;
+    int ii=0;
+   
+    // associate cid with IP
+    refresh_connections(agent);
+
+    cid_data = NULL;
+    cp = agent->info.local.connection_head;
+    while (cp) {
+	temp = malloc(sizeof (struct web100_socket_data));
+	web100_get_connection_spec(cp, &(temp->spec));
+	temp->cid = cp->cid;
+
+	temp->next = cid_data;
+	cid_data = temp;
+
+       	cp = cp->info.local.next; 
+    } 
+    
+    // associate IP with ino
+    file = fopen("/proc/net/tcp", "r");
+
+    tcp_data = NULL;
+    while(fgets(buf, sizeof(buf), file) != NULL){  
+	temp = malloc(sizeof (struct web100_socket_data));
+
+	if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
+			(u_int32_t *) &(temp->spec.src_addr),
+			(u_int16_t *) &(temp->spec.src_port),
+			(u_int32_t *) &(temp->spec.dst_addr),
+			(u_int16_t *) &(temp->spec.dst_port),
+			(u_int *) &(temp->state),
+			(u_int *) &(temp->uid),
+			(u_int *) &(temp->ino))) == 7) { 
+	    temp->next = tcp_data; 
+	    tcp_data = temp; 
+       	}
+       	else free(temp); 
+    }
+    tcp_head = tcp_data;
+    fclose(file); 
+
+    // associate ino with pid
+    if(!(dir = opendir("/proc")))
+    {
+       	perror("/proc");
+       	exit(1);
+    }
+
+    fd_data = NULL;
+    while((direntp = readdir(dir)) != NULL) {
+       	if((pid = atoi(direntp->d_name)) != 0)
+       	{
+	    sprintf(path, "%s/%d/%s/", "/proc", pid, "fd"); 
+	    if(fddir = opendir(path)) //else lacks permissions 
+		while((fddirentp = readdir(fddir)) != NULL) 
+		{ 
+		    strcpy(buf, path);
+		    strcat(buf, fddirentp->d_name); 
+		    stno = stat(buf, &st); 
+		    if(S_ISSOCK(st.st_mode)) // add new list entry
+		    { 
+			if((temp = malloc(sizeof(struct web100_socket_data))) == NULL){
+			    fprintf(stderr, "Out of memory\n");
+			    exit(1);
+		       	}
+
+			temp->ino = st.st_ino;
+		       	temp->pid = pid; 
+
+		       	temp->next = fd_data; 
+		       	fd_data = temp; 
+
+			sprintf(buf, "/proc/%d/status", pid);
+
+			if((file = fopen(buf, "r")) == NULL) continue;
+
+			if(fgets(buf, sizeof(buf), file) == NULL){
+			    fclose(file);
+			    continue;
+		       	} 
+
+			if(sscanf(buf, "Name: %s\n", &(fd_data->cmdline)) != 1){
+			    fclose(file);
+			    continue;
+		       	} 
+			fclose(file); 
+		    }
+	       	}
+	    closedir(fddir);
+       	} 
+
+    }
+    fd_head = fd_data;
+    closedir(dir); 
+
+    //finally, collate above information
+    if(socket_data) free(socket_data);
+
+    socket_data_arraysize = 2;
+    socket_data = calloc(socket_data_arraysize, sizeof (struct web100_socket_data));
+    socket_data_arraylength = 0;
+    
+    while(cid_data) { 
+	if(ii == socket_data_arraysize) {
+	    socket_data_arraysize *= 2;
+	    socket_data = realloc(socket_data, (sizeof (struct web100_socket_data)*socket_data_arraysize));
+	}
+
+	socket_data[ii].cid = cid_data->cid; 
+	memcpy(&(socket_data[ii].spec), &cid_data->spec, sizeof (struct web100_connection_spec)); 
+	socket_data[ii].state = 0; // until we learn otherwise
+
+	tcp_data = tcp_head;
+	while(tcp_data) {
+	    if(tcp_data->spec.dst_port == cid_data->spec.dst_port &&
+               tcp_data->spec.dst_addr == cid_data->spec.dst_addr &&
+               tcp_data->spec.src_port == cid_data->spec.src_port) { 
+
+		socket_data[ii].ino = tcp_data->ino;
+		socket_data[ii].uid = tcp_data->uid;
+		socket_data[ii].state = tcp_data->state;
+		
+		fd_data = fd_head;
+		while(fd_data) {
+		    if(fd_data->ino == tcp_data->ino) { 
+			socket_data[ii].pid = fd_data->pid;
+			strncpy(socket_data[ii].cmdline, fd_data->cmdline, PATH_MAX);
+		    } 
+		    fd_data = fd_data->next;
+		}
+	    } 
+	    tcp_data = tcp_data->next;
+	} 
+	socket_data_arraylength = ++ii;
+	cid_data = cid_data->next;
+    } 
+}
+
+int
+web100_log(web100_snapshot *snap)
+{
+    static int filesize = 0; 
+
+    fwrite(snap->group->name, WEB100_GROUPNAME_LEN_MAX, 1, snap->connection->logfile); 
+    filesize += WEB100_GROUPNAME_LEN_MAX;
+    fwrite(snap->data, snap->group->size, 1, snap->connection->logfile); 
+    filesize += snap->group->size; 
+    printf("%d\n", filesize);
+}
+
+int
+web100_diagnose_start(web100_connection *conn)
+{
+    char logname[PATH_MAX];
+    time_t timep;
+    struct tm *tmp;
+    pid_t pid;
+    char tracescript[PATH_MAX];
+    char buf[32], buf1[32], buf2[32];
+
+    if(!conn) {
+	web100_errno = WEB100_ERR_INVAL;
+	goto Cleanup;
+    }
+
+    conn->logfile = NULL;
+    conn->tracepid = 0;
+
+    timep = time(NULL);
+    tmp = localtime(&timep);
+    sprintf(logname, "%s.%d_%d.%d.%d.%d.%d", "./web100.log", conn->cid, tmp->tm_mon, tmp->tm_mday, tmp->tm_hour, tmp->tm_min,  tmp->tm_sec);
+
+    if((conn->logfile = fopen(logname, "w")) == NULL) {
+	web100_errno = WEB100_ERR_FILE;
+	strcpy(web100_errstr, "fopen: "); 
+	goto Cleanup;
+    }
+
+    pid = fork();
+    if(pid == -1) {
+       	web100_errno = WEB100_ERR_NOMEM;
+       	goto Cleanup;	
+    }
+    else if(pid == 0) {
+	if(strcpy(tracescript, getenv("TRACESCRIPT"))) { 
+	    if(execlp(tracescript, tracescript, web100_value_to_text(WEB100_TYPE_UNSIGNED16, &conn->spec.src_port), web100_value_to_text(WEB100_TYPE_IP_ADDRESS, &conn->spec.dst_addr), web100_value_to_text(WEB100_TYPE_UNSIGNED16, &conn->spec.dst_port), 0) == -1) {
+		web100_errno = WEB100_ERR_FILE;
+		strcpy(web100_errstr, "execlp: ");
+		goto Cleanup;
+	    }
+	}
+    }
+    else {
+	waitpid (-1, 0, WNOHANG);
+	conn->tracepid = pid;
+    }
+
+    web100_errno = WEB100_ERR_SUCCESS;
+
+Cleanup:
+    if(web100_errno != WEB100_ERR_SUCCESS) { 
+	strcat(web100_errstr, "web100_diagnose_start"); 
+	return -web100_errno;
+    } 
+
+    conn->logstate = TRUE;
+    return WEB100_ERR_SUCCESS;
+}
+
+int
+web100_diagnose_stop(web100_connection *conn)
+{
+    conn->logstate = FALSE;
+    if(conn->logfile) {
+	fclose(conn->logfile);
+	conn->logfile = NULL;
+    }
+    if(conn->tracepid) kill(conn->tracepid, SIGTERM);
+}
+
+int
+web100_diagnose_define(char *script)
+{
+    setenv("TRACESCRIPT", script, 1);
+}
+
