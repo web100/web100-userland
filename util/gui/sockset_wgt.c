@@ -82,7 +82,7 @@ static void sockset_class_init (SocksetClass *class)
 static void sockset_init (Sockset *sockset)
 { 
   GTK_WIDGET_SET_FLAGS (sockset, GTK_NO_WINDOW);
-  sockset->web100obj = NULL; //XXX
+  sockset->web100obj = NULL;
 }
   
 static void sockset_construct (Sockset *sockset,
@@ -142,7 +142,6 @@ GtkWidget* sockset_new (Web100Obj *web100obj, gboolean malleable)
   Sockset *sockset = gtk_type_new (sockset_get_type ()); 
 
   sockset_construct (sockset, web100obj, malleable);
-//  sockset_set_web100obj (sockset, web100obj);
 
   return GTK_WIDGET (sockset); 
 }
@@ -230,7 +229,6 @@ static void show_socklist (GtkWidget *button, gpointer data)
   char hostname[45];
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-//  gtk_widget_set_usize(GTK_WIDGET(window), 460, 300);
 
   strcpy(titlebar, "TCP sockets@");
   gethostname(hostname, (size_t) 45);
@@ -240,7 +238,7 @@ static void show_socklist (GtkWidget *button, gpointer data)
   gtk_signal_connect (GTK_OBJECT (window), "destroy",
                       GTK_SIGNAL_FUNC (gtk_widget_destroy), window);
 
-  SOCKSET (data)->cnlst = CNLST (cnlst_new ());
+  SOCKSET (data)->cnlst = CNLST (cnlst_new (sockset_get_web100obj(SOCKSET(data))));
   gtk_container_add (GTK_CONTAINER (window),
                      GTK_WIDGET (SOCKSET (data)->cnlst));
   gtk_widget_show (GTK_WIDGET (SOCKSET (data)->cnlst));
@@ -257,26 +255,26 @@ static void select_socket(GtkWidget *parentclist, gint row, gint column,
   Sockset *sockset;
   Web100Obj *web100obj = NULL;
   web100_connection *conn;
-  char *ascid;
+  int cid;
+  char ascid[64];
   GList *objects;
 
   sockset = SOCKSET (data);
-  if ((ascid = (char *) gtk_clist_get_row_data (GTK_CLIST(parentclist), row)) ==NULL)
-    return;
+
+  cid = GPOINTER_TO_INT(gtk_clist_get_row_data (GTK_CLIST(parentclist), row));
+  sprintf(ascid, "%d", cid);
+  printf("%d\n", cid);
   printf("ascid: %s\n", ascid);
 
 // check if the object already exists: 
-  if ((conn = web100_connection_lookup (sockset->web100obj->agent, atoi(ascid))) == NULL)
-    return;
 
   for (objects = sockset->web100obj->web100sync->objects;
       objects != NULL;
       objects = g_list_next (objects)) { 
-
-    if (!web100obj_compar (WEB100_OBJ (objects->data)->connection, conn)) { 
-      web100obj = WEB100_OBJ (objects->data); 
-      break;
-    }
+        if (WEB100_OBJ (objects->data)->cid == atoi(ascid)) { 
+	  web100obj = WEB100_OBJ (objects->data); 
+	  break;
+	}
   } 
   if (!web100obj)
     web100obj = WEB100_OBJ (web100obj_new (sockset->web100obj->web100sync, ascid));
@@ -287,16 +285,8 @@ static void select_socket(GtkWidget *parentclist, gint row, gint column,
 
 static void sockset_set_connection_info (Sockset *sockset, Web100Obj *web100obj)
 { 
-//  Web100Obj *web100obj; 
   unsigned char *src, *dst;
   char ascid[32], ftuple[128]; 
-
-//  g_return_if_fail (data != NULL);
-
-//  web100obj = sockset->web100obj; 
-
-//  cid = (char *) gtk_clist_get_row_data (GTK_CLIST(parentclist), row); 
-//  web100obj_set_connection (sockset->web100obj, cid); 
 
   sprintf (ascid, "%d", web100obj->cid);
   gtk_entry_set_text(GTK_ENTRY(sockset->cidentry), ascid);

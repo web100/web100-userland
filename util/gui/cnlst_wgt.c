@@ -1,21 +1,16 @@
-
 #include <stdlib.h>
 #include <stdio.h> 
 #include <gtk/gtk.h>
 
-//#include "web100.h"
-//#include "web100obj.h"
-//#include "web100gui.h" 
-#include "sockdata.h"
+#include "web100.h"
+#include "web100obj.h"
+#include "connection_info.h"
 #include "cnlst_wgt.h"
 
-
-#define CNLST_DEFAULT_SIZE 300
 
 static void cnlst_class_init (CnlstClass *class);
 static void cnlst_init (Cnlst *cnlst);
 static void cnlst_destroy (GtkObject *object);
-static void list_callback(struct SockData *, void *);
 static void choose_sort(GtkWidget *, gpointer);
 static void row_destroy (gpointer data);
 
@@ -23,12 +18,9 @@ static GtkVBoxClass *parent_class = NULL;
 
 static char *states[12] = {
     "ESTBLSH",   "SYNSENT",   "SYNRECV",   "FWAIT1",   "FWAIT2", "TMEWAIT",
-    "CLOSED",    "CLSWAIT",   "LASTACK",   "LISTEN", "CLOSING" };
-
+    "CLOSED",    "CLSWAIT",   "LASTACK",   "LISTEN", "CLOSING" }; 
 static char *text[8];
-static guint update_id;
-static guint update_interval = 1;
-int (*sort_compar)(const void *, const void *);
+
 
 GtkType cnlst_get_type ()
 {
@@ -67,6 +59,12 @@ static void cnlst_class_init (CnlstClass *class)
 }
 
 static void cnlst_init (Cnlst *cnlst)
+{
+    GTK_WIDGET_SET_FLAGS (cnlst, GTK_NO_WINDOW);
+    cnlst->web100obj = NULL;
+}
+
+static void cnlst_construct (Cnlst *cnlst, Web100Obj *web100obj)
 { 
   gchar *titles[8] = { "cmdline", "pid", "local add", "local port",
                        "remote add", "remote port", "cid", "state" };
@@ -76,12 +74,10 @@ static void cnlst_init (Cnlst *cnlst)
 
   GTK_WIDGET_SET_FLAGS (cnlst, GTK_NO_WINDOW); 
 
-  for(ii=0;ii<8;ii++) if( (text[ii] = malloc(60))==NULL) {
+  for(ii=0;ii<8;ii++) if( (text[ii] = malloc(64)) == NULL) {
     fprintf(stderr, "Out of memory!\n");
     exit(1);
   }
-
-  sort_compar = NULL;
 
   scrollwin = gtk_scrolled_window_new(NULL, NULL); 
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrollwin),
@@ -103,53 +99,58 @@ static void cnlst_init (Cnlst *cnlst)
   gtk_container_add(GTK_CONTAINER(scrollwin), cnlst->clist);
   gtk_widget_show(cnlst->clist);
 
-  update_id = gtk_timeout_add(update_interval*1000,
-                              (GtkFunction) cnlst_update, (gpointer) cnlst);
+  cnlst_set_web100obj (cnlst, web100obj);
   cnlst_update((gpointer) cnlst); 
-
-  hbox = gtk_hbox_new(FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(cnlst), hbox, FALSE, FALSE, 10);
-  gtk_widget_show(hbox);
-
-  label = gtk_label_new("Sort entries by:  ");
-  gtk_box_pack_start(GTK_BOX(hbox), label, TRUE, FALSE, 10);
-  gtk_widget_show(label);
-
-  button[0] = gtk_radio_button_new_with_label (NULL, labels[0]);
-  gtk_signal_connect(GTK_OBJECT(button[0]), "pressed",
-                     GTK_SIGNAL_FUNC(choose_sort), GINT_TO_POINTER(0));
-
-  gtk_box_pack_start(GTK_BOX(hbox), button[0], TRUE, FALSE, 10);
-  gtk_widget_show(button[0]);
-
-  for (ii=1;ii<5;ii++) {
-  button[ii] =
-    gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(button[ii-1]),
-                                                labels[ii]);
-  gtk_signal_connect(GTK_OBJECT(button[ii]), "pressed",
-                     GTK_SIGNAL_FUNC(choose_sort), GINT_TO_POINTER(ii));
-  gtk_box_pack_start(GTK_BOX(hbox), button[ii], TRUE, FALSE, 10);
-  gtk_widget_show(button[ii]);
-  }
 }
 
-GtkWidget* cnlst_new (void)
+GtkWidget* cnlst_new (Web100Obj *web100obj)
 {
   Cnlst *cnlst = gtk_type_new (cnlst_get_type ()); 
 
+  cnlst_construct (cnlst, web100obj);
+
   return GTK_WIDGET (cnlst); 
+}
+
+void cnlst_set_web100obj (Cnlst *cnlst, Web100Obj *web100obj)
+{
+  g_return_if_fail (cnlst != NULL);
+  g_return_if_fail (IS_CNLST (cnlst)); 
+
+  g_return_if_fail (web100obj != NULL);
+  g_return_if_fail (IS_WEB100_OBJ (web100obj));
+
+  if (cnlst->web100obj) { 
+    gtk_signal_disconnect_by_data (GTK_OBJECT (cnlst->web100obj),
+                                   (gpointer) cnlst);
+    gtk_object_unref (GTK_OBJECT (cnlst->web100obj));
+  }
+
+  cnlst->web100obj = web100obj; 
+  gtk_object_ref (GTK_OBJECT (web100obj)); 
+  gtk_object_sink (GTK_OBJECT (web100obj));
+}
+
+Web100Obj* cnlst_get_web100obj (Cnlst *cnlst)
+{
+    g_return_val_if_fail (cnlst != NULL, NULL);
+    g_return_val_if_fail (IS_CNLST (cnlst), NULL);
+
+    return cnlst->web100obj;
 }
 
 gint cnlst_update (gpointer data)
 { 
   Cnlst *cnlst = (Cnlst *) data;
-  int jj; 
+  int ii=0; 
   GtkCList *clist;
   float vadjust;
+  struct connection_info *res;
+  struct web100_connection_spec spec;
+  struct web100_connection_spec_v6 spec_v6;
 
+  
   clist = GTK_CLIST(cnlst->clist);
-
-  fill_socklist(); 
 
   gtk_clist_freeze(GTK_CLIST(clist));
 
@@ -157,14 +158,42 @@ gint cnlst_update (gpointer data)
 
   gtk_clist_clear(GTK_CLIST(clist) );
 
-  sort_socklist(sort_compar);
-  list_socklist(list_callback, cnlst);
+  res = connection_info_head(cnlst->web100obj->agent);
+
+  while(res) { 
+    strcpy(text[0], connection_info_get_cmdline(res)); 
+    sprintf(text[1], "%d", connection_info_get_pid(res)); 
+
+    if(connection_info_get_addrtype(res) == WEB100_ADDRTYPE_IPV4) {
+      connection_info_get_spec(res, &spec);
+      strcpy(text[2], web100_value_to_text(WEB100_TYPE_INET_ADDRESS_IPV4, &spec.src_addr));
+      strcpy(text[3], web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, &spec.src_port));
+      strcpy(text[4], web100_value_to_text(WEB100_TYPE_INET_ADDRESS_IPV4, &spec.dst_addr));
+      strcpy(text[5], web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, &spec.dst_port));
+    }
+
+    if(connection_info_get_addrtype(res) == WEB100_ADDRTYPE_IPV6) {
+      connection_info_get_spec_v6(res, &spec_v6);
+      strcpy(text[2], web100_value_to_text(WEB100_TYPE_INET_ADDRESS_IPV6, &spec_v6.src_addr));
+      strcpy(text[3], web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, &spec_v6.src_port));
+      strcpy(text[4], web100_value_to_text(WEB100_TYPE_INET_ADDRESS_IPV6, &spec_v6.dst_addr));
+      strcpy(text[5], web100_value_to_text(WEB100_TYPE_INET_PORT_NUMBER, &spec_v6.dst_port));
+    }
+
+    sprintf(text[6], "%d", connection_info_get_cid(res)); 
+    if(connection_info_get_state(res))
+      strcpy(text[7], states[connection_info_get_state(res)-1]); 
+
+    gtk_clist_insert (GTK_CLIST (cnlst->clist), ii, text);
+    gtk_clist_set_row_data (GTK_CLIST (cnlst->clist), ii, GINT_TO_POINTER(connection_info_get_cid(res)));
+	                  
+    res = connection_info_next(res);
+    ii++; 
+  }
 
   gtk_adjustment_set_value( GTK_ADJUSTMENT(GTK_CLIST(clist)->vadjustment), vadjust);
 
   gtk_clist_thaw(GTK_CLIST(clist)); 
-
-  free_socklist();
 
   return TRUE;
 }
@@ -175,130 +204,9 @@ static void cnlst_destroy (GtkObject *object)
 
   g_return_if_fail (object != NULL);
   g_return_if_fail (IS_CNLST(object)); 
-/*
-  cnlst = CNLST (object);
-
-  if (cnlst->clist)
-    gtk_widget_destroy (cnlst->clist);
-*/
-  gtk_timeout_remove(update_id);
 
   if (GTK_OBJECT_CLASS (parent_class)->destroy)
     (* GTK_OBJECT_CLASS (parent_class)->destroy) (object);
-}
-
-void list_callback(struct SockData *socklist, void *data)
-{
-  Cnlst *cnlst = (Cnlst *) data;
-  int ii=0; 
-
-  strcpy(text[0], socklist->cmdline); 
-  sprintf(text[1], "%d", socklist->pid);
-  sprintf(text[2], "%d.%d.%d.%d", (socklist->localadd)&0xff,
-      ((socklist->localadd)>>8)&0xff,
-      ((socklist->localadd)>>16)&0xff,
-      ((socklist->localadd)>>24)&0xff);
-  sprintf(text[3], "%u", socklist->localport);
-  sprintf(text[4], "%d.%d.%d.%d", (socklist->remoteadd)&0xff,
-      ((socklist->remoteadd)>>8)&0xff,
-      ((socklist->remoteadd)>>16)&0xff,
-      ((socklist->remoteadd)>>24)&0xff); 
-  sprintf(text[5], "%u", socklist->remoteport); 
-  strcpy(text[6], socklist->cid); 
-  if(socklist->state) strcpy(text[7], states[socklist->state - 1]);
-  else strcpy(text[7], "___");
-
-//  gtk_clist_append(GTK_CLIST(cnlst->clist), text); 
-  gtk_clist_insert (GTK_CLIST (cnlst->clist), ii, text);
-  gtk_clist_set_row_data_full (GTK_CLIST (cnlst->clist), ii, &socklist->cid,
-                               (GtkDestroyNotify) row_destroy);
-}
-
-// utility functions for sorting list
-int cmd_compar(const void *data1, const void *data2)
-{
-  strcmp(((struct SockData *) data1)->cmdline,
-         ((struct SockData *) data2)->cmdline);
-}
-
-int lp_compar(const void *data1, const void *data2)
-{
-  unsigned int add1 = ((struct SockData *) data1)->localport;
-  unsigned int add2 = ((struct SockData *) data2)->localport;
-
-  if(add2 > add1) return -1;
-  if(add1 > add2) return 1;
-  return 0;
-}
-
-int ra_compar(const void *data1, const void *data2)
-{
-// lexicographically
-  unsigned int add1 = (((struct SockData *) data1)->remoteadd)&0xff;
-  unsigned int add2 = (((struct SockData *) data2)->remoteadd)&0xff;
-
-  if(add2 > add1) return -1;
-  if(add1 > add2) return 1;
-
-  add1 = (((struct SockData *) data1)->remoteadd >>8)&0xff;
-  add2 = (((struct SockData *) data2)->remoteadd >>8)&0xff;
-
-  if(add2 > add1) return -1;
-  if(add1 > add2) return 1;
-
-  add1 = (((struct SockData *) data1)->remoteadd >>16)&0xff;
-  add2 = (((struct SockData *) data2)->remoteadd >>16)&0xff;
-
-  if(add2 > add1) return -1;
-  if(add1 > add2) return 1;
-
-  add1 = (((struct SockData *) data1)->remoteadd >>24)&0xff;
-  add2 = (((struct SockData *) data2)->remoteadd >>24)&0xff;
-
-  if(add2 > add1) return -1;
-  if(add1 > add2) return 1;
-  return 0;
-}
-
-int rp_compar(const void *data1, const void *data2)
-{
-  unsigned int add1 = ((struct SockData *) data1)->remoteport;
-  unsigned int add2 = ((struct SockData *) data2)->remoteport;
-
-  if(add2 > add1) return -1;
-  if(add1 > add2) return 1;
-  return 0;
-}
-
-void choose_sort(GtkWidget *button, gpointer data)
-{ 
-  int ii = GPOINTER_TO_INT(data);
-
-  switch(ii)
-  {
-    case 0:
-      sort_compar = cmd_compar;
-      printf("0\n");
-      break;
-    case 1:
-      sort_compar = lp_compar;
-      printf("1\n");
-      break;
-    case 2:
-      sort_compar = ra_compar;
-      printf("2\n");
-      break;
-    case 3:
-      sort_compar = rp_compar;
-      printf("3\n");
-      break;
-    case 4:
-      sort_compar = NULL;
-      printf("4\n");
-      break;
-    default:
-      break;
-  }
 }
 
 static void row_destroy (gpointer data)

@@ -14,18 +14,16 @@ gutil_LDADD = \
 gutil_SOURCES = \
 	avd_list_wgt.c \
 	avd_list_wgt.h \
-	avd_table_wgt.c \
-	avd_table_wgt.h \
 	cnlst_wgt.c \
 	cnlst_wgt.h \
+	connection_info.c \
+	connection_info.h \
 	cpr_wgt.c \
 	cpr_wgt.h \
 	dtb_wgt.c \
 	dtb_wgt.h \
 	rtuner_wgt.c \
 	rtuner_wgt.h \
-	sockdata.c \
-	sockdata.h \
 	sockset_wgt.c \
 	sockset_wgt.h \
 	stuner_wgt.c \

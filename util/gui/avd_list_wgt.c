@@ -25,8 +25,10 @@ static void row_destroy (gpointer);
 static GtkVBoxClass *parent_class = NULL;
 
 char       *varname;
-static int  varname_array_length, varname_array_size;
+static int  varname_array_length;
+static int  varname_array_size = VARNAME_ARRAY_SIZE_INIT;
 static int  varlistsize = 0;
+char        vname[256][WEB100_VARNAME_LEN_MAX];
 static char valtext[50]; 
 static int  sortyes = 0;
 
@@ -82,8 +84,7 @@ void avd_list_set_web100obj (Avd_list *avd_list, Web100Obj *web100obj)
 { 
   web100_group *gp;
   web100_var *var;
-  struct snapshot_data *snap;
-  static int varname_array_length, varname_array_size = VARNAME_ARRAY_SIZE_INIT;
+  struct snapshot_data *snap; 
 
   gchar *ntext[4] = { NULL, NULL, NULL, NULL };
   int ii=0, jj=0;
@@ -106,10 +107,11 @@ void avd_list_set_web100obj (Avd_list *avd_list, Web100Obj *web100obj)
 
   gtk_clist_clear (GTK_CLIST (avd_list->varlist));
 
+  gp = web100_group_find(web100obj->agent, "read");
   varname_array_length = 0;
-  snap = web100obj->snapshot_head; 
-  while (snap) { 
-    if ((var = web100_var_head (snap->group)) == NULL &&
+//  snap = web100obj->snapshot_head; 
+//  while (snap) { 
+    if ((var = web100_var_head (gp)) == NULL &&
        	web100_errno != WEB100_ERR_SUCCESS) {
       web100_perror("web100_var_head");
       return;
@@ -122,6 +124,7 @@ void avd_list_set_web100obj (Avd_list *avd_list, Web100Obj *web100obj)
       } 
       if (strncmp(web100_get_var_name(var), "_", 1)) { 
 	strncpy ((char *) &varname[jj], web100_get_var_name(var), WEB100_VARNAME_LEN_MAX); 
+	strncpy ((char *) vname[jj], web100_get_var_name(var), WEB100_VARNAME_LEN_MAX);
 
        	gtk_clist_insert (GTK_CLIST (avd_list->varlist), jj, ntext); 
 	gtk_clist_set_text (GTK_CLIST (avd_list->varlist), jj, 0, &varname[jj]);
@@ -139,15 +142,12 @@ void avd_list_set_web100obj (Avd_list *avd_list, Web100Obj *web100obj)
        	return;
       } 
     }
-    snap = snap->next;
-  }
+//    snap = snap->next;
+//  }
 
   varlistsize = jj;
 
-  gtk_signal_connect (GTK_OBJECT(web100obj),
-      "snap_update",
-      GTK_SIGNAL_FUNC(avd_list_web100obj_snap_update),
-      avd_list); 
+  gtk_signal_connect (GTK_OBJECT(web100obj), "snap_update", GTK_SIGNAL_FUNC(avd_list_web100obj_snap_update), avd_list); 
 }
 
 Web100Obj* avd_list_get_web100obj (Avd_list *avd_list)
@@ -161,6 +161,7 @@ Web100Obj* avd_list_get_web100obj (Avd_list *avd_list)
 static void avd_list_list_vars (Avd_list *avd_list)
 { 
   web100_var *var; 
+  web100_group *gp;
   Web100Obj *web100obj;
   struct snapshot_data *snap;
   char buf[8]; 
@@ -171,17 +172,22 @@ static void avd_list_list_vars (Avd_list *avd_list)
 
   gtk_clist_freeze(GTK_CLIST(avd_list->varlist));
   
+  gp = web100_group_find(web100obj->agent, "read");
   for (ii=0;ii<varlistsize;ii++) {
-    if ((var = (web100_var *) gtk_clist_get_row_data (GTK_CLIST (avd_list->varlist), ii)) == NULL)
-      continue; 
 
-   for (snap = web100obj->snapshot_head; snap != NULL; snap = snap->next) {
+    var = web100_var_find(gp, vname[ii]); 
 
-    if (web100_snap_read (var, snap->last, &buf) < 0) {
-//      web100_perror ("list_vars");
-      continue;
-    } 
-    sprinttype (valtext, web100_get_var_type(var), buf); 
+    snap = web100obj->snapshot_head;
+    while(snap) {
+      printf("%s\n", web100_get_group_name(snap->group));
+      if(!strcmp(web100_get_group_name(snap->group), "read"))
+	break;
+      snap = snap->next;
+    }
+
+    web100_snap_read (var, (snap->last), buf);
+    strcpy(valtext, web100_value_to_text(web100_get_var_type(var), buf));
+    printf("%s, %s, %d\n", web100_get_var_name(var), valtext, ii); 
 
     gtk_clist_set_text (GTK_CLIST (avd_list->varlist), ii, 1, valtext); 
 
@@ -194,7 +200,7 @@ static void avd_list_list_vars (Avd_list *avd_list)
 	  continue;
 	}
 	
-       	sprinttype (valtext, web100_get_var_type(var), buf);
+       	strcpy(valtext, web100_value_to_text(web100_get_var_type(var), buf));
        	gtk_clist_set_text (GTK_CLIST (avd_list->varlist), ii, 2, valtext);
       }
 
@@ -204,24 +210,24 @@ static void avd_list_list_vars (Avd_list *avd_list)
 	  continue;
        	}
 
-	sprinttype (valtext, web100_get_var_type(var), buf);
+        strcpy(valtext, web100_value_to_text(web100_get_var_type(var), buf));
        	gtk_clist_set_text (GTK_CLIST (avd_list->varlist), ii, 3, valtext);
       }
     } 
-   }
   } 
 
   gtk_clist_thaw(GTK_CLIST(avd_list->varlist));  
+  printf("done\n");
 }
 
 void avd_list_web100obj_snap_update (GtkObject *object, gpointer *data)
 { 
   Web100Obj *web100obj; 
-  struct snapshot_data *snap;
 
   web100obj = WEB100_OBJ (object);
 
   if(WEB100_OBJ (object)->connection) { 
+
     avd_list_list_vars (AVD_LIST (data)); 
   }
 }
@@ -283,7 +289,7 @@ static void reset (GtkWidget *button, gpointer data)
   struct snapshot_data *snap;
 
   avd_list = AVD_LIST (data);
-// protect this or set flag 'set_yes'
+
   snap = avd_list->web100obj->snapshot_head;
   while (snap) {
     web100_snap_data_copy (snap->set, snap->last);
@@ -301,7 +307,7 @@ static void avd_list_init (Avd_list *avd_list)
 
   varname = (char *) calloc(VARNAME_ARRAY_SIZE_INIT,  sizeof(char)*WEB100_VARNAME_LEN_MAX); 
   
-//  avd_list->web100obj = NULL; //XXX
+  avd_list->web100obj = NULL;
 
   avd_list->scrollwin = gtk_scrolled_window_new (NULL, NULL);
 

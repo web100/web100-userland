@@ -8,7 +8,7 @@
 #include "web100obj.h"
 #include "sockset_wgt.h"
 #include "avd_list_wgt.h"
-#include "avd_table_wgt.h"
+//#include "avd_table_wgt.h"
 #include "cpr_wgt.h"
 #include "dtb_wgt.h"
 #include "rtuner_wgt.h"
@@ -74,6 +74,7 @@ static  GtkWidget *window, *vbox, *ur_sockset, *avd_list, *avd, *cpr, *dtb, *rtu
        	GTK_SIGNAL_FUNC (avd_list_sockset_listen),
        	(gpointer) avd_list); 
   } 
+#if 0
   if (!strncmp ("avd_table", name, 9)) {
     avd = avd_table_new (web100obj);
     gtk_box_pack_start (GTK_BOX(vbox), avd, TRUE, TRUE, 0);
@@ -84,6 +85,7 @@ static  GtkWidget *window, *vbox, *ur_sockset, *avd_list, *avd, *cpr, *dtb, *rtu
                         GTK_SIGNAL_FUNC (avd_table_sockset_listen),
                         avd); 
   } 
+#endif
   if (!strncmp ("cpr", name, 3)) {
     cpr = cpr_new (web100obj);
     gtk_box_pack_start (GTK_BOX(vbox), cpr, TRUE, TRUE, 0);

@@ -22,6 +22,7 @@ struct _Cnlst
 {
   GtkVBox vbox;
   
+  Web100Obj *web100obj;
   GtkWidget *clist;
 };
 
@@ -30,9 +31,11 @@ struct _CnlstClass
   GtkVBoxClass parent_class; 
 };
 
-GtkType     cnlst_get_type       (void); 
-GtkWidget*  cnlst_new            (void);
-gint        cnlst_update         (gpointer);
+GtkType     cnlst_get_type      (void); 
+GtkWidget*  cnlst_new           (Web100Obj *);
+void        cnlst_set_web100obj (Cnlst *, Web100Obj *);
+Web100Obj*  cnlst_get_web100obj (Cnlst *cnlst);
+gint        cnlst_update        (gpointer);
 
 
 #ifdef __cplusplus

@@ -1,11 +1,11 @@
 
 #include <stdlib.h>
 #include <stdio.h> 
+#include <string.h>
 #include <gtk/gtk.h>
 
 #include "web100.h"
 #include "web100obj.h"
-//#include "web100gui.h" 
 #include "sockset_wgt.h"
 #include "cpr_wgt.h"
 
@@ -24,7 +24,7 @@ static GtkVBoxClass *parent_class = NULL;
 web100_var *wv;
 
 static char varname[9][MAXVARNAME] = {
-  "State", "SACKEnabled", "TimestampsEnabled", "CurrentMSS",
+  "State", "SACKEnabled", "TimestampsEnabled", "CurMSS",
   "MaxMSS", "MinMSS", "WinScaleRcvd", "WinScaleSent", "NagleEnabled" };
 char valtext[21];
 
@@ -82,7 +82,7 @@ void cpr_set_web100obj (Cpr *cpr, Web100Obj *web100obj)
 
   g_return_if_fail (cpr != NULL);
   g_return_if_fail (IS_CPR (cpr)); 
-//XXX
+
   if (!web100obj) {
     cpr->web100obj = NULL;
     return;
@@ -135,17 +135,14 @@ static void cpr_list_vars (Cpr *cpr, Web100Obj *web100obj)
 
   gtk_clist_freeze (GTK_CLIST (cpr->varlist)); 
 
-  for(ii=0;ii<9;ii++) {
-//    wv = web100_find_var (web100obj->connection, varname[ii]);
+  for(ii=0;ii<9;ii++) { 
     if ((wv = gtk_clist_get_row_data (GTK_CLIST (cpr->varlist), ii)) == NULL)
       continue; 
     if (web100_raw_read (wv, cpr->web100obj->connection, buf) < 0) {
       web100_perror ("cpr_list_vars: raw_read");
       continue;
-    }
-//    web100_raw_get_any (web100obj->connection, wv, buf, wv->length);
-//    if(web100obj->connection->error) return;
-    sprinttype (valtext, web100_get_var_type (wv), buf);
+    } 
+    strcpy(valtext, web100_value_to_text(web100_get_var_type (wv), buf));
     gtk_clist_set_text(GTK_CLIST(cpr->varlist), ii, 1, valtext); 
   }
 
@@ -178,13 +175,10 @@ static void cpr_init (Cpr *cpr)
   cpr->scrollwin = NULL;
   cpr->varlist = NULL; 
 
-//  cpr_set_web100obj (cpr, web100obj);
-
   cpr->scrollwin = gtk_scrolled_window_new (NULL, NULL); 
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (cpr->scrollwin),
                                   GTK_POLICY_NEVER,
-                                  GTK_POLICY_AUTOMATIC);
-//  gtk_widget_set_usize (GTK_WIDGET(cpr->scrollwin), 200, 100);
+                                  GTK_POLICY_AUTOMATIC); 
 
   gtk_box_pack_start (GTK_BOX (cpr), cpr->scrollwin, TRUE, TRUE, 0); 
   gtk_widget_show (cpr->scrollwin);
@@ -197,8 +191,6 @@ static void cpr_init (Cpr *cpr)
   gtk_clist_set_column_width (GTK_CLIST (cpr->varlist), 1, 100);
 
   gtk_container_add (GTK_CONTAINER (cpr->scrollwin), cpr->varlist);
-
-//  if (web100obj->connection) cpr_list_vars (cpr, web100obj);
 
   gtk_widget_show (cpr->varlist);
 }

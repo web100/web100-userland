@@ -1,7 +1,6 @@
 #ifndef __WEB100_OBJ_H__
 #define __WEB100_OBJ_H__
 
-//#include <glib.h>
 #include <gdk/gdk.h>
 #include <gtk/gtkobject.h> 
 #include "web100.h"
@@ -34,6 +33,7 @@ struct _Web100Obj
 
   int cid;
   struct web100_connection_spec spec;
+  struct web100_connection_spec_v6 spec_v6;
  
   web100_agent       *agent;
 

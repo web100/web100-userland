@@ -21,8 +21,6 @@ static void web100obj_init (Web100Obj *web100obj);
 static void web100obj_construct (Web100Obj *web100obj,
                                  struct web100_agent *agent);
 void destroy_notify (gpointer data);
-//static void web100obj_set_connection (Web100Obj *web100obj, int cid);
-//static void web100obj_refresh (Web100Obj *web100obj);
 static void web100obj_destroy (GtkObject *object);
 
 static guint web100obj_signals[LAST_SIGNAL] = { 0 };
@@ -106,8 +104,7 @@ GtkObject* web100obj_new (Web100Sync *web100sync, char *ascid)
     web100obj_set_connection (web100obj, cid);
 
     web100sync->objects = g_list_prepend (web100sync->objects, web100obj);
-    gtk_object_weakref (GTK_OBJECT (web100obj), &destroy_notify, web100obj);
-//    printf("length = %d\n", g_list_length (web100sync->objects));
+    gtk_object_weakref (GTK_OBJECT (web100obj), &destroy_notify, web100obj); 
   }
   return GTK_OBJECT (web100obj); 
 }
@@ -118,12 +115,8 @@ static void web100obj_construct (Web100Obj *web100obj,
   web100_group *gp;
   struct snapshot_data *snap;
 
-  if ((gp = web100_group_head(agent)) == NULL &&
-      web100_errno != WEB100_ERR_SUCCESS) {
-    web100_perror("web100_group_head");
-    return;
-  } 
-
+  gp = web100_group_head(agent);
+  web100obj->snapshot_head = NULL;
   while (gp) { 
     snap = malloc (sizeof(struct snapshot_data));
 
@@ -133,11 +126,7 @@ static void web100obj_construct (Web100Obj *web100obj,
     snap->next = web100obj->snapshot_head;
     web100obj->snapshot_head = snap;
 
-    if ((gp = web100_group_next(gp)) == NULL &&
-       	web100_errno != WEB100_ERR_SUCCESS) {
-      web100_perror("web100_group_next");
-      return;
-    }
+    gp = web100_group_next(gp);
   } 
 
   web100obj->agent = agent; 
@@ -156,22 +145,11 @@ void web100obj_set_connection (Web100Obj *web100obj, int cid)
     return;
   }
 
-// make a local copy, as connection pointers are ephemeral at the
-// library level
-#if 0
-  if ((web100obj->connection = (web100_connection *) malloc (sizeof(web100_connection))) == NULL) {
-    fprintf(stderr, "Out of memory\n");
-    exit(1);
-  }
-
-  web100_connection_data_copy (web100obj->connection, connection);
-#endif
-
   web100obj->connection = web100_connection_new_local_copy(connection);
 
 //redundancy for convenience:
   web100obj->cid = cid;
-  web100_get_connection_spec(web100obj->connection, &web100obj->spec); 
+  web100_get_connection_spec(web100obj->connection, &web100obj->spec); //FIX
 
   snap = web100obj->snapshot_head; 
   while (snap) { 
@@ -238,7 +216,6 @@ void destroy_notify (gpointer data)
   web100sync = web100obj->web100sync;
 
   web100sync->objects = g_list_remove (web100sync->objects, web100obj);
-//  printf("length = %d\n", g_list_length (web100sync->objects));
 }
 
 static void web100obj_destroy (GtkObject *object)
@@ -262,55 +239,4 @@ static void web100obj_destroy (GtkObject *object)
 
   GTK_OBJECT_CLASS (parent_class)->destroy (object);
 } 
-
-//utility functions;
-
-// compare web100objects by connection info
-gint web100obj_compar (web100_connection *aa, web100_connection *bb)
-{ 
-  struct web100_connection_spec aa_spec, bb_spec;
-
-  g_return_if_fail (aa != NULL); 
-  g_return_if_fail (bb != NULL);
-
-  web100_get_connection_spec(aa, &aa_spec);
-  web100_get_connection_spec(bb, &bb_spec);
-
-  if (web100_get_connection_cid(aa) == web100_get_connection_cid(bb) &&
-      aa_spec.dst_port == bb_spec.dst_port &&
-      aa_spec.dst_addr == bb_spec.dst_addr &&
-      aa_spec.src_port == bb_spec.src_port &&
-      aa_spec.src_addr == bb_spec.src_addr)
-    return 0; 
-
-  return 1;
-}
-
-void sprinttype(char *text, int type, void *buf)
-{
-  switch(type) {
-    case WEB100_TYPE_IP_ADDRESS:
-      {
-        unsigned char *addr = (unsigned char *) buf; 
-        sprintf(text, "%u.%u.%u.%u", addr[0], addr[1], addr[2], addr[3]);
-        break;
-      }
-    case WEB100_TYPE_INTEGER:
-    case WEB100_TYPE_INTEGER32:
-    case WEB100_TYPE_COUNTER32: 
-    case WEB100_TYPE_GAUGE32: 
-    case WEB100_TYPE_UNSIGNED32:
-    case WEB100_TYPE_TIME_TICKS:
-      sprintf(text, "%u", *(u_int32_t *) buf);
-      break;
-    case WEB100_TYPE_COUNTER64:
-      sprintf(text, "%llu", *(u_int64_t *) buf);
-      break;
-    case WEB100_TYPE_UNSIGNED16:
-      sprintf(text, "%u", *(u_int16_t *) buf);
-      break;
-    default:
-      sprintf(text, "%s", "unknown type");
-  }
-}
 

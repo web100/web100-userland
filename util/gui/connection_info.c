@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <web100/web100.h>
 #include "connection_info-int.h"
 
@@ -317,6 +318,8 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
 			fd_entry = 1;
 
 		       	ci = (struct connection_info *) malloc(sizeof (struct connection_info));
+			bzero(ci, sizeof(struct connection_info));
+
 			ci->pid = fd_data->pid; 
 			strncpy(ci->cmdline, fd_data->cmdline, 256); 
 			ci->uid = tcp_data->uid;
@@ -336,6 +339,8 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
 		}
 		if(!fd_entry) { // add entry w/out cmdline 
 		    ci = (struct connection_info *) malloc(sizeof (struct connection_info));
+		    bzero(ci, sizeof(struct connection_info));
+
 		    ci->pid = 0;
 		    strcpy(ci->cmdline, "");
 		    ci->uid = tcp_data->uid;
@@ -357,6 +362,8 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
 	if(!tcp_entry) { // then connection has vanished; add residual cid info
                          // (only for consistency with entries in /proc/web100) 
 	    ci = (struct connection_info *) malloc(sizeof (struct connection_info));
+	    bzero(ci, sizeof(struct connection_info));
+
 	    ci->cid = cid_data->cid; 
 	    ci->addrtype = cid_data->addrtype;
 

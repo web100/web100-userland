@@ -22,8 +22,6 @@ static GtkVBoxClass *parent_class = NULL;
 #define GRAPH 0
 #define METER 1 
 static int mode = GRAPH;
-//static float ewma, oldewma, max, oldmax;
-//static float graphval[20];
 static int smoothing_on=1, delta_on=1;
 static char valtext[32];
 
@@ -229,15 +227,9 @@ void vdt_web100obj_snap_update (GtkObject *object, gpointer *data)
     vdt->max = newmax(result, vdt->oldmax); 
     vdt->oldmax = vdt->max;
 
-//    adj[0] = GTK_ADJUSTMENT(gtk_adjustment_new(result, 0, max, 0.01, 0.1, 0));
-//    wc_meter_set_adjustment(WC_METER(meter), GTK_ADJUSTMENT(adj[0]));
-
     adj[1] = GTK_ADJUSTMENT(gtk_adjustment_new(result, 0, vdt->max, 0.01, 0.1, 0));
     wc_graph_set_adjustment(WC_GRAPH(vdt->graph), GTK_ADJUSTMENT(adj[1]));
   }
-
-//  gtk_adjustment_set_value(WC_METER(meter)->adjustment, result);
-//  gtk_widget_draw(meter, NULL);
 
   for(ii=0;ii<19;ii++){ vdt->graphval[ii] = vdt->graphval[ii+1];}
   vdt->graphval[19] = result;
@@ -291,14 +283,12 @@ static void vdt_destroy (GtkObject *object)
 
 static void view_meter(GtkWidget *butt, gpointer data)
 {
-//  gtk_widget_hide(displaybox[GRAPH]);
-//  gtk_widget_show(displaybox[METER]);
+
 }
 
 static void view_graph(GtkWidget *butt, gpointer data)
 {
-//  gtk_widget_hide(displaybox[METER]);
-//  gtk_widget_show(displaybox[GRAPH]);
+
 }
 
 gint toggle_smooth(GtkWidget *butt, gpointer data)
