@@ -1,5 +1,9 @@
 /*
- * readvar: read the current value of a web100 variable in one connection.
+ * readvar: Reads the current value for one or more web100 variables in
+ *          a connection.  Web100 variables are separated by spaces.
+ *
+ * Usage: readvar <connection id> <var name> [<var name> ...]
+ * Example: readvar 1359 LocalPort LocalAddress
  *
  * Copyright (c) 2001
  *      Carnegie Mellon University, The Board of Trustees of the University
@@ -11,7 +15,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: readvar.c,v 1.2 2002/08/05 19:33:09 jheffner Exp $
+ * $Id: readvar.c,v 1.3 2002/09/30 19:48:27 engelhar Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +30,7 @@ static void
 usage(void)
 {
     fprintf(stderr,
-            "Usage: %s <connection id> <var name>\n",
+            "Usage: %s <connection id> <var name> [<var name> ...]\n",
             argv0);
 }
 
@@ -40,10 +44,11 @@ main(int argc, char *argv[])
     web100_var* var;
     char buf[256];
     int cid;
+    char** arg;
 
     argv0 = argv[0];
 
-    if (argc != 3) {
+    if (argc < 3) {
         usage();
         exit(EXIT_FAILURE);
     }
@@ -59,19 +64,23 @@ main(int argc, char *argv[])
         web100_perror("web100_connection_lookup");
         exit(EXIT_FAILURE);
     }
+   
+    for (arg=&argv[2]; *arg; arg++) {
+        if ((web100_agent_find_var_and_group(agent, *arg, &group, &var)) != WEB100_ERR_SUCCESS) {
+            web100_perror("web100_agent_find_var_and_group");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((web100_raw_read(var, conn, buf)) != WEB100_ERR_SUCCESS) {
+            web100_perror("web100_raw_read");
+            exit(EXIT_FAILURE);
+        }
     
-    if ((web100_agent_find_var_and_group(agent, argv[2], &group, &var)) != WEB100_ERR_SUCCESS) {
-        web100_perror("web100_agent_find_var_and_group");
-        exit(EXIT_FAILURE);
+        printf("%-20s: %s\n", *arg, web100_value_to_text(web100_get_var_type(var), buf));
     }
 
-    if ((web100_raw_read(var, conn, buf)) != WEB100_ERR_SUCCESS) {
-        web100_perror("web100_raw_read");
-        exit(EXIT_FAILURE);
-    }
+    web100_detach(agent);
 
-    printf("%s: %s\n", argv[2], web100_value_to_text(web100_get_var_type(var), buf));
-    
     return 0;
 }
 
