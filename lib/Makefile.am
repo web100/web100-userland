@@ -26,7 +26,7 @@ web100_c_sources = \
 libweb100_la_SOURCES = $(web100_c_sources)
 
 # Install headers into include/web100-<version>/web100
-libweb100includedir = $(includedir)/$(PACKAGE)-$(VERSION)/$(PACKAGE)
+libweb100includedir = $(includedir)/web100-$(VERSION)/web100
 libweb100include_HEADERS = $(web100_pub_h_sources)
 
 # Make sure private headers are included as part of 'make dist'
