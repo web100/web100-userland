@@ -4,8 +4,10 @@
 # autoconf.  This must be run on a fresh checkout from CVS and also if any
 # autoconf files (configure.in, etc.) are updated.
 
+# aclocal doesn't like it if you -I the system aclocal directory
+SYS_ACLOCAL_DIR=`aclocal --print-ac-dir`
 for i in m4 /usr/local/share/aclocal; do
-    if [ -d $i ]; then
+    if [ ! $i = $SYS_ACLOCAL_DIR -a -d $i ]; then
         ACLOCAL_OPTS="$ACLOCAL_OPTS -I $i"
     fi
 done
