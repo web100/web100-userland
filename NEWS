@@ -9,6 +9,7 @@ the last release.
       in Alpha 1.2pre1.  This means that programs which were compiled
       against Alpha 1.1 should continue to work unchanged with the
       Alpha 1.2pre2 libweb100.
+    o Made the 'readall' script work on both Alpha 1.2 and 2.0 kernels.
 
   Alpha 1.2pre1:
     o NOTE: The binary interface to libweb100 has changed slightly.  This
