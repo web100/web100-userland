@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100-int.h,v 1.10 2002/09/05 20:26:45 engelhar Exp $
+ * $Id: web100-int.h,v 1.11 2002/09/10 04:23:05 jestabro Exp $
  */
 #ifndef _WEB100_INT_H
 #define _WEB100_INT_H
@@ -57,8 +57,8 @@ struct web100_agent_info_local {
 };
 
 struct web100_agent {
-    WEB100_AGENT_TYPE type;
-    char              version[WEB100_VERSTR_LEN_MAX];
+    int   type;
+    char  version[WEB100_VERSTR_LEN_MAX];
     
     union {
         struct web100_agent_info_local local;

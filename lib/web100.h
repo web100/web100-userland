@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.21 2002/09/05 20:11:55 engelhar Exp $
+ * $Id: web100.h,v 1.22 2002/09/10 04:23:05 jestabro Exp $
  */
 
 #ifndef _WEB100_H
@@ -52,11 +52,6 @@ typedef enum {
 } WEB100_TYPE;
 
 typedef enum {
-    WEB100_AGENT_TYPE_LOCAL = 1<<0,
-    WEB100_AGENT_TYPE_LOG   = 1<<1
-} WEB100_AGENT_TYPE;
-
-typedef enum {
     WEB100_ADDRTYPE_UNKNOWN = 0,
     WEB100_ADDRTYPE_IPV4,
     WEB100_ADDRTYPE_IPV6,
@@ -77,6 +72,9 @@ struct web100_connection_spec_v6 {
     char      src_addr[16];
 };
 
+/* Agent types */
+#define WEB100_AGENT_TYPE_LOCAL 0
+#define WEB100_AGENT_TYPE_LOG   1
 
 #define WEB100_VERSTR_LEN_MAX       64
 #define WEB100_GROUPNAME_LEN_MAX    32
@@ -112,7 +110,7 @@ typedef struct web100_log         web100_log;
 void               web100_perror(const char* _str);
 const char*        web100_strerror(int _errnum);
 
-web100_agent*      web100_attach(WEB100_AGENT_TYPE _type, void* _data);
+web100_agent*      web100_attach(int _type, void* _data);
 void               web100_detach(web100_agent* _agent);
 
 int                web100_agent_find_var_and_group(web100_agent* _agent, const char* _varname, web100_group** _group, web100_var** _var);
@@ -151,7 +149,7 @@ int                web100_snap_data_copy(web100_snapshot* _dest, web100_snapshot
 char*              web100_value_to_text(WEB100_TYPE _type, void* _buf);
 int                web100_value_to_textn(char* _dest, size_t _size, WEB100_TYPE _type, void* _buf);
 
-WEB100_AGENT_TYPE  web100_get_agent_type(web100_agent* _agent);
+int                web100_get_agent_type(web100_agent* _agent);
 const char*        web100_get_agent_version(web100_agent* _agent);
 
 const char*        web100_get_group_name(web100_group* _group);

@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.29 2002/09/05 20:26:46 engelhar Exp $
+ * $Id: web100.c,v 1.30 2002/09/10 04:23:05 jestabro Exp $
  */
 
 #include "config.h"
@@ -442,7 +442,7 @@ web100_strerror(int errnum)
 
 
 web100_agent*
-web100_attach(WEB100_AGENT_TYPE type, void *data)
+web100_attach(int type, void *data)
 {
     switch (type) {
     case WEB100_AGENT_TYPE_LOCAL:
@@ -493,7 +493,7 @@ web100_detach(web100_agent *agent)
 web100_group*
 web100_group_head(web100_agent *agent)
 {
-    if (!(agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
+    if (!((agent->type == WEB100_AGENT_TYPE_LOCAL) || (agent->type == WEB100_AGENT_TYPE_LOG))) {
         web100_errno = WEB100_ERR_AGENT_TYPE;
         return NULL;
     }
@@ -506,9 +506,9 @@ web100_group_head(web100_agent *agent)
 web100_group*
 web100_group_next(web100_group *group)
 {
-    if (!(group->agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
-        web100_errno = WEB100_ERR_AGENT_TYPE;
-        return NULL;
+    if (!((group->agent->type == WEB100_AGENT_TYPE_LOCAL) || (group->agent->type == WEB100_AGENT_TYPE_LOG))) {
+	web100_errno = WEB100_ERR_AGENT_TYPE;
+	return NULL;
     }
     
     web100_errno = WEB100_ERR_SUCCESS;
@@ -520,9 +520,9 @@ web100_group*
 web100_group_find(web100_agent *agent, const char *name)
 {
     web100_group *gp;
-    
-    if (!(agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
-        web100_errno = WEB100_ERR_AGENT_TYPE;
+
+    if (!((agent->type == WEB100_AGENT_TYPE_LOCAL) || (agent->type == WEB100_AGENT_TYPE_LOG))) {
+	web100_errno = WEB100_ERR_AGENT_TYPE;
         return NULL;
     }
     
@@ -543,7 +543,7 @@ web100_var_head(web100_group *group)
 {
     web100_var *vp;
     
-    if (!(group->agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
+    if (!((group->agent->type == WEB100_AGENT_TYPE_LOCAL) || (group->agent->type == WEB100_AGENT_TYPE_LOG))) {
         web100_errno = WEB100_ERR_AGENT_TYPE;
         return NULL;
     }
@@ -561,7 +561,8 @@ web100_var_next(web100_var *var)
 {
     web100_var *vp;
     
-    if (!(var->group->agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
+
+    if (!((var->group->agent->type == WEB100_AGENT_TYPE_LOCAL) || (var->group->agent->type == WEB100_AGENT_TYPE_LOG))) {
         web100_errno = WEB100_ERR_AGENT_TYPE;
         return NULL;
     }
@@ -579,7 +580,7 @@ web100_var_find(web100_group *group, const char *name)
 {
     web100_var *vp;
     
-    if (!(group->agent->type & (WEB100_AGENT_TYPE_LOCAL | WEB100_AGENT_TYPE_LOG))) {
+    if (!((group->agent->type == WEB100_AGENT_TYPE_LOCAL) || (group->agent->type == WEB100_AGENT_TYPE_LOG))) {
         web100_errno = WEB100_ERR_AGENT_TYPE;
         return NULL;
     }
@@ -1184,7 +1185,7 @@ web100_value_to_textn(char* dest, size_t size, WEB100_TYPE type, void* buf)
 /*@
 web100_get_agent_type - return the type of an agent
 @*/
-WEB100_AGENT_TYPE
+int
 web100_get_agent_type(web100_agent *agent)
 {
     return agent->type;
