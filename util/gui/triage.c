@@ -158,19 +158,19 @@ triage_snap_update (GtkObject *object, gpointer data)
     total = triage->new_ewma[0] + triage->new_ewma[1] + triage->new_ewma[2];
 
     if(total){ 
-      per_snd = 100*triage->new_ewma[0]/total;
-      per_cng = 100*triage->new_ewma[1]/total;
-      per_rcv = 100*triage->new_ewma[2]/total;
+      per_snd = triage->new_ewma[0]/total;
+      per_cng = triage->new_ewma[1]/total;
+      per_rcv = triage->new_ewma[2]/total;
 
       gtk_adjustment_set_value(WC_PIE(triage->pie)->adjustment[0], per_snd);
       gtk_adjustment_set_value(WC_PIE(triage->pie)->adjustment[1], per_cng);
       gtk_adjustment_set_value(WC_PIE(triage->pie)->adjustment[2], per_rcv);
 
-      sprintf(valtext, "%.3f", per_snd);
+      sprintf(valtext, "%.3f", 100*per_snd);
       gtk_clist_set_text(GTK_CLIST(triage->clist), 0, 1, valtext);
-      sprintf(valtext, "%.3f", per_rcv);
+      sprintf(valtext, "%.3f", 100*per_rcv);
       gtk_clist_set_text(GTK_CLIST(triage->clist), 1, 1, valtext);
-      sprintf(valtext, "%.3f", per_cng);
+      sprintf(valtext, "%.3f", 100*per_cng);
       gtk_clist_set_text(GTK_CLIST(triage->clist), 2, 1, valtext);
     } 
   }

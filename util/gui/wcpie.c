@@ -58,29 +58,61 @@ GdkColor pie_color[3];
 
 char temptext[60];
 
-guint wc_pie_get_type()
+#ifdef GTK2
+GType
+wc_pie_get_type (void)
 {
-	static guint pie_type = 0;
+  static GType wc_pie_type = 0;
 
-	if (!pie_type)
-	{
-		GtkTypeInfo pie_info =
-		{
-			"WcPie",
-			sizeof (WcPie),
-			sizeof (WcPieClass),
-			(GtkClassInitFunc) wc_pie_class_init,
-			(GtkObjectInitFunc) wc_pie_init,
-			NULL,
-			NULL,
-		}; 
-		pie_type = gtk_type_unique (gtk_widget_get_type(), &pie_info);
-	}
+  if (!wc_pie_type)
+  {
+    static const GTypeInfo wc_pie_info =
+    {
+      sizeof (WcPieClass),
+      NULL,
+      NULL,
+      (GClassInitFunc) wc_pie_class_init,
+      NULL,
+      NULL,
+      sizeof (WcPie),
+      0,
+      (GInstanceInitFunc) wc_pie_init,
+    };
 
-	return pie_type;
+    wc_pie_type = g_type_register_static (GTK_TYPE_WIDGET, "WcPie", &wc_pie_info, 0); 
+  }
+
+  return wc_pie_type;
 }
+#else
+GtkType
+wc_pie_get_type (void)
+{
+  static GtkType wc_pie_type = 0;
 
-static void wc_pie_class_init(WcPieClass *class)
+  if(!wc_pie_type)
+    {
+      static const GtkTypeInfo wc_pie_info =
+      {
+	"WcPie",
+	sizeof (WcPie),
+	sizeof (WcPieClass),
+	(GtkClassInitFunc) wc_pie_class_init,
+	(GtkObjectInitFunc) wc_pie_init,
+        NULL,
+        NULL,
+	(GtkClassInitFunc) NULL,
+      };
+
+      wc_pie_type = gtk_type_unique (GTK_TYPE_WIDGET, &wc_pie_info);
+    }
+
+  return wc_pie_type;
+}
+#endif
+
+static void
+wc_pie_class_init(WcPieClass *class)
 {
   GtkObjectClass *object_class;
   GtkWidgetClass *widget_class;
@@ -136,7 +168,8 @@ static void wc_pie_class_init(WcPieClass *class)
 #endif
 }
 
-static void wc_pie_init(WcPie *pie)
+static void
+wc_pie_init(WcPie *pie)
 {
   int ii;
   gint style_color[3];
@@ -169,7 +202,8 @@ static void wc_pie_init(WcPie *pie)
   for (ii=0;ii<3;ii++) gdk_color_alloc(gdk_colormap_get_system(), &pie_color[ii]);
 }
 
-GtkWidget* wc_pie_new(GtkAdjustment *adjustment[3])
+GtkWidget*
+wc_pie_new(GtkAdjustment *adjustment[3])
 {
   WcPie *pie;
   GtkAdjustment *tempadj;
@@ -192,281 +226,292 @@ GtkWidget* wc_pie_new(GtkAdjustment *adjustment[3])
   return GTK_WIDGET (pie);
 }
 
-static void wc_pie_destroy(GtkObject *object)
+static void
+wc_pie_destroy(GtkObject *object)
 {
-	WcPie *pie;
-	int ii;
+  WcPie *pie;
+  int ii;
 
-	g_return_if_fail (object != NULL);
-	g_return_if_fail (WC_IS_PIE(object));
+  g_return_if_fail (object != NULL);
+  g_return_if_fail (WC_IS_PIE(object));
 
-	pie = WC_PIE(object);
+  pie = WC_PIE(object);
 
-	for(ii=0;ii<3;ii++)
-	{
-		if (pie->adjustment[ii])
-			gtk_object_unref(GTK_OBJECT(pie->adjustment[ii]));
-		pie->adjustment[ii] = NULL;
-	}
+  for(ii=0;ii<3;ii++)
+  {
+    if (pie->adjustment[ii])
+      gtk_object_unref(GTK_OBJECT(pie->adjustment[ii]));
+    pie->adjustment[ii] = NULL;
+  }
 
-	if (GTK_OBJECT_CLASS(parent_class)->destroy)
-		(* GTK_OBJECT_CLASS(parent_class)->destroy) (object);
+  if (GTK_OBJECT_CLASS(parent_class)->destroy)
+    (* GTK_OBJECT_CLASS(parent_class)->destroy) (object);
 }
 
-GtkAdjustment* wc_pie_get_adjustment(WcPie *pie, int ii)
+GtkAdjustment*
+wc_pie_get_adjustment(WcPie *pie, int ii)
 {
-	g_return_val_if_fail (pie != NULL, NULL);
-	g_return_val_if_fail (WC_IS_PIE (pie), NULL);
+  g_return_val_if_fail (pie != NULL, NULL);
+  g_return_val_if_fail (WC_IS_PIE (pie), NULL);
 
-	return pie->adjustment[ii];
+  return pie->adjustment[ii];
 }
 
-void wc_pie_set_update_policy(WcPie *pie, GtkUpdateType policy)
+void
+wc_pie_set_update_policy(WcPie *pie, GtkUpdateType policy)
 {
-	g_return_if_fail (pie != NULL);
-	g_return_if_fail (WC_IS_PIE (pie));
+  g_return_if_fail (pie != NULL);
+  g_return_if_fail (WC_IS_PIE (pie));
 
-	pie->policy = policy;
+  pie->policy = policy;
 }
 
-void wc_pie_set_adjustment(WcPie *pie, GtkAdjustment *adjustment, int ii)
+void
+wc_pie_set_adjustment(WcPie *pie, GtkAdjustment *adjustment, int ii)
 {
-	g_return_if_fail (pie != NULL);
-	g_return_if_fail (WC_IS_PIE (pie));
+  g_return_if_fail (pie != NULL);
+  g_return_if_fail (WC_IS_PIE (pie));
 
-	if (pie->adjustment[ii])
-	{ 
-		gtk_signal_disconnect_by_data (GTK_OBJECT (pie->adjustment[ii]), (gpointer) pie);
-		gtk_object_unref (GTK_OBJECT (pie->adjustment[ii]));
-	} 
+  if (pie->adjustment[ii])
+  { 
+    gtk_signal_disconnect_by_data (GTK_OBJECT (pie->adjustment[ii]), (gpointer) pie);
+    gtk_object_unref (GTK_OBJECT (pie->adjustment[ii]));
+  }
 
-	pie->adjustment[ii] = adjustment; 
-	gtk_object_ref(GTK_OBJECT (pie->adjustment[ii])); 
-	gtk_object_sink (GTK_OBJECT (pie->adjustment[ii]));
-	gtk_signal_connect(GTK_OBJECT (adjustment), "changed",
-			(GtkSignalFunc) wc_pie_adjustment_changed,
-			(gpointer) pie);
+  pie->adjustment[ii] = adjustment; 
+  gtk_object_ref(GTK_OBJECT (pie->adjustment[ii])); 
+  gtk_object_sink (GTK_OBJECT (pie->adjustment[ii]));
+  gtk_signal_connect(GTK_OBJECT (adjustment), "changed",
+      (GtkSignalFunc) wc_pie_adjustment_changed,
+      (gpointer) pie);
 
-	gtk_signal_connect(GTK_OBJECT (adjustment), "value_changed",
-			(GtkSignalFunc) wc_pie_adjustment_value_changed,
-			(gpointer) pie);
+  gtk_signal_connect(GTK_OBJECT (adjustment), "value_changed",
+      (GtkSignalFunc) wc_pie_adjustment_value_changed,
+      (gpointer) pie);
 
-	wc_pie_update(pie); 
+  wc_pie_update(pie); 
 }
 
-static void wc_pie_realize(GtkWidget *widget)
+static void
+wc_pie_realize(GtkWidget *widget)
 {
-	WcPie *pie;
-	GdkWindowAttr attributes;
-	gint attributes_mask;
+  WcPie *pie;
+  GdkWindowAttr attributes;
+  gint attributes_mask;
 
-	g_return_if_fail (widget != NULL);
-	g_return_if_fail (WC_IS_PIE (widget));
+  g_return_if_fail (widget != NULL);
+  g_return_if_fail (WC_IS_PIE (widget));
 
-	GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
-	pie = WC_PIE (widget);
+  GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
+  pie = WC_PIE (widget);
 
-	attributes.x = widget->allocation.x;
-	attributes.y = widget->allocation.y;
-	attributes.width = widget->allocation.width;
-	attributes.height = widget->allocation.height;
-	attributes.wclass = GDK_INPUT_OUTPUT;
-	attributes.window_type = GDK_WINDOW_CHILD;
-	attributes.event_mask = gtk_widget_get_events (widget) | 
-		GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | 
-		GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK |
-		GDK_POINTER_MOTION_HINT_MASK;
-	attributes.visual = gtk_widget_get_visual (widget);
-	attributes.colormap = gtk_widget_get_colormap (widget);
+  attributes.x = widget->allocation.x;
+  attributes.y = widget->allocation.y;
+  attributes.width = widget->allocation.width;
+  attributes.height = widget->allocation.height;
+  attributes.wclass = GDK_INPUT_OUTPUT;
+  attributes.window_type = GDK_WINDOW_CHILD;
+  attributes.event_mask = gtk_widget_get_events (widget) | 
+    GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK | 
+    GDK_BUTTON_RELEASE_MASK | GDK_POINTER_MOTION_MASK |
+    GDK_POINTER_MOTION_HINT_MASK;
+  attributes.visual = gtk_widget_get_visual (widget);
+  attributes.colormap = gtk_widget_get_colormap (widget);
 
-	attributes_mask = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP;
-	widget->window = gdk_window_new (widget->parent->window, &attributes, attributes_mask);
+  attributes_mask = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP;
+  widget->window = gdk_window_new (widget->parent->window, &attributes, attributes_mask);
 
-	widget->style = gtk_style_attach(widget->style, widget->window);
+  widget->style = gtk_style_attach(widget->style, widget->window);
 
-	gdk_window_set_user_data(widget->window, widget);
+  gdk_window_set_user_data(widget->window, widget);
 
-	gtk_style_set_background(widget->style, widget->window, GTK_STATE_ACTIVE);
+  gtk_style_set_background(widget->style, widget->window, GTK_STATE_ACTIVE);
 }
 
-static void wc_pie_size_request(GtkWidget *widget, GtkRequisition *requisition)
+static void
+wc_pie_size_request(GtkWidget *widget, GtkRequisition *requisition)
 { 
-	requisition->width = DEFAULT_PIE_WIDTH; 
-	requisition->height = DEFAULT_PIE_HEIGHT;
+  requisition->width = DEFAULT_PIE_WIDTH; 
+  requisition->height = DEFAULT_PIE_HEIGHT;
 }
 
-static void wc_pie_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
+static void
+wc_pie_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
-	WcPie *pie;
+  WcPie *pie;
 
-	g_return_if_fail (widget != NULL);
-	g_return_if_fail (WC_IS_PIE (widget));
-	g_return_if_fail (allocation != NULL);
+  g_return_if_fail (widget != NULL);
+  g_return_if_fail (WC_IS_PIE (widget));
+  g_return_if_fail (allocation != NULL);
 
-	widget->allocation = *allocation;
-	pie = WC_PIE (widget);
+  widget->allocation = *allocation;
+  pie = WC_PIE (widget);
 
-	if (GTK_WIDGET_REALIZED (widget))
-	{ 
-		gdk_window_move_resize (widget->window,
-				allocation->x, allocation->y,
-				allocation->width, allocation->height); 
-	}
-	pie->radius = MIN(allocation->width,allocation->height) * 0.33; 
+  if (GTK_WIDGET_REALIZED (widget))
+  { 
+    gdk_window_move_resize (widget->window,
+       	allocation->x, allocation->y,
+       	allocation->width, allocation->height); 
+  }
+  pie->radius = MIN(allocation->width,allocation->height) * 0.33; 
 }
 
-gint wc_pie_repaint(GtkWidget *widget) 
+gint
+wc_pie_repaint(GtkWidget *widget) 
 {
-	WcPie *pie;
-	GdkPoint points[6];
-	gdouble s,c;
-	gdouble theta, last, increment; 
-	gint xc, yc, temp, temp2=0;
-	gint upper, lower;
-	gint tick_length;
-	gint i, inc;
-	int ii, jj; 
+  WcPie *pie;
+  GdkPoint points[6];
+  gdouble s,c;
+  gdouble theta, last, increment; 
+  gint xc, yc, temp, temp2=0;
+  gint upper, lower;
+  gint tick_length;
+  gint i, inc;
+  int ii, jj;
 
-	g_return_val_if_fail (widget != NULL, FALSE);
-	g_return_val_if_fail (WC_IS_PIE (widget), FALSE);
+  g_return_val_if_fail (widget != NULL, FALSE);
+  g_return_val_if_fail (WC_IS_PIE (widget), FALSE);
 
-	pie = WC_PIE (widget);
+  pie = WC_PIE (widget);
 
-	gdk_draw_rectangle(pixmap,
-			widget->style->base_gc[widget->state],
-			TRUE,
-			0, 0,
-			widget->allocation.width,
-			widget->allocation.height);
+  gdk_draw_rectangle(pixmap,
+      widget->style->base_gc[widget->state],
+      TRUE,
+      0, 0,
+      widget->allocation.width,
+      widget->allocation.height);
 
-	xc = widget->allocation.width/2;
-	yc = widget->allocation.height/2;
+  xc = widget->allocation.width/2;
+  yc = widget->allocation.height/2;
 
-	for(jj=0;jj<3;jj++){
-		for(ii=0;ii<(pie->npts[jj]);ii++){
-			pie->pts[jj][ii].x = xc + (pie->radius)*cos((ii+temp2)*M_PI/90 + M_PI/2);
-			pie->pts[jj][ii].y = yc - (pie->radius)*sin((ii+temp2)*M_PI/90 + M_PI/2); 
-		}
-		temp = pie->npts[jj];
+  for(jj=0;jj<3;jj++){
+    for(ii=0;ii<(pie->npts[jj]);ii++){
+      pie->pts[jj][ii].x = xc + (pie->radius)*cos((ii+temp2)*M_PI/90 + M_PI/2);
+      pie->pts[jj][ii].y = yc - (pie->radius)*sin((ii+temp2)*M_PI/90 + M_PI/2); 
+    }
+    temp = pie->npts[jj];
 
- 		pie->pts[jj][temp].x = xc; 
- 		pie->pts[jj][temp].y = yc; 
+    pie->pts[jj][temp].x = xc; 
+    pie->pts[jj][temp].y = yc;
 
-		temp2 += temp -1; 
-	}
+    temp2 += temp - 1; 
+  }
 
 /* fudge for correct drawing of polygons */
-	if(pie->npts[2]){
-		if(pie->npts[0] || pie->npts[1]){
-			pie->pts[2][pie->npts[2]-1].x = xc;
-			pie->pts[2][pie->npts[2]-1].y = yc - (pie->radius); 
-		} else { 
-			pie->pts[2][pie->npts[2]].x = xc;
-			pie->pts[2][pie->npts[2]].y = yc - (pie->radius);
-		}
-	} else if(pie->npts[1]){
-		if(pie->npts[0]){
-			pie->pts[1][pie->npts[1]-1].x = xc;
-			pie->pts[1][pie->npts[1]-1].y = yc - (pie->radius); 
-		} else {
-			pie->pts[1][pie->npts[1]].x = xc;
-			pie->pts[1][pie->npts[1]].y = yc - (pie->radius);
-		}
-	} else if(pie->npts[0]){
-		pie->pts[0][pie->npts[0]].x = xc;
-		pie->pts[0][pie->npts[0]].y = yc - (pie->radius);
-	}
+  if(pie->npts[2]){
+    if(pie->npts[0] || pie->npts[1]){
+      pie->pts[2][pie->npts[2]-1].x = xc;
+      pie->pts[2][pie->npts[2]-1].y = yc - (pie->radius); 
+    } else { 
+      pie->pts[2][pie->npts[2]].x = xc;
+      pie->pts[2][pie->npts[2]].y = yc - (pie->radius);
+    }
+  } else if(pie->npts[1]){
+    if(pie->npts[0]){
+      pie->pts[1][pie->npts[1]-1].x = xc;
+      pie->pts[1][pie->npts[1]-1].y = yc - (pie->radius); 
+    } else {
+      pie->pts[1][pie->npts[1]].x = xc;
+      pie->pts[1][pie->npts[1]].y = yc - (pie->radius);
+    }
+  } else if(pie->npts[0]){
+    pie->pts[0][pie->npts[0]].x = xc;
+    pie->pts[0][pie->npts[0]].y = yc - (pie->radius);
+  }
 
-	for(jj=0;jj<3;jj++){
-		gdk_draw_polygon(pixmap,
-				pie->gc[jj],
-				TRUE,
-				pie->pts[jj],
-				pie->npts[jj]+1); 
-	}
+  for(jj=0;jj<3;jj++){
+    gdk_draw_polygon(pixmap,
+       	pie->gc[jj],
+       	TRUE,
+       	pie->pts[jj],
+       	pie->npts[jj]+1); 
+  }
 
-	gdk_gc_set_line_attributes(widget->style->black_gc,
-			3,
-			GDK_LINE_SOLID,
-			GDK_CAP_ROUND,
-			GDK_JOIN_ROUND);
+  gdk_gc_set_line_attributes(widget->style->black_gc,
+      3,
+      GDK_LINE_SOLID,
+      GDK_CAP_ROUND,
+      GDK_JOIN_ROUND);
 
-	gdk_draw_arc(pixmap,
-			widget->style->black_gc,
-			0, xc-(pie->radius), yc-(pie->radius),
-			2*(pie->radius), 2*(pie->radius), 0, 360*64);
+  gdk_draw_arc(pixmap,
+      widget->style->black_gc,
+      0, xc-(pie->radius), yc-(pie->radius),
+      2*(pie->radius), 2*(pie->radius), 0, 360*64);
 
-	gdk_draw_line(pixmap,
-			widget->style->black_gc,
-			xc, yc,
-			xc, yc - (pie->radius));
-	if(pie->npts[0] && pie->npts[1]) gdk_draw_line(pixmap,
-			widget->style->black_gc,
-			xc, yc,
-			xc + (pie->radius)*cos((pie->npts[0]-1)*M_PI/90+M_PI/2),
-			yc - (pie->radius)*sin((pie->npts[0]-1)*M_PI/90+M_PI/2));
-	if((pie->npts[0] || pie->npts[1]) && pie->npts[2]) gdk_draw_line(pixmap,
-			widget->style->black_gc,
-			xc, yc,
-			xc + (pie->radius)*cos((pie->npts[0]+pie->npts[1]-2)*M_PI/90+M_PI/2),
-			yc - (pie->radius)*sin((pie->npts[0]+pie->npts[1]-2)*M_PI/90+M_PI/2));
+  gdk_draw_line(pixmap,
+      widget->style->black_gc,
+      xc, yc,
+      xc, yc - (pie->radius));
+  if(pie->npts[0] && pie->npts[1])
+    gdk_draw_line(pixmap,
+       	widget->style->black_gc,
+       	xc, yc, 
+	xc + (pie->radius)*cos((pie->npts[0]-1)*M_PI/90+M_PI/2), 
+	yc - (pie->radius)*sin((pie->npts[0]-1)*M_PI/90+M_PI/2));
+  if((pie->npts[0] || pie->npts[1]) && pie->npts[2])
+    gdk_draw_line(pixmap,
+       	widget->style->black_gc,
+       	xc, yc, 
+	xc + (pie->radius)*cos((pie->npts[0]+pie->npts[1]-2)*M_PI/90+M_PI/2), 
+	yc - (pie->radius)*sin((pie->npts[0]+pie->npts[1]-2)*M_PI/90+M_PI/2));
 
-	gdk_gc_set_line_attributes(widget->style->black_gc,
-			1,
-			GDK_LINE_SOLID, GDK_CAP_ROUND, GDK_JOIN_ROUND);
-	strcpy(temptext, "Send");
-	gdk_draw_text(pixmap,
+  gdk_gc_set_line_attributes(widget->style->black_gc,
+      1,
+      GDK_LINE_SOLID, GDK_CAP_ROUND, GDK_JOIN_ROUND);
+  strcpy(temptext, "Send");
+  gdk_draw_text(pixmap,
 #ifdef GTK2 
-	    gdk_font_from_description (widget->style->font_desc), 
+      gdk_font_from_description (widget->style->font_desc), 
 #else
-	       	widget->style->font,
+      widget->style->font,
 #endif
-		pie->gc[0],
-			xc - 70, 
-			yc - (pie->radius) - 8,
-			temptext, strlen(temptext));
-	strcpy(temptext, "Receive");
-	gdk_draw_text(pixmap,
+      pie->gc[0],
+      xc - 70, 
+      yc - (pie->radius) - 8,
+      temptext, strlen(temptext));
+  strcpy(temptext, "Receive");
+  gdk_draw_text(pixmap,
 #ifdef GTK2 
-		gdk_font_from_description (widget->style->font_desc),
+      gdk_font_from_description (widget->style->font_desc),
 #else
-	       	widget->style->font,
-#endif
-
-			pie->gc[2],
-			xc + 30,
-			yc - (pie->radius) - 8,
-			temptext, strlen(temptext)); 
-	strcpy(temptext, "Path");
-	gdk_draw_text(pixmap,
-#ifdef GTK2 
-		gdk_font_from_description (widget->style->font_desc),
-#else
-	       	widget->style->font,
+      widget->style->font,
 #endif
 
-			pie->gc[1],
-			xc - 16, 
-			DEFAULT_PIE_HEIGHT*17/18,
-			temptext, strlen(temptext));
+      pie->gc[2],
+      xc + 30,
+      yc - (pie->radius) - 8,
+      temptext, strlen(temptext)); 
+  strcpy(temptext, "Path");
+  gdk_draw_text(pixmap,
+#ifdef GTK2 
+      gdk_font_from_description (widget->style->font_desc),
+#else
+      widget->style->font,
+#endif 
+      pie->gc[1],
+      xc - 16, 
+      DEFAULT_PIE_HEIGHT*17/18,
+      temptext, strlen(temptext));
 
-	return FALSE;
+  return FALSE;
 }
 
-static gint wc_pie_expose(GtkWidget *widget, GdkEventExpose *event)
+static
+gint wc_pie_expose(GtkWidget *widget, GdkEventExpose *event)
 { 
-	wc_pie_configure(widget, NULL);
-	wc_pie_repaint(widget);
-	
-	gdk_draw_pixmap(widget->window,
-			widget->style->fg_gc[GTK_WIDGET_STATE(widget)],
-			pixmap,
-			event->area.x, event->area.y,
-			event->area.x, event->area.y,
-			event->area.width, event->area.height);
+  wc_pie_configure(widget, NULL);
+  wc_pie_repaint(widget);
+
+  gdk_draw_pixmap(widget->window,
+      widget->style->fg_gc[GTK_WIDGET_STATE(widget)],
+      pixmap,
+      event->area.x, event->area.y,
+      event->area.x, event->area.y,
+      event->area.width, event->area.height);
 }
 
-static gint wc_pie_configure(GtkWidget *widget, GdkEventConfigure *event)
+static
+gint wc_pie_configure(GtkWidget *widget, GdkEventConfigure *event)
 { 
   WcPie *pie;
   int ii;
@@ -506,11 +551,12 @@ wc_pie_timer (WcPie *pie)
   return FALSE;
 }
 
-static void wc_pie_update (WcPie *pie)
+static void
+wc_pie_update (WcPie *pie)
 {
   gfloat new_value;
   gint xc, yc;
-  int ii, jj, total = 0, temp = 0;
+  int ii, jj, total = 0, temp = 0; 
 
   g_return_if_fail(pie != NULL);
   g_return_if_fail(WC_IS_PIE(pie));
@@ -520,18 +566,17 @@ static void wc_pie_update (WcPie *pie)
     if(pie->adjustment[ii]){ 
       new_value = pie->adjustment[ii]->value;
       if (new_value < pie->adjustment[ii]->lower)
-	new_value = pie->adjustment[ii]->lower;
+       	new_value = pie->adjustment[ii]->lower;
       if (new_value > pie->adjustment[ii]->upper)
-	new_value = pie->adjustment[ii]->upper;
+       	new_value = pie->adjustment[ii]->upper;
       if (new_value != pie->adjustment[ii]->value)
       {
-	pie->adjustment[ii]->value = new_value;
-	gtk_signal_emit_by_name (GTK_OBJECT (pie->adjustment[ii]),
-	    "value_changed");
+       	pie->adjustment[ii]->value = new_value;
+       	gtk_signal_emit_by_name (GTK_OBJECT (pie->adjustment[ii]), "value_changed");
       }
       if(pie->adjustment[ii]->upper - pie->adjustment[ii]->lower)
       { 
-	pie->npts[ii] = floor((new_value - (pie->adjustment[ii]->lower))*180 / (pie->adjustment[ii]->upper - pie->adjustment[ii]->lower)); 
+	pie->npts[ii] = rint((new_value - (pie->adjustment[ii]->lower))*180 / (pie->adjustment[ii]->upper - pie->adjustment[ii]->lower)); 
       }
       else pie->npts[ii] = 0; 
       total += pie->npts[ii]; temp += pie->npts[ii]-1;
@@ -543,7 +588,8 @@ static void wc_pie_update (WcPie *pie)
   gtk_widget_draw (GTK_WIDGET(pie), NULL);
 }
 
-static void wc_pie_adjustment_changed(GtkAdjustment *adjustment, gpointer data)
+static void
+wc_pie_adjustment_changed(GtkAdjustment *adjustment, gpointer data)
 {
   WcPie *pie;
 
@@ -555,8 +601,8 @@ static void wc_pie_adjustment_changed(GtkAdjustment *adjustment, gpointer data)
   wc_pie_update(pie);
 }
 
-static void wc_pie_adjustment_value_changed(GtkAdjustment *adjustment,
-		gpointer data)
+static void
+wc_pie_adjustment_value_changed(GtkAdjustment *adjustment, gpointer data)
 {
   WcPie *pie;
 

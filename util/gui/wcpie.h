@@ -59,15 +59,17 @@ struct _WcPieClass
 };
 
 
-GtkWidget*     wc_pie_new                    (GtkAdjustment *adjustment[3]);
-guint          wc_pie_get_type               (void);
-GtkAdjustment* wc_pie_get_adjustment         (WcPie      *dial, int ii);
-void           wc_pie_set_update_policy      (WcPie      *dial,
-						GtkUpdateType  policy);
+GtkWidget*     wc_pie_new                  (GtkAdjustment *adjustment[3]);
+#ifdef GTK2
+GType          wc_pie_get_type             (void);
+#else
+GtkType        wc_pie_get_type             (void);
+#endif
+GtkAdjustment* wc_pie_get_adjustment       (WcPie *dial, int ii);
+void           wc_pie_set_update_policy    (WcPie *dial, GtkUpdateType policy);
 
-void           wc_pie_set_adjustment         (WcPie      *dial,
-						GtkAdjustment *adjustment,
-						int ii);
+void           wc_pie_set_adjustment       (WcPie *dial, GtkAdjustment *adjustment, int ii);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */ 
