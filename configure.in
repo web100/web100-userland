@@ -1,0 +1,96 @@
+AC_INIT(lib/web100.c)
+
+PACKAGE=web100
+VERSION=alpha0.4
+
+dnl libweb100 libtool versioning
+LT_CURRENT=0
+LT_REVISION=0
+LT_AGE=0
+
+AC_SUBST(LT_CURRENT)
+AC_SUBST(LT_REVISION)
+AC_SUBST(LT_AGE)
+
+dnl Initialize automake
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION, no-define)
+
+dnl Specify config header
+AM_CONFIG_HEADER(config.h)
+
+dnl Initialize libtool
+AM_PROG_LIBTOOL
+
+AC_CANONICAL_HOST
+
+dnl Config options
+AC_ARG_ENABLE(warnings, [  --enable-warnings       turn on compile warnings [default=no]],,enable_warnings=no)
+AC_ARG_ENABLE(debug,    [  --enable-debug          turn on debugging compiler options [default=no]],,enable_debug=no)
+
+dnl Check for programs
+AC_PROG_CC
+AC_ISC_POSIX
+AM_PROG_CC_STDC
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+if ! test "x$GCC" = "xyes"; then
+    AC_MSG_ERROR(Compiling Web100 requires GCC)
+fi
+    
+if test "x$enable_debug" = "xyes"; then
+    CFLAGS="" # XXX: HACK
+    if test -z "`echo $CFLAGS | grep "\-g" 2> /dev/null`"; then
+        CFLAGS="$CFLAGS -g"
+    fi
+    AC_DEFINE(DEBUG)
+else
+    AC_DEFINE(NDEBUG)
+fi
+
+if test "x$enable_warnings" = "xyes"; then
+    if test -z "`echo $CFLAGS | grep "\-Wall" 2> /dev/null`"; then
+        CFLAGS="$CFLAGS -Wall"
+    fi
+fi
+
+dnl GNU make allows us to use the $(strip ...) builtin which eliminates a
+dnl large amount of extra whitespace in compile lines.
+AC_MSG_CHECKING(whether make is GNU make)
+STRIP_BEGIN=
+STRIP_END=
+if $ac_make --version 2> /dev/null | grep '^GNU Make ' > /dev/null ; then
+    STRIP_BEGIN='$(strip $(STRIP_DUMMY)'
+    STRIP_END=')'
+    AC_MSG_RESULT(yes)
+else
+    AC_MSG_RESULT(no)
+fi
+dnl some Make 3.79 $(strip ) versions are broken and require an empty arg
+STRIP_DUMMY=
+AC_SUBST(STRIP_DUMMY)
+AC_SUBST(STRIP_BEGIN)
+AC_SUBST(STRIP_END)
+
+dnl checks for libraries
+AM_PATH_GTK(1.2.0,,AC_MSG_ERROR(web100 requires GTK))
+
+dnl checks for header files
+dnl checks for typedefs
+dnl checks for structures
+dnl checks for compiler characteristics
+dnl checks for library functions
+dnl checks for system services
+
+AC_OUTPUT([
+Makefile
+web100-config
+doc/Makefile
+doc/man/Makefile
+lib/Makefile
+util/Makefile
+util/deltavar/Makefile
+util/readall/Makefile
+util/readvar/Makefile
+util/writevar/Makefile
+], [chmod +x web100-config])

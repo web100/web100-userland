@@ -1,0 +1,97 @@
+                                web100-alpha0.4
+                                ---------------
+
+General Information
+===================
+
+    The Web100 project provides the software and tools necessary for
+end-hosts to automatically and transparently achieve high bandwidth data
+rates (100 Mbps) over the high performance research networks.  This is
+achieved through a combination of Linux kernel modifications and
+userland tools.  This package includes a library, libweb100, and a set
+of both graphical and command-line tools to achieve these goals.  The
+kernel modifications are available separately.
+
+    Official web site:
+      http://www.web100.org/
+
+    Official SourceForge-based community site:
+      http://internal.web100.org/
+
+Goals
+=====
+
+    In general Web100 releases have three goals:
+
+- Provide documentation and sample code to co-developers, so that they
+  can contribute additional diagnostic tools.
+
+- To get Web100 into the hands of some application developers and users
+  who are sufficiently network savvy to help us detect possible adverse
+  environmental impact.
+
+- To collect feedback to help us make Web100 more suitable for
+  non-expert users, so we can usefully release Web100 code to
+  non-networking-experts who need the code.
+
+Copyrights
+==========
+
+    Please see the file 'COPYING' for copyright information.
+
+Installation
+============
+
+    Please see the file 'INSTALL' for installation information.
+
+Support
+=======
+
+    We have established email lists and web pages as the principal
+means for supporting the Web100 community.
+
+    Please use <discussion@web100.org> to communicate with other Web100
+testers like yourself and our support staff.  This is the best address
+for general advice and discussion about Web100, since your messages are
+likely to stimulate ideas in others.  Please visit
+http://internal.web100.org/mailman/listinfo/discussion to add yourself
+to the discussion mailing list, to view archives or to manage your
+subscription(s).
+
+    Please use <support@web100.org> if you wish to communicate with just
+the support staff.  This is the best address for conversations that
+could be distracting to other testers.
+
+    For information on known bugs please see
+      https://internal.web100.org/bugs/?group_id=3
+
+    Please send us you suggestions!
+
+Feedback
+========
+
+    We are releasing this code to you expressly because we think
+that you may be able to help us improve Web100.  Please do not hesitate
+to drop us a note with comments or offering suggestions at
+<support@web100.org>.  Or even better, contribute code.  In this release
+we are especially looking for feedback in the following areas:
+
+- User tools and documentation - What do we need to do before we can
+  give this software to non-network-experts?
+
+- The library API - are there flaws or oversights in the library for
+  accessing the kernel instruments?  As more software is developed, it
+  will become increasingly difficult to make any significant changes to
+  the library, so would appreciate validation or early feed back on the
+  current design.
+
+- Programming documentation - do we provide sufficient documentation and
+  hints to help programmers write Web100 tools?
+
+- Comments on the triage tool, particularly examples where it fails.
+  This is a new group of instruments and has not been well tested in a
+  wide range of environments.
+
+- Suggestions for future priorities - Are there classes of problems
+  which can not be adequately diagnosed with the current instruments or
+  tools?  How should we prioritize diagnosing theses problems?
