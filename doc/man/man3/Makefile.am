@@ -1,4 +1,5 @@
 all_manpages := libweb100.3 \
+                web100_agent_find_var_and_group.3 \
                 web100_attach.3 \
                 web100_connection_find.3 \
                 web100_connection_from_socket.3 \
