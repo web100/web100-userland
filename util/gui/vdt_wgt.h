@@ -30,6 +30,7 @@ struct _Vdt
 
   GtkWidget *graph;
   GtkWidget *clist, *entry;
+  float ewma, oldewma, max, oldmax;
   float graphval[20];
 };
 

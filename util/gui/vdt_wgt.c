@@ -22,7 +22,7 @@ static GtkVBoxClass *parent_class = NULL;
 #define GRAPH 0
 #define METER 1 
 static int mode = GRAPH;
-static float ewma, oldewma, max, oldmax;
+//static float ewma, oldewma, max, oldmax;
 //static float graphval[20];
 static int smoothing_on=1, delta_on=1;
 static char valtext[32];
@@ -220,19 +220,19 @@ void vdt_web100obj_snap_update (GtkObject *object, gpointer *data)
     result = (float)val;
 
   if(smoothing_on) {
-    oldewma = ewma;
-    result = ewma = get_ewma(result, oldewma, 0.4);
+    vdt->oldewma = vdt->ewma;
+    result = vdt->ewma = get_ewma(result, vdt->oldewma, 0.4);
   }
 
-  if(result > oldmax)
+  if(result > vdt->oldmax)
   { 
-    max = newmax(result, oldmax); 
-    oldmax = max;
+    vdt->max = newmax(result, vdt->oldmax); 
+    vdt->oldmax = vdt->max;
 
 //    adj[0] = GTK_ADJUSTMENT(gtk_adjustment_new(result, 0, max, 0.01, 0.1, 0));
 //    wc_meter_set_adjustment(WC_METER(meter), GTK_ADJUSTMENT(adj[0]));
 
-    adj[1] = GTK_ADJUSTMENT(gtk_adjustment_new(result, 0, max, 0.01, 0.1, 0));
+    adj[1] = GTK_ADJUSTMENT(gtk_adjustment_new(result, 0, vdt->max, 0.01, 0.1, 0));
     wc_graph_set_adjustment(WC_GRAPH(vdt->graph), GTK_ADJUSTMENT(adj[1]));
   }
 
@@ -325,7 +325,7 @@ static void vdt_init (Vdt *vdt)
 
   GTK_WIDGET_SET_FLAGS (vdt, GTK_NO_WINDOW);
 
-  ewma = oldewma = max = oldmax = 0.;
+  vdt->ewma = vdt->oldewma = vdt->max = vdt->oldmax = 0.;
   for(ii=0;ii<20;ii++) vdt->graphval[ii] = 0.;
 
   infobox = gtk_hbox_new(FALSE, 0);
