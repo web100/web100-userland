@@ -9,15 +9,21 @@
 #include "ur_launch.h"
 #include "sockset_wgt.h"
 #include "dtb_wgt.h"
+#include "vdt_wgt.h"
 
 
 //#define DTB_DEFAULT_SIZE 300
-#define NUM_TOOLNAME 6
+#define NUM_TOOLNAME 5
 #define NUM_VARNAME 15
 
 
-char toolname[NUM_TOOLNAME][16] = {
-  "vdt", "avd_list", "cpr", "triage", "stuner", "rtuner" };
+static char toolname[NUM_TOOLNAME][16] = {
+  "avd_list", "cpr", "triage", "stuner", "rtuner" };
+
+static char varname[NUM_VARNAME][WEB100_VARNAME_LEN_MAX] = {
+  "PktsIn", "DataPktsIn", "AckPktsIn", "DataBytesIn", "PktsOut", "DataPktsOut",
+  "AckPktsOut", "DataBytesOut", "PktsRetrans", "BytesRetrans", "DupAcksIn",
+  "CurrentCwnd", "CurrentSsthresh", "SmoothedRTT", "CurrentRTO" };
 
 static void dtb_class_init (DtbClass *class);
 static void dtb_init (Dtb *dtb);
@@ -150,6 +156,38 @@ void choose_tool(GtkWidget *parentclist, gint row, gint column,
   ur_launch_util (name, DTB (data)->web100obj, FALSE, FALSE);
 }
 
+void choose_var(GtkWidget *parentclist, gint row, gint column,
+                GdkEventButton *event, gpointer data)
+{ 
+  GtkWidget *window, *vbox, *ur_sockset, *vdt;
+  char *name;
+
+  name = (char *) gtk_clist_get_row_data(GTK_CLIST(parentclist), row);
+
+  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_policy (GTK_WINDOW(window), TRUE, TRUE, FALSE); 
+//  gtk_window_set_title (GTK_WINDOW (window), name);
+
+  gtk_signal_connect (GTK_OBJECT (window), "destroy",
+                      GTK_SIGNAL_FUNC (gtk_widget_destroy), NULL); 
+
+  gtk_container_set_border_width (GTK_CONTAINER (window), 10);
+
+  vbox = gtk_vbox_new (FALSE, 0); 
+  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_widget_show (vbox);
+
+  ur_sockset = sockset_new (DTB (data)->web100obj, FALSE);
+  gtk_box_pack_start (GTK_BOX(vbox), ur_sockset, FALSE, FALSE, 0);
+  gtk_widget_show (ur_sockset);
+
+  vdt = vdt_new (DTB (data)->web100obj, name);
+  gtk_box_pack_start (GTK_BOX(vbox), vdt, TRUE, TRUE, 0);
+  gtk_widget_show (vdt); 
+
+  gtk_widget_show (window); 
+}
+
 static void dtb_destroy (GtkObject *object)
 {
   g_return_if_fail (object != NULL);
@@ -172,8 +210,7 @@ static void dtb_init (Dtb *dtb)
   int ii;
 
   char toollongname[NUM_TOOLNAME][128] = {
-    "One counter/gauge display", "All variable display",
-    "Connection properties", "Congestion pie chart",
+    "All variable display", "Connection properties", "Congestion pie chart",
     "Send tuning controls", "Receive tuning controls" };
 
   char varlongname[NUM_VARNAME][128] = {
@@ -184,9 +221,6 @@ static void dtb_init (Dtb *dtb)
     "Packets Retransmitted", "Bytes Retransmitted",
     "Duplicate Acks Received", "CurrentCwnd",
     "CurrentSsthresh", "SmoothedRTT", "CurrentRTO" };
-
-//  char varname[NUM_VARNAME][128] = {
-//  };
 
   gchar *ltext[1];
 
@@ -253,15 +287,12 @@ static void dtb_init (Dtb *dtb)
   for (ii=0; ii<NUM_VARNAME; ii++) { 
     strcpy(ltext[0], varlongname[ii]);
     gtk_clist_append(GTK_CLIST(clist), ltext); 
+    gtk_clist_set_row_data (GTK_CLIST (clist), ii, varname[ii]);
   }
-/*
+
   gtk_signal_connect(GTK_OBJECT(clist), "select-row",
-                     GTK_SIGNAL_FUNC(choose_var), NULL);
-  gtk_signal_connect(GTK_OBJECT(clist),
-      "button_press_event",
-      GTK_SIGNAL_FUNC(signal_handler_startvar),
-      NULL);
-*/
+                     GTK_SIGNAL_FUNC(choose_var), dtb);
+
   gtk_container_add(GTK_CONTAINER(frame), dtb->varlist);
   gtk_widget_show(dtb->varlist);
 
