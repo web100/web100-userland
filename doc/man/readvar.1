@@ -1,0 +1,20 @@
+.\" $Id: readvar.1,v 1.1 2002/02/01 21:07:05 engelhar Exp $
+.TH readvar 1 "2/1/2002" "" ""
+.SH NAME
+readvar - read the current value of a single Web100 variable from one
+connection.
+.SH SYNOPSIS
+.B readvar
+.I connection_id
+.I var_name
+.SH DESCRIPTION
+\fIreadvar\fP is probably one of the simplest programs that can be written
+which uses \fIlibweb100\fP.  It prints out the current value of a single
+variable using the provided connection identifier and variable name.  The
+source code can also be used as a simple example of how to use \fIlibweb100\fP.
+.SH SEE ALSO
+.BR util (1),
+.BR readall (1),
+.BR deltavar (1),
+.BR writevar (1),
+.BR web100 (7)

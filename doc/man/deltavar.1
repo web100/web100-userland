@@ -1,0 +1,19 @@
+.\" $Id: deltavar.1,v 1.1 2002/02/01 21:07:05 engelhar Exp $
+.TH deltavar 1 "2/1/2002" "" ""
+.SH NAME
+deltavar - monitor a single Web100 variable continuously, printing out how
+much it changes each second.
+.SH SYNOPSIS
+.B deltavar
+.I connection_id
+.I var_name
+.SH DESCRIPTION
+\fIdeltavar\fP remains in an infinite loop, creating a snapshot of the current
+value of a Web100 variable once a second and printing out the difference from
+the previous value.
+.SH SEE ALSO
+.BR util (1),
+.BR readvar (1),
+.BR readall (1),
+.BR writevar (1),
+.BR web100 (7)

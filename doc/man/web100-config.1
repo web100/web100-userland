@@ -1,4 +1,4 @@
-.\" $Id: web100-config.1,v 1.1 2002/01/15 01:20:38 engelhar Exp $
+.\" $Id: web100-config.1,v 1.2 2002/02/01 21:07:06 engelhar Exp $
 .TH web100-config 1 "1/14/2002" "" ""
 .SH NAME
 web100-config - script to get information about the installed version of
@@ -7,11 +7,9 @@ libweb100
 .B web100-config
 [\-\-prefix] [\-\-exec\-prefix] [\-\-version] [\-\-libs] [\-\-cflags]
 .SH DESCRIPTION
-.PP
 \fIweb100-config\fP is a tool for developers that are writing software
 which uses \fIlibweb100\fP.  It provides such information as the
 compiler and linker flags necessary to use \fIlibweb100\fP.
-.
 .SH OPTIONS
 .l
 \fIweb100-config\fP accepts the following options:
@@ -34,4 +32,5 @@ Print the prefix that \fIlibweb100\fP was installed into.
 .B  \-\-exec-prefix
 Print the exec prefix that \fIlibweb100\fP was installed into.
 .SH SEE ALSO
-.BR gtk-config(1)
+.BR web100 (7),
+.BR gtk-config (1)

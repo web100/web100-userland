@@ -1,0 +1,48 @@
+'\" t
+.\" ** The above line should force tbl to be a preprocessor **
+.\" Man page for man
+.\"
+.\" $Id: util.1,v 1.1 2002/02/01 21:07:06 engelhar Exp $
+.TH util 1 "2/1/2002" "" ""
+.SH NAME
+util - a
+.I GTK+
+based graphical front-end to the Web100 connection statistics.
+.SH SYNOPSIS
+.B util
+.I widget_name
+[connection_id]
+.SH DESCRIPTION
+.B util
+is a graphical front end which allows users to read, monitor, and manipulate
+the values of Web100 variables on connections.
+.B util
+internally contains many different tools to perform these actions, and the
+parameter
+.I widget_name
+specifies which tool you want to use.  You can optionally provide a connection
+identifier,
+.I connection_id
+to specify which connection you wish to manipulate.
+
+The table below shows the allowable values of
+.I widget_name
+followed by the widget's purpose.
+
+.TS
+tab (@);
+l l.
+dtb@a universal tool box that allows you to launch the other tools
+avd_list@a continuously-updating list view of the variables in a single connection
+avd_table@a continuously-updating table view of the variables in a single connection
+cpr@monitors a few key parameters of a connection
+rtuner@allows you to manipulate the \fIRTuneMode\fP variable of a connection
+stuner@allows you to manipulate the \fISTuneMode\fP variable of a connection
+triage@allows you to watch \fISndLimTimeSender\fP, \fISndLimTimeCwnd\fP, and \fISndLimTimeRwin\fP
+.TE
+.SH SEE ALSO
+.BR readvar (1),
+.BR readall (1),
+.BR deltavar (1),
+.BR writevar (1),
+.BR web100 (7)
