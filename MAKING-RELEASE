@@ -16,8 +16,8 @@ How To Make A Release
 - In configure.in, change VERSION to be the appropriate web100 package
   version string.  Note: This is not the major/minor/micro version on
   libweb100 (see next).
-- Update the libweb100 version: Pick _one_ of the following, starting
-  from the top:
+- Update the libweb100 version in configure.in: Pick _one_ of the following,
+  starting from the top:
   1. If any libweb100 interfaces have been removed since the last release:
      LT_CURRENT += 1
      LT_REVISION = 0
