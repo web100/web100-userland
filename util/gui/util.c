@@ -1,39 +1,47 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include "web100.h"
 #include "web100sync.h"
 #include "web100obj.h"
-#include "sockset_wgt.h"
-#include "avd_list_wgt.h"
-#include "avd_table_wgt.h"
-#include "dtb_wgt.h"
-#include "ur_launch.h"
-//#include "cpr_wgt.h"
 
-web100_agent *agent;
 Web100Sync *web100sync;
 Web100Obj *web100obj;
 
-GtkWidget *window, *vbox, *sockset, *avd_list, *avd, *cpr, *dtb;
 int main(int argc, char *argv[] )
 { 
+  int option;
+
   gtk_init (&argc, &argv);
-  gtk_rc_parse(WEB100_CONF_DIR "/web100.rc");
 
   if (argc < 2) {
-    printf("Usage: util Widget_name [ConnectionID] [-l(ocal)|-r(emote)]\n");
+    printf("Usage: util tool_name [ConnectionID] [-l(ocal)|-r(emote)]\n");
     exit(2);
+  }
+
+  option = getopt(argc, argv, "lr");
+  switch(option)
+  {
+    case 'l':
+      gtk_rc_parse(WEB100_CONF_DIR "/lcl.rc"); 
+      break;
+    case 'r':
+      gtk_rc_parse(WEB100_CONF_DIR "/rmt.rc"); 
+      break;
+    default: 
+      break;
   }
 
   if ((web100sync = (Web100Sync *) web100sync_new (NULL)) == NULL) { 
     exit(1);
   }
 
-  if(argc >= 3) 
-  web100obj = WEB100_OBJ (web100obj_new(web100sync, argv[2])); 
-  else web100obj = WEB100_OBJ (web100obj_new(web100sync, NULL));
+  if(argv[optind+1]) 
+    web100obj = WEB100_OBJ (web100obj_new(web100sync, argv[optind+1])); 
+  else
+    web100obj = WEB100_OBJ (web100obj_new(web100sync, NULL));
 
-  ur_launch_util (argv[1], web100obj, TRUE, TRUE);
+  ur_launch_util(argv[optind], web100obj, TRUE, TRUE);
 
   gtk_main ();
   
