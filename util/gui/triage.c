@@ -290,13 +290,13 @@ int main(int argc, char *argv[])
   switch(option)
   {
     case 'l':
-      gtk_rc_parse("lcl.rc");
+      gtk_rc_parse(WEB100_CONF_DIR "/lcl.rc");
       break;
     case 'r':
-      gtk_rc_parse("rmt.rc");
+      gtk_rc_parse(WEB100_CONF_DIR "/rmt.rc");
       break;
     default:
-      gtk_rc_parse("web100.rc");
+      gtk_rc_parse(WEB100_CONF_DIR "/web100.rc");
       break;
   } 
  

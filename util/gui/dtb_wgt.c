@@ -200,11 +200,11 @@ static void dtb_init (Dtb *dtb)
 
 //markup from here on  
   hbox = gtk_hbox_new(FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(dtb), hbox, FALSE, FALSE, 10);
+  gtk_box_pack_start(GTK_BOX(dtb), hbox, TRUE, TRUE, 10);
   gtk_widget_show(hbox);
 
-  align = gtk_alignment_new(0.2,0.5,0.0,0.0);
-  gtk_box_pack_start(GTK_BOX(hbox), align, FALSE, FALSE, 10);
+  align = gtk_alignment_new(0.2,0.5,1.0,1.0);
+  gtk_box_pack_start(GTK_BOX(hbox), align, TRUE, TRUE, 10);
   gtk_widget_show(align);
 
   frame = gtk_frame_new("Tool box");
@@ -234,8 +234,8 @@ static void dtb_init (Dtb *dtb)
   gtk_container_add(GTK_CONTAINER(frame),  dtb->toollist);
   gtk_widget_show(dtb->toollist);
 
-  align = gtk_alignment_new(0.7,0.5,0.0,0.0);
-  gtk_box_pack_end(GTK_BOX(hbox), align, FALSE, FALSE, 10);
+  align = gtk_alignment_new(0.7,0.5,1.0,1.0);
+  gtk_box_pack_end(GTK_BOX(hbox), align, TRUE, TRUE, 10);
   gtk_widget_show(align);
   frame = gtk_frame_new("Counter/gauge");
   gtk_frame_set_label_align(GTK_FRAME(frame), 0.5, 0.0);

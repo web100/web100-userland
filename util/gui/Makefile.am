@@ -1,8 +1,10 @@
 bin_PROGRAMS = util
+RC_FILES = web100.rc
 
 INCLUDES = @STRIP_BEGIN@ \
 	@GTK_CFLAGS@ \
 	-I$(top_srcdir)/lib \
+	-DWEB100_CONF_DIR=\"$(WEB100_CONF_DIR)\" \
 	@STRIP_END@
 
 util_LDADD = \
@@ -41,3 +43,8 @@ util_SOURCES = \
 	web100obj.h \
 	web100sync.c \
 	web100sync.h
+
+confdir = $(WEB100_CONF_DIR)
+conf_DATA = $(RC_FILES)
+
+EXTRA_DIST += $(RC_FILES)

@@ -18,7 +18,7 @@ GtkWidget *window, *vbox, *sockset, *avd_list, *avd, *cpr, *dtb;
 int main(int argc, char *argv[] )
 { 
   gtk_init (&argc, &argv);
-  gtk_rc_parse("web100.rc");
+  gtk_rc_parse(WEB100_CONF_DIR "/web100.rc");
 
   if (argc < 2) {
     printf("Usage: util Widget_name [ConnectionID] [-l(ocal)|-r(emote)]\n");

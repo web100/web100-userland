@@ -23,7 +23,7 @@ II. Brief Overview of the TCP Kernel Instrument Set (TCP-KIS)
    The set of instruments, called the TCP Kernel Instrument Set
    (TCP-KIS), is documented in detail in the document 
 
-	      tcp-kis_0.1.txt
+	      tcp-kis.txt
 
    The primary objective in the design of this set of instruments is
    to collect as much of the information as possible to enable a user
