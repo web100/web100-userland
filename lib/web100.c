@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.30 2002/09/10 04:23:05 jestabro Exp $
+ * $Id: web100.c,v 1.31 2002/09/10 21:01:08 jheffner Exp $
  */
 
 #include "config.h"
@@ -1050,7 +1050,7 @@ web100_delta_any(web100_var *var, web100_snapshot *s1,
                  web100_snapshot *s2, void *buf)
 {
     unsigned long long int v1, v2, val;
-
+    
     if (s1->group != s2->group) {
         web100_errno = WEB100_ERR_INVAL;
         return -WEB100_ERR_INVAL;
