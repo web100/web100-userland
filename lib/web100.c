@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.19 2002/05/20 20:51:14 jestabro Exp $
+ * $Id: web100.c,v 1.20 2002/05/22 16:12:39 jestabro Exp $
  */
 
 #include <assert.h>
@@ -1352,6 +1352,18 @@ web100_get_connection_info(web100_agent *agent, const struct web100_connection_i
     }
     *res = conninfo;
     return WEB100_ERR_SUCCESS;
+}
+
+void
+web100_free_connection_info(struct web100_connection_info *res)
+{
+    struct web100_connection_info *tmp;
+
+    while(res) {
+	tmp = res;
+	res = res->next;
+	free(tmp);
+    }
 }
 
 int
