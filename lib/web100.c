@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.32 2003/01/06 19:46:31 engelhar Exp $
+ * $Id: web100.c,v 1.33 2003/02/06 00:03:57 jestabro Exp $
  */
 
 #include "config.h"
@@ -352,7 +352,11 @@ refresh_connections(web100_agent *agent)
         cid = atoi(ent->d_name);
         if (cid == 0 && ent->d_name[0] != '0')
             continue;
-        
+
+	sprintf(filename, "%s/%s/%s", WEB100_ROOT_DIR, ent->d_name, "read");
+	if (access(filename, R_OK))
+	    continue;
+	
         if ((cp = (web100_connection *)malloc(sizeof (web100_connection))) == NULL)
             return WEB100_ERR_NOMEM;
         cp->agent = agent;
