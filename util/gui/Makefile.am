@@ -18,6 +18,7 @@ gutil_SOURCES = \
 	cnlst_wgt.h \
 	connection_info.c \
 	connection_info.h \
+	connection_info-int.h \
 	cpr_wgt.c \
 	cpr_wgt.h \
 	dtb_wgt.c \
