@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.25 2002/08/05 19:33:08 jheffner Exp $
+ * $Id: web100.c,v 1.26 2002/08/06 18:09:00 jheffner Exp $
  */
 
 #include "config.h"
@@ -347,6 +347,7 @@ refresh_connections(web100_agent *agent)
         int cid;
         char *addr_name, *port_name;
         void *dst;
+        char buf[256];
         
         cid = atoi(ent->d_name);
         if (cid == 0 && ent->d_name[0] != '0')
@@ -378,18 +379,21 @@ refresh_connections(web100_agent *agent)
         
         if ((var = web100_var_find(spec_gp, "LocalAddress")) == NULL)
             return WEB100_ERR_FILE;
-        if (web100_raw_read(var, cp, &cp->spec_v6.src_addr) != WEB100_ERR_SUCCESS)
+        if (web100_raw_read(var, cp, buf) != WEB100_ERR_SUCCESS)
             return web100_errno;
+        if (cp->addrtype == WEB100_ADDRTYPE_IPV4)
+            memcpy(&cp->spec.src_addr, buf, 4);
+        else
+            memcpy(&cp->spec_v6.src_addr, buf, 16);
         
         if ((var = web100_var_find(spec_gp, addr_name)) == NULL)
             return WEB100_ERR_FILE;
-        if (web100_raw_read(var, cp, &cp->spec_v6.dst_addr) != WEB100_ERR_SUCCESS)
+        if (web100_raw_read(var, cp, buf) != WEB100_ERR_SUCCESS)
             return web100_errno;
-        
-        if (cp->addrtype == WEB100_ADDRTYPE_IPV4) {
-            memcpy(&cp->spec.src_addr, &cp->spec_v6.src_addr, 4);
-            memcpy(&cp->spec.dst_addr, &cp->spec_v6.dst_addr, 4);
-        }
+        if (cp->addrtype == WEB100_ADDRTYPE_IPV4)
+            memcpy(&cp->spec.dst_addr, buf, 4);
+        else
+            memcpy(&cp->spec_v6.dst_addr, buf, 16);
         
         if ((var = web100_var_find(spec_gp, "LocalPort")) == NULL)
             return WEB100_ERR_FILE;
@@ -737,30 +741,43 @@ web100_connection_lookup(web100_agent *agent, int cid)
 web100_connection*
 web100_connection_from_socket(web100_agent *agent, int sockfd)
 {
-    struct sockaddr_in ne, fe; /* near and far ends */
+    struct sockaddr_in6 ne6, fe6; /* near and far ends */
     socklen_t namelen; /* may not be POSIX */
     struct web100_connection_spec spec; /* connection tuple */
+    struct web100_connection_spec_v6 spec_v6;
 
     /* XXX TODO XXX: Should we only allow local agents? */
-
-    namelen = sizeof(fe);
-    if (getpeername(sockfd, (struct sockaddr*) &fe, &namelen) != 0) {
+    
+    namelen = sizeof (fe6);
+    if (getpeername(sockfd, (struct sockaddr *)&fe6, &namelen) != 0) {
         web100_errno = WEB100_ERR_SOCK;
         return NULL;
     }
 
-    namelen = sizeof(ne);
-    if (getsockname(sockfd, (struct sockaddr*) &ne, &namelen) != 0) {
+    namelen = sizeof (ne6);
+    if (getsockname(sockfd, (struct sockaddr *)&ne6, &namelen) != 0) {
         web100_errno = WEB100_ERR_SOCK;
         return NULL;
     }
-
-    spec.src_addr = ne.sin_addr.s_addr;
-    spec.src_port = ntohs(ne.sin_port);
-    spec.dst_addr = fe.sin_addr.s_addr;
-    spec.dst_port = ntohs(fe.sin_port);
-
-    return web100_connection_find(agent, &spec);
+    
+    switch (((struct sockaddr *)&fe6)->sa_family) {
+    case AF_INET:
+    {
+        struct sockaddr_in *ne4 = (struct sockaddr_in *)&ne6;
+        struct sockaddr_in *fe4 = (struct sockaddr_in *)&fe6;
+        
+        spec.src_addr = ne4->sin_addr.s_addr;
+        spec.src_port = ntohs(ne4->sin_port);
+        spec.dst_addr = fe4->sin_addr.s_addr;
+        spec.dst_port = ntohs(fe4->sin_port);
+        return web100_connection_find(agent, &spec);
+    }
+    case AF_INET6:
+        /* XXX TODO:  Add ipv6 support. */
+    default:
+        web100_errno = WEB100_ERR_SOCK;
+        return NULL;
+    }
 }
 
 
