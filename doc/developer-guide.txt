@@ -4,206 +4,289 @@ NOTE
 THIS IS THE DEVELOPER'S GUIDE FROM A PREVIOUS VERSION OF WEB100 (0.3).  AN
 UPDATED VERSION WILL APPEAR IN A SUBSEQUENT RELEASE OF WEB100.
 
-Intro
+Introduction
+============
 
-The following provides examples and suggestions for those interested in writing
-applications using the web100 library API. This is an Alpha0 release of the API,
-and there will certainly be tweaks in subsequent releases, however, the basic
-form is presumed stable, so that future modifications necessitated at the
-application level should be minor. Application programmers may rely on the
-library API for development, though may want to familiarize themselves with
-issues at the level of the kernel API; for this, one should refer to the
-document proc_interface.txt to be found in 
+This is the Developer's Guide for the Web100 library API.  The companion
+document, "User's Guide", provides a quick overview of the Web100 software.
 
-/usr/src/linux/Documentation/web100
+This document provides examples and suggestions for those interested
+in writing applications using the web100 library API. This is an Alpha1 
+release of the API, and there will certainly be tweaks in subsequent 
+releases, however, the basic form is presumed stable, so that future 
+modifications necessitated at the application level should be minor. 
+Application programmers may rely on the library API for development, 
+though may want to familiarize themselves with issues at the level of 
+the kernel API; for this, one should refer to the document 
+proc_interface.txt to be found in
+
+	 /usr/src/linux/Documentation/web100
 
 after installing the Web100 patch.
 
-HelloWeb100
+Overview of the Primary Objects in the Library
+==============================================
 
-What follows is an example of a "Hello World" program using the web100 library
-API; one will recognize this as the basis for deltavar, respectively vdt
-(Variable Display Tool), contained in the utils distribution. The following
-example takes a connection ID (= directory name in /proc/web100 referring to the
-connection) and a Kernel Instrument Set variable name (in this case, any of
-those under "/read" in /proc/web100/header) on the command line and prints the
-resulting value and delta once a second.
+As mentioned in the User Guide, the web100 software has added a number
+of variables or "Instruments" to the kernel "sock" structure which
+track a number of critical events on each of the TCP connections on
+the system.  The primary goal of this library is to enable developers
+to mointor and tune these variables.  These variables are exposed to
+the outside world through the /proc file system.
+
+The list of variables that are monitored can be found in the file
+
+    /proc/web100/header
+
+We highly recommend that you read the "proc_interface.txt" document
+referred to in the pargraphs above for full details about the format
+of this file.  Please see the document "tcp-kis.txt" for a detailed
+descritpion of the variables and what they measure.
+
+As mentioned in proc_interace.txt, it should be observed that the
+variables are grouped in one or more files, which are referred to as
+"group"s in the web100 library API.  The API provides routines for
+reading a single variable, or a group of variables.  The advantage of
+reading the variable as a group is that when the values of the
+variables are read as group, all the values in that group are read
+atomically.  This operation is called a "snap", and there are routines
+provided to get "snap shot"s of groups.
+
+The kernel API consists of a few essential data structures, and a good
+understanding of these data structures is very helpful in writing web100
+applications.  A brief overview if these data structures is provided
+below:
+
+   Agent - web100_agent
+
+      Agent is the top most object of the library, and any web100 
+      application developed using this library starts off by obtaining 
+      a pointer to this object.
+
+      This object contains a list of "connection" objects and "group"
+      objects.
+
+   Connection - web100_connection
+      
+      This is an object identified by a Connection ID (CID) that is set
+      up by the kernel, one for each TCP connection on the host.  For each
+      TCP connection on the system web100 creates a directory
+
+	  /proc/web100/<cid>
+
+      where cid is a unique number.
+
+   Group - web100_group
+
+      A group is a collection of web100 "variable" descriptors.  A group
+      has a name which shows up as file in /proc/web100/<cid> directory.  
+      By having access to a group, one can read all the variables in that
+      group atomically.
+
+   Variable - web100_var
+     
+      A variable is descriptor that contains the name of the variable
+      and the necessary information to get its value from the kernel.
+
+   Snap shot - web100_snapshot
+
+      A snap shot contains a connection, a group, and all the values
+      for that combination of connection and group at a particular
+      time.
+
+The hierarchy of the objects is as follows:
+
+    Agent
+       Connection		- the directory /proc/web100/<cid>
+       Group			- the file      /proc/web100/<cid>/<group>
+
+    Group
+       Variable			- a descriptor pointing into
+				  /proc/web100/<cid>/<group>
+    Snap Shot
+       Connection
+       Group
+       Data for this group and connection				  
+      
+The library contains access functions to obtain pointers to these structures.
+Please see the header file web100.h for the list of available routines.
+Please consult the man pages for details about a particular routine.
+
+Expample Code Illustrating the Use of the Library
+=================================================
+
+The use of the web100 library is explained with the help of a simple
+example, HelloWeb100.  This exmaple code gets a connection ID (=
+directory name in /proc/web100 referring to the connection) as an
+argument, and prints all the variables for that particular connection, 
+organized by groups.
+
+Other tools and utilities such as readvar and deltavar provided with the 
+distribution should help you understand the library usage once you have 
+gone through this example.
+
+Please note that the part about "spec" in the code below may be skipped
+without any loss of continuity.
 
 /*** Begin HelloWeb100.c: gcc -o HelloWeb100 HelloWeb100.c web100lib.c ***/
 
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/types.h>
-
-#include"web100.h" 
-
-struct web100_agent *agent;
-struct web100_connection *conn;
-struct web100_snap *snap;
-struct web100_var *wv;
-unsigned int value, delta;
-unsigned char addr[4];
-
-void init(char *cid, char *varname)
-{
-  /*
-   * Define the web100_agent for the session. Memory for struct web100_agent
-   * is allocated, as is that for all web100_vars defined in
-   * /proc/web100/header. The returned agent references a list of web100_file's,
-   * each of which refers to the comprising web100_vars.
-   */
-  agent = web100_attach("localhost");
-  /*
-   * Define an instance of web100_connection in terms of the procured agent
-   * and the connection ID. Memory for the web100_connection struct is
-   * allocated.
-   */
-  conn = web100_find_connection(agent, cid);
-  /*
-   * Take an initial snapshot of the elements of the Kernel Instrument Set
-   * referred to by "web100_def_file". This implicitly allocates memory
-   * for struct web100_snap and sets priorsnap = lastsnap, lastsnap = snap.
-   */ 
-  snap = web100_get_snapshot(conn, web100_def_file);
-  /* 
-   * Locate the web100_var by name for the given connection.
-   */
-  wv = web100_find_var(conn, varname); 
-}
-
 /*
- * After init, each future update manages the obsoleted prior snapshot, and
- * takes a new snapshot; after the first update, web100_delta_anyXX returns 
- * meaningful results (since at that point, both lastsnap, priorsnap refer
- * to read values).
+ * HelloWeb100: read all variables from a given connection and
+ * print them to stdout.
  */
-void update(void)
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "web100.h"
+
+static const char* argv0 = NULL;
+
+static void
+usage(void)
 {
-  if(priorsnap) free(priorsnap); 
-  snap = web100_get_snapshot(conn, web100_def_file);
+    fprintf(stderr,
+            "Usage: %s <connection id>\n",
+            argv0);
 }
 
-/* 
- *  The web100 library is strongly typed; herein, values/deltas are read for
- *  the appropriate wv->type and the results printed.
- */ 
-void print_result(void)
-{ 
-  switch (wv->type) {
-    case TYPE_INTEGER:
-      value=web100_get_integer(wv, snap);
-      delta=web100_delta_integer(wv, lastsnap, priorsnap);
-      printf("%u %u ", value, delta);
-      break;
-
-    case TYPE_INTEGER32:
-      value=web100_get_integer32(wv, snap);
-      delta=web100_delta_integer32(wv, lastsnap, priorsnap);
-      printf("%u %u ", value, delta);
-      break;
-
-    case TYPE_COUNTER32:
-      value=web100_get_counter32(wv, snap);
-      delta=web100_delta_counter32(wv, lastsnap, priorsnap);
-      printf("%u %u ", value, delta);
-      break;
-
-    case TYPE_GAUGE32:
-      value=web100_get_gauge32(wv, snap);
-      delta=web100_delta_gauge32(wv, lastsnap, priorsnap);
-      printf("%u %u ", value, delta);
-      break;
-
-    case TYPE_UNSIGNED32:
-      value=web100_get_unsigned32(wv, snap);
-      delta=web100_delta_unsigned32(wv, lastsnap, priorsnap);
-      printf("%u %u ", value, delta);
-      break;
-
-    case TYPE_TIME_TICKS:
-      value=web100_get_time_ticks(wv, snap);
-      delta=web100_delta_time_ticks(wv, lastsnap, priorsnap);
-      printf("%u %u ", value, delta);
-      break;
-
-    case TYPE_IP_ADDRESS:
-      web100_get_IPv4_address(wv, snap, addr);
-      printf("%u.%u.%u.%u - ", addr[0], addr[1], addr[2], addr[3]);
-      break;
-
-    case TYPE_UNSIGNED16:
-      value=web100_get_unsigned16(wv, snap);
-      delta=web100_delta_unsigned16(wv, lastsnap, priorsnap);
-      printf("%u %u ", value, delta);
-      break;
-
-    /* XXX In general we can not handle 64 bits */
-    case TYPE_COUNTER64:
-    default:
-      printf("??%s(%d) ", wv->name, wv->type); 
-  }
-  printf("\n");
-}
-
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
-  if (argc < 3) {
-    printf("Usage: HelloWeb100 ConnectionID VarName\n");
-    exit(2);
-  }
-  init(argv[1], argv[2]);
-  while(1){
-    update();
-    print_result();
-    sleep(1);
-  } 
+	web100_agent	   *agent;
+	web100_group	   *group;
+	web100_connection  *conn;
+
+	struct web100_connection_spec spec;
+
+	char buf[8];
+	int  cid;
+
+	argv0 = argv[0];
+	
+	if (argc != 2 ) {
+	    usage();
+	    exit(EXIT_FAILURE);
+	}
+
+	if ((agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL)) == NULL) {
+		web100_perror("web100_attach");
+		exit(EXIT_FAILURE);
+	}
+	
+	cid  = atoi(argv[1]);
+    	conn = web100_connection_lookup(agent, cid);
+
+	web100_get_connection_spec(conn, &spec);
+	{
+		unsigned char *src = (unsigned char *)&spec.src_addr;
+		unsigned char *dst = (unsigned char *)&spec.dst_addr;
+		printf("Connection %d (%u.%u.%u.%u:%u %u.%u.%u.%u:%u)\n",
+		       cid,
+		       src[0], src[1], src[2], src[3], spec.src_port,
+		       dst[0], dst[1], dst[2], dst[3], spec.dst_port);
+	}
+		 
+	group = web100_group_head(agent); // begin at the head
+
+	while (group) {                   // loop through all the groups
+        
+	    web100_var      *var;
+	    web100_snapshot *snap;
+
+	    printf("Group \"%s\"\n", web100_get_group_name(group));
+
+	    if ((snap = web100_snapshot_alloc(group, conn)) == NULL) {
+		 web100_perror("web100_snapshot_alloc");
+		 exit(EXIT_FAILURE);
+	    }
+            
+	    if (web100_snap(snap)) {
+		 perror("web100_snap");
+		 if (web100_errno == WEB100_ERR_NOCONNECTION)
+		       continue;
+		 exit(EXIT_FAILURE);
+	    }
+
+	    var = web100_var_head(group);
+
+	    while (var) {
+		 if (web100_snap_read(var, snap, buf)) {
+		     web100_perror("web100_snap_read");
+		     exit(EXIT_FAILURE);
+		 }
+				
+		 printf("%-20s %s\n",
+			web100_get_var_name(var),
+			web100_value_to_text(web100_get_var_type(var), buf));
+
+		 var = web100_var_next(var);
+	    }
+			
+	    web100_snapshot_free(snap);
+
+	    group = web100_group_next(group);
+
+	    if (group)
+	         printf("\n");
+	}
+	
+	return 0;
 }
 
 /*** End HelloWeb100.c ***/
 
-Remark:
+Explanation:
 
-The instances "lastsnap", "priorsnap" are provided for implicit delta management;
-the caller need only manage garbage collection for prior priorsnap's (so to
-speak). Note that if one has an application taking snapshots of variables for
-several connections, management of last/priorsnap's will need to be done at the
-application level, e.g.:
+The code starts off by getting a pointer to an agent by doing:
 
-struct web100_snap snap_1, lastsnap_1=NULL, priorsnap_1=NULL;
-struct web100_snap snap_2, lastsnap_2=NULL, priorsnap_2=NULL;
-...
-snap_1 = web100_get_snapshot(conn_1, web100_def_file);
-priorsnap_1 = lastsnap_1; lastsnap_1 = snap_1;
+    agent = web100_attach(WEB100_AGENT_LOCAL,NULL);
 
-snap_2 = web100_get_snapshot(conn_2, web100_def_file);
-priorsnap_2 = lastsnap_2; lastsnap_2 = snap_2;
-...
-free(priorsnap_1);
-snap_1 = web100_get_snapshot(conn_1, web100_def_file);
-priorsnap_1 = lastsnap_1; lastsnap_1 = snap_1;
-delta_1 = web100_delta_anyXX(variable, lastsnap_1, priorsnap_1); 
-...etc.
+Currently WEB100_AGENT_LOCAL is the only agent supported.  Since this
+agent contains the list of connections and groups, a pointer to a connection
+object of interest is obtained by doing:
+      
+    conn = web100_connection_lookup(agent, cid);
 
+where "cid" is a directory in /proc/web100 for the connection we are
+interested in.
+
+Since the agent contains the group list (a linked list), processing
+starts off by picking the first group and processing all the variables
+in that group, and then proceeding to the next group.
+
+Processing of a group involves the following steps:
+
+   - Allocate memory for a snap with              web100_snapshot_alloc
+   - Reading all the variables in the group with  web100_snap
+
+It should be noted that unlike reading one variable at a time, taking
+snap gets the values of all the variables atomically at one instant
+and stores them snapshot.
+
+Once the snap shot is taken, the values are printed out one variable
+at a time.  Since the value are already stored in snapshot, the values
+are read out of the snapshot using web100_snap_read.
+
+For additonal examples of web100 library code, please look at the following
+files:
+
+	readvar.c - reads out the selected variable from the selected
+		    connection.
+
+	deltavar.c - prints out delta of a selected variable by taking
+	             a snap shot every second.
 
 Gui matters:
 
-Several of the applications in the utils distribution use the Gtk library; these
-are described in the users-guide.web100. For those interested in writing
-applications using Gtk, the next release will contain widget versions of the
-applications contained therein, suitable for invoking from applications written
-in a language bound to Gtk. For those interested in using Gtk, see the
-documentation at www.gtk.org.
+*** Several of the applications in the utils distribution use the Gtk
+*** library; these are described in the uses-guide.txt. For those
+*** interested in writing applications using Gtk, the next release will
+*** contain widget versions of the applications contained therein,
+*** suitable for invoking from applications written in a language bound to
+*** Gtk. For those interested in using Gtk, see the documentation at
+*** www.gtk.org.
 
 
 API reference:
-...
 
-
-
-
-
-
-
-
-
-
+Please see the man pages for details on the routines.
