@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.17 2002/04/15 04:26:02 jestabro Exp $
+ * $Id: web100.c,v 1.18 2002/04/16 02:17:24 jestabro Exp $
  */
 
 #include <assert.h>
@@ -1492,7 +1492,7 @@ web100_log_open_read(char *logname)
     char          group_name[WEB100_GROUPNAME_LEN_MAX];
     web100_agent       *agent = NULL;
     web100_connection  *cp = NULL; 
-    FILE *header;
+    FILE               *header = NULL;
     
     web100_log *log = NULL;
 
