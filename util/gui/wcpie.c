@@ -14,16 +14,20 @@
  *   collaborate with all of the users.  So for the time being, please refer
  *   potential users to us instead of redistributing web100.
  */
-
+#include "config.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtksignal.h>
+#include <gtk/gtk.h>
 
 #include "wcpie.h"
 
-#define DEFAULT_SIZE 150
+#define DEFAULT_PIE_WIDTH 200
+#define DEFAULT_PIE_HEIGHT 200
+
+#define DEFAULT_SND_COLOR 0x00ff00
+#define DEFAULT_PATH_COLOR 0xffff00
+#define DEFAULT_RCV_COLOR 0xff0000
 
 
 static void wc_pie_class_init(WcPieClass *klass);
@@ -50,6 +54,8 @@ GdkColor green = {0, 0x0000, 0xaaaa, 0x0000};
 GdkColor yellow = {0, 0xcccc, 0xcccc, 0x0000};
 GdkColor black = {0, 0x0000, 0x0000, 0x0000};
 
+GdkColor pie_color[3];
+
 char temptext[60];
 
 guint wc_pie_get_type()
@@ -65,8 +71,8 @@ guint wc_pie_get_type()
 			sizeof (WcPieClass),
 			(GtkClassInitFunc) wc_pie_class_init,
 			(GtkObjectInitFunc) wc_pie_init,
-			(GtkArgSetFunc) NULL,
-			(GtkArgGetFunc) NULL,
+			NULL,
+			NULL,
 		}; 
 		pie_type = gtk_type_unique (gtk_widget_get_type(), &pie_info);
 	}
@@ -76,58 +82,114 @@ guint wc_pie_get_type()
 
 static void wc_pie_class_init(WcPieClass *class)
 {
-	GtkObjectClass *object_class;
-	GtkWidgetClass *widget_class;
+  GtkObjectClass *object_class;
+  GtkWidgetClass *widget_class;
 
-	object_class = (GtkObjectClass*) class;
-	widget_class = (GtkWidgetClass*) class;
+  object_class = (GtkObjectClass*) class;
+  widget_class = (GtkWidgetClass*) class;
 
-	parent_class = gtk_type_class (gtk_widget_get_type ());
+#ifdef GTK2
+  parent_class = g_type_class_peek_parent (class);
+#else
+  parent_class = gtk_type_class (gtk_widget_get_type ());
+#endif
 
-	object_class->destroy = wc_pie_destroy;
+  object_class->destroy = wc_pie_destroy;
 
-	widget_class->realize = wc_pie_realize;
-	widget_class->expose_event = wc_pie_expose;
-	widget_class->configure_event = wc_pie_configure;
-	widget_class->size_request = wc_pie_size_request;
-	widget_class->size_allocate = wc_pie_size_allocate;
+  widget_class->realize = wc_pie_realize;
+  widget_class->expose_event = wc_pie_expose;
+  widget_class->configure_event = wc_pie_configure;
+  widget_class->size_request = wc_pie_size_request;
+  widget_class->size_allocate = wc_pie_size_allocate; 
+
+#ifdef GTK2
+  gtk_widget_class_install_style_property (widget_class,
+      g_param_spec_int ("snd_color",
+       	"Snd color",
+       	"Color of Sender segment",
+       	0,
+       	G_MAXINT,
+       	DEFAULT_SND_COLOR,
+       	G_PARAM_READABLE));
+  gtk_widget_class_install_style_property (widget_class,
+      g_param_spec_int ("path_color",
+       	"Path color",
+       	"Color of Congestion segment",
+       	0,
+       	G_MAXINT,
+       	DEFAULT_PATH_COLOR,
+       	G_PARAM_READABLE));
+  gtk_widget_class_install_style_property (widget_class,
+      g_param_spec_int ("rcv_color",
+       	"Rcv color",
+       	"Color of Receiver segment",
+       	0,
+       	G_MAXINT,
+       	DEFAULT_RCV_COLOR,
+       	G_PARAM_READABLE));
+  gtk_widget_class_install_style_property (widget_class,
+      g_param_spec_string ("test",
+       	"Test",
+       	"test",
+	NULL,
+       	G_PARAM_READABLE));
+#endif
 }
 
 static void wc_pie_init(WcPie *pie)
 {
-	int ii;
+  int ii;
+  gint style_color[3];
+  gfloat testfloat[3];
+  char teststr[16];
 
-	pie->button = 0;
-	pie->policy = GTK_UPDATE_CONTINUOUS;
-	pie->timer = 0;
-	pie->radius = 0; 
+  pie->button = 0;
+  pie->policy = GTK_UPDATE_CONTINUOUS;
+  pie->timer = 0;
+  pie->radius = 0;
 
-	for(ii=0;ii<3;ii++) pie->adjustment[ii] = NULL; 
+  for (ii=0;ii<3;ii++) pie->adjustment[ii] = NULL;
+
+#ifdef GTK2
+  gtk_widget_ensure_style (GTK_WIDGET (pie));
+  gtk_widget_style_get (GTK_WIDGET (pie), "snd_color", &style_color[0], NULL);
+  gtk_widget_style_get (GTK_WIDGET (pie), "path_color", &style_color[1], NULL);
+  gtk_widget_style_get (GTK_WIDGET (pie), "rcv_color", &style_color[2], NULL); 
+#else
+  style_color[0] = DEFAULT_SND_COLOR; 
+  style_color[1] = DEFAULT_PATH_COLOR; 
+  style_color[2] = DEFAULT_RCV_COLOR; 
+#endif
+
+  for (ii=0;ii<3;ii++) { 
+    pie_color[ii].red = (u_int16_t) ((style_color[ii] & 0xff0000) >> 16)*0x101;
+    pie_color[ii].green = (u_int16_t) ((style_color[ii] & 0x00ff00) >> 8)*0x101;
+    pie_color[ii].blue = (u_int16_t) (style_color[ii] & 0x0000ff)*0x101; 
+  }
+  for (ii=0;ii<3;ii++) gdk_color_alloc(gdk_colormap_get_system(), &pie_color[ii]);
 }
 
-GtkWidget* wc_pie_new(GtkAdjustment *justment[3])
+GtkWidget* wc_pie_new(GtkAdjustment *adjustment[3])
 {
-	WcPie *pie;
-	GtkAdjustment *tempadj;
-	GtkStyle *defstyle;
-	int ii;
+  WcPie *pie;
+  GtkAdjustment *tempadj;
+  GtkStyle *defstyle;
+  int ii;
+  gint style_color[3];
 
-	pie = gtk_type_new (wc_pie_get_type ());
+#ifdef GTK2
+  pie = g_object_new (wc_pie_get_type (), NULL);
+#else
+  pie = gtk_type_new (wc_pie_get_type ());
+#endif
+  for(ii=0;ii<3;ii++)
+  {
+    if (!adjustment[ii]) 
+      adjustment[ii] = (GtkAdjustment*) gtk_adjustment_new(0, 0, 0, 0, 0, 0); 
+    wc_pie_set_adjustment (pie, adjustment[ii], ii);
+  }
 
-	for(ii=0;ii<3;ii++)
-	{
-		if (!justment[ii]) 
-			justment[ii] = (GtkAdjustment*) gtk_adjustment_new(0, 0, 0, 0, 0, 0); 
-		wc_pie_set_adjustment (pie, justment[ii], ii);
-	}
-
-	gdk_color_alloc(gdk_colormap_get_system(), &red);
-	gdk_color_alloc(gdk_colormap_get_system(), &green);
-	gdk_color_alloc(gdk_colormap_get_system(), &yellow);
-	gdk_color_alloc(gdk_colormap_get_system(), &black);
-/* 	defstyle = gtk_widget_get_default_style(); */
-
-	return GTK_WIDGET (pie);
+  return GTK_WIDGET (pie);
 }
 
 static void wc_pie_destroy(GtkObject *object)
@@ -144,6 +206,7 @@ static void wc_pie_destroy(GtkObject *object)
 	{
 		if (pie->adjustment[ii])
 			gtk_object_unref(GTK_OBJECT(pie->adjustment[ii]));
+		pie->adjustment[ii] = NULL;
 	}
 
 	if (GTK_OBJECT_CLASS(parent_class)->destroy)
@@ -179,6 +242,7 @@ void wc_pie_set_adjustment(WcPie *pie, GtkAdjustment *adjustment, int ii)
 
 	pie->adjustment[ii] = adjustment; 
 	gtk_object_ref(GTK_OBJECT (pie->adjustment[ii])); 
+	gtk_object_sink (GTK_OBJECT (pie->adjustment[ii]));
 	gtk_signal_connect(GTK_OBJECT (adjustment), "changed",
 			(GtkSignalFunc) wc_pie_adjustment_changed,
 			(gpointer) pie);
@@ -226,9 +290,9 @@ static void wc_pie_realize(GtkWidget *widget)
 }
 
 static void wc_pie_size_request(GtkWidget *widget, GtkRequisition *requisition)
-{
-	requisition->width = DEFAULT_SIZE;
-	requisition->height = DEFAULT_SIZE;
+{ 
+	requisition->width = DEFAULT_PIE_WIDTH; 
+	requisition->height = DEFAULT_PIE_HEIGHT;
 }
 
 static void wc_pie_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
@@ -248,7 +312,7 @@ static void wc_pie_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 				allocation->x, allocation->y,
 				allocation->width, allocation->height); 
 	}
-	pie->radius = MIN(allocation->width,allocation->height) * 0.4; 
+	pie->radius = MIN(allocation->width,allocation->height) * 0.33; 
 }
 
 gint wc_pie_repaint(GtkWidget *widget) 
@@ -322,7 +386,7 @@ gint wc_pie_repaint(GtkWidget *widget)
 	}
 
 	gdk_gc_set_line_attributes(widget->style->black_gc,
-			2,
+			3,
 			GDK_LINE_SOLID,
 			GDK_CAP_ROUND,
 			GDK_JOIN_ROUND);
@@ -351,23 +415,40 @@ gint wc_pie_repaint(GtkWidget *widget)
 			1,
 			GDK_LINE_SOLID, GDK_CAP_ROUND, GDK_JOIN_ROUND);
 	strcpy(temptext, "Send");
-	gdk_draw_text(pixmap, widget->style->font,
-			pie->gc[0],
-			xc - 46, 
-			yc - (pie->radius) - 3,
-			&temptext[0], 5);
+	gdk_draw_text(pixmap,
+#ifdef GTK2 
+	    gdk_font_from_description (widget->style->font_desc), 
+#else
+	       	widget->style->font,
+#endif
+		pie->gc[0],
+			xc - 70, 
+			yc - (pie->radius) - 8,
+			temptext, strlen(temptext));
 	strcpy(temptext, "Receive");
-	gdk_draw_text(pixmap, widget->style->font, 
+	gdk_draw_text(pixmap,
+#ifdef GTK2 
+		gdk_font_from_description (widget->style->font_desc),
+#else
+	       	widget->style->font,
+#endif
+
 			pie->gc[2],
-			xc + 15,
-			yc - (pie->radius) - 3,
-			&temptext[0], 8); 
+			xc + 30,
+			yc - (pie->radius) - 8,
+			temptext, strlen(temptext)); 
 	strcpy(temptext, "Path");
-	gdk_draw_text(pixmap, widget->style->font,
+	gdk_draw_text(pixmap,
+#ifdef GTK2 
+		gdk_font_from_description (widget->style->font_desc),
+#else
+	       	widget->style->font,
+#endif
+
 			pie->gc[1],
-			xc - 16,
-			yc + (pie->radius) + 11,
-			&temptext[0], 5);
+			xc - 16, 
+			DEFAULT_PIE_HEIGHT*17/18,
+			temptext, strlen(temptext));
 
 	return FALSE;
 }
@@ -387,31 +468,30 @@ static gint wc_pie_expose(GtkWidget *widget, GdkEventExpose *event)
 
 static gint wc_pie_configure(GtkWidget *widget, GdkEventConfigure *event)
 { 
-	WcPie *pie;
-	int ii;
+  WcPie *pie;
+  int ii;
 
-	pie = WC_PIE (widget);
+  pie = WC_PIE (widget);
 
-	if(pixmap){ 
-		gdk_pixmap_unref(pixmap);
-	}
-	pixmap = gdk_pixmap_new(widget->window,
-			widget->allocation.width,
-			widget->allocation.height,
-			-1);
-	for(ii=0;ii<3;ii++){
-		if(pie->gc[ii]){
-			gdk_gc_unref(pie->gc[ii]);
-		}
-		pie->gc[ii] = gdk_gc_new(pixmap);
-	} 
+  if(pixmap){ 
+    gdk_pixmap_unref(pixmap);
+  }
+  pixmap = gdk_pixmap_new(widget->window,
+      widget->allocation.width,
+      widget->allocation.height,
+      -1);
+  for(ii=0;ii<3;ii++){
+    if(pie->gc[ii]){
+      gdk_gc_unref(pie->gc[ii]);
+    }
+    pie->gc[ii] = gdk_gc_new(pixmap);
+  }
 
-	gdk_gc_set_foreground(pie->gc[0], &green);
-	gdk_gc_set_foreground(pie->gc[1], &yellow);
-	gdk_gc_set_foreground(pie->gc[2], &red); 
-	gdk_gc_set_background(pie->gc[0], &green);
+  for (ii=0;ii<3;ii++) { 
+    gdk_gc_set_foreground(pie->gc[ii], (GdkColor *) &pie_color[ii]); 
+  }
 
-	return TRUE;
+  return TRUE;
 }
 
 static gint

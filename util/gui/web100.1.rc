@@ -1,0 +1,15 @@
+
+style "default"
+{
+	font = "-adobe-times-bold-r-normal--*-140-*-*-*-*-*-*"
+	bg[NORMAL] = { 0.4, 0.5, 0.4 }
+	bg[SELECTED] = { 0.3, 0.3, 1.0 }
+	bg[ACTIVE] = { 0.5, 0.5, 0.0 }
+	fg[SELECTED] = { 0.4, 0.0, 0.0 }
+	base[NORMAL] = { 0.7, 0.7, 1.0 } 
+	base[ACTIVE] = { 0.7, 0.7, 1.0 } 
+	base[SELECTED] = { 0.5, 0.5, 1.0 } 
+	base[INSENSITIVE] = { 0.8, 0.8, 0.8 }
+}
+
+widget_class "*" style "default"

@@ -35,58 +35,38 @@ typedef struct _WcGraphClass   WcGraphClass;
 
 struct _WcGraph
 {
-	GtkWidget widget;
+  GtkWidget widget;
 
-	/* update policy (GTK_UPDATE_[CONTINUOUS/DELAYED/DIWCONTINUOUS]) */
-	guint policy : 2;
+  guint policy : 2;
 
-	/* Button currently pressed or 0 if none */
-	guint8 button;
+  guint8 button;
 
-	/* Dimensions of graph components */
-	gint radius;
-	gint pointer_width;
+  gfloat old_value;
+  gfloat old_lower;
+  gfloat old_upper;
 
-	/* ID of update timer, or 0 if none */
-	guint32 timer;
+  GtkAdjustment *adjustment;
 
-	/* Current angle */
-	gfloat angle;
-	gfloat last_angle;
+  gfloat nvalue[32];
 
-	/* Old values from adjustment stored so we know when something changes */
-	gfloat old_value;
-	gfloat old_lower;
-	gfloat old_upper;
-
-	/* The adjustment object that stores the data for this graph */
-	GtkAdjustment *adjustment; 
-
-	/* Values for the 6 bars */
-	gint nvalue[20];
-
-	GdkFont *font;
-
+  GdkGC  *gc;
+  GdkFont *font; 
 };
 
 struct _WcGraphClass
 {
-	GtkWidgetClass parent_class;
+  GtkWidgetClass parent_class;
 };
 
-GtkWidget*     wc_graph_new                    (GtkAdjustment *adjustment);
-guint          wc_graph_get_type               (void);
-GtkAdjustment* wc_graph_get_adjustment         (WcGraph      *graph);
-void           wc_graph_set_update_policy      (WcGraph      *graph,
-						GtkUpdateType  policy);
-
-void           wc_graph_set_adjustment         (WcGraph      *graph,
-						GtkAdjustment *adjustment);
-void wc_graph_set_value(WcGraph *graph, int which, int value);
+GtkWidget*     wc_graph_new                (GtkAdjustment *adjustment);
+guint          wc_graph_get_type           (void);
+GtkAdjustment* wc_graph_get_adjustment     (WcGraph *graph);
+void           wc_graph_set_update_policy  (WcGraph *graph, GtkUpdateType policy); 
+void           wc_graph_set_adjustment     (WcGraph *graph, GtkAdjustment *adjustment);
+void           wc_graph_set_value          (WcGraph *graph, int which, gfloat value);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 
-#endif /* __WCGRAPH_H__ */
-/* example-end */
+#endif /* __WCGRAPH_H__ */ 

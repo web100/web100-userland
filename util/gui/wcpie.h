@@ -41,7 +41,6 @@ struct _WcPie
 {
 	GtkWidget widget;
 
-/* update policy (GTK_UPDATE_[CONTINUOUS/DELAYED/DISCONTINUOUS]) */
 	guint policy : 2; 
 	guint8 button; 
 	gint radius; 
