@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * * $Id: web100.h,v 1.8 2002/02/21 21:58:17 engelhar Exp $
+ * * $Id: web100.h,v 1.9 2002/02/21 22:12:55 engelhar Exp $
  */
 #ifndef _WEB100_H
 #define _WEB100_H
@@ -66,7 +66,7 @@ struct web100_socket_data {
 #define WEB100_VERSTR_LEN_MAX       64
 #define WEB100_GROUPNAME_LEN_MAX    32
 #define WEB100_VARNAME_LEN_MAX      32
-#define WEB100_VALUE_LEN_MAX        16
+#define WEB100_VALUE_LEN_MAX        21 /* 2^64 = "18446744073709551616\0" */
 
 #define WEB100_ROOT_DIR     "/proc/web100/"
 #define WEB100_HEADER_FILE  WEB100_ROOT_DIR "header"
