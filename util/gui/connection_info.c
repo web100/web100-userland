@@ -16,6 +16,8 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
     struct connection_info *ci;
 
     web100_connection *cp;
+    web100_group *gp;
+    web100_var *var;
 
     char buf[256], path[PATH_MAX];
     FILE *file; 
@@ -32,12 +34,63 @@ connection_info_refresh(web100_agent *agent, struct connection_info **conninfo)
     // associate cid with IP 
     cid_data = NULL;
     cp = web100_connection_head(agent);
-    while (cp) {
+    while (cp) { 
+	char *addr_name, *port_name;
+	void *dst;
+
         if((tmp = malloc(sizeof (struct connection_info))) == NULL) {
 	    web100_errno = WEB100_ERR_NOMEM;
 	    return -WEB100_ERR_NOMEM;
 	}
-        web100_get_connection_spec(cp, &(tmp->spec));
+//
+        if((gp = web100_group_find(agent, "read")) == NULL) 
+	    return WEB100_ERR_NOGROUP;
+	
+
+	if ((var = web100_var_find(gp, "LocalAddressType")) == NULL)
+	    tmp->addrtype = WEB100_ADDRTYPE_IPV4;
+	else if (web100_raw_read(var, cp, &tmp->addrtype) != WEB100_ERR_SUCCESS)
+	    return web100_errno;
+	
+        if (strncmp(web100_get_agent_version(agent), "1.", 2) == 0) {
+            addr_name = "RemoteAddress";
+            port_name = "RemotePort";
+        } else {
+            addr_name = "RemAddress";
+            port_name = "RemPort";
+        }
+        
+        if ((var = web100_var_find(gp, "LocalAddress")) == NULL)
+            return WEB100_ERR_FILE;
+        if (web100_raw_read(var, cp, buf) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+        if (tmp->addrtype == WEB100_ADDRTYPE_IPV4)
+            memcpy(&tmp->spec.src_addr, buf, 4);
+        else
+            memcpy(&tmp->spec_v6.src_addr, buf, 16);
+        
+        if ((var = web100_var_find(gp, addr_name)) == NULL)
+            return WEB100_ERR_FILE;
+        if (web100_raw_read(var, cp, buf) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+        if (tmp->addrtype == WEB100_ADDRTYPE_IPV4)
+            memcpy(&tmp->spec.dst_addr, buf, 4);
+        else
+            memcpy(&tmp->spec_v6.dst_addr, buf, 16);
+        
+        if ((var = web100_var_find(gp, "LocalPort")) == NULL)
+            return WEB100_ERR_FILE;
+        dst = (tmp->addrtype == WEB100_ADDRTYPE_IPV4) ? &tmp->spec.src_port : &tmp->spec_v6.src_port;
+        if (web100_raw_read(var, cp, dst) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+        
+        if ((var = web100_var_find(gp, port_name)) == NULL)
+            return WEB100_ERR_FILE;
+        dst = (tmp->addrtype == WEB100_ADDRTYPE_IPV4) ? &tmp->spec.dst_port : &tmp->spec_v6.dst_port;
+        if (web100_raw_read(var, cp, dst) != WEB100_ERR_SUCCESS)
+            return web100_errno;
+//
+//        web100_get_connection_spec(cp, &(tmp->spec));
         tmp->cid = web100_get_connection_cid(cp);
 
         tmp->next = cid_data;
