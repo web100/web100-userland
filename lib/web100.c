@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.12 2002/02/27 04:52:44 engelhar Exp $
+ * $Id: web100.c,v 1.13 2002/02/28 17:29:54 engelhar Exp $
  */
 
 #include <assert.h>
@@ -625,13 +625,9 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
 }
 
 
-/*@
-web100_connection_data_copy - copy a connection
-@*/
 int
 web100_connection_data_copy(web100_connection *dest, web100_connection *src)
 { 
-
     if (!dest || !src)
         return WEB100_ERR_INVAL;
 
