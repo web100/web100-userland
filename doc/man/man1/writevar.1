@@ -1,0 +1,18 @@
+.\" $Id: writevar.1,v 1.1 2002/02/27 02:19:46 engelhar Exp $
+.TH writevar 1 "26 February 2002" "Web100 Userland" "Web100"
+.SH NAME
+writevar \- write a value to a single Web100 variable in one connection.
+.SH SYNOPSIS
+.B writevar
+.I connection_id
+.I var_name
+.I value
+.SH DESCRIPTION
+\fBwritevar\fR writes \fIvalue\fR to the Web100 variable named
+\fIvar_name\fR in connection \fIconnection_id\fR.
+.SH SEE ALSO
+.BR util (1),
+.BR readvar (1),
+.BR readall (1),
+.BR deltavar (1),
+.BR web100 (7)

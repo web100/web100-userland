@@ -1,0 +1,21 @@
+.\" $Id: web100_attach.3,v 1.1 2002/02/27 02:19:48 engelhar Exp $
+.TH WEB100_ATTACH 3 "26 February 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_attach, web100_detach \- attach to and detach from a Web100 data
+source (SNMP terminology)
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+
+.nf
+.BI "web100_agent* web100_attach(int " method ", void " *data ");"\n
+.BI "void web100_detach(web100_agent " *agent ");"
+.fi
+.SH DESCRIPTION
+The \fBweb100_attach\fR function \fIattaches\fR to a Web100 data source.
+The data source may be the local or (in the future) a remote machine.
+It is typically the first function called by users of \fIlibweb100\fR.
+.SH RETURN VALUES
+\fBweb100_attach\fR returns a properly initialized...
+.SH SEE ALSO
+.BR web100_detach (3),
+.BR libweb100 (3)

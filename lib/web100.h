@@ -22,8 +22,9 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * * $Id: web100.h,v 1.9 2002/02/21 22:12:55 engelhar Exp $
+ * $Id: web100.h,v 1.10 2002/02/27 02:19:51 engelhar Exp $
  */
+
 #ifndef _WEB100_H
 #define _WEB100_H
 

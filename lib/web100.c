@@ -25,8 +25,9 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.9 2002/02/22 22:08:57 engelhar Exp $
+ * $Id: web100.c,v 1.10 2002/02/27 02:19:51 engelhar Exp $
  */
+
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -47,7 +48,7 @@
 #include <errno.h>
 
 #include "web100-int.h"
-#include "web100.h" /*I <web100/web100.h> I*/
+#include "web100.h"
 
 
 /*
@@ -319,26 +320,6 @@ web100_log(web100_snapshot *snap)
  * PUBLIC FUNCTIONS
  */
 
-
-/*@
-web100_perror - print a web100 error message in the style of perror(3)
-
-Description:
-The routine 'web100_perror()' produces a message on the standard error
-output describing the last error encountered during a call to a web100
-function.  The argument string 'str' is printed first, then a colon and
-a blank, then the message and a new-line.  The error number is taken
-from the external variable 'web100_errno'.
-
-Return value:
-None
-
-Errors:
-None
-
-See Also:
-web100_strerror(3), perror(3)
-@*/
 void
 web100_perror(const char* str)
 {
@@ -346,24 +327,6 @@ web100_perror(const char* str)
 }
 
 
-/*@
-web100_strerror - return string describing error code in the style of
-strerror(3)
-
-Description:
-The 'strerror()' function returns a string describing the error code
-passed in the argument 'errnum'.
-
-Return value:
-The 'strerror()' function returns the appropriate description string, or
-an unknown error message if the error code is unknown.
-
-Errors:
-None
-
-See Also:
-web100_perror(3), strerror(3)
-@*/
 const char*
 web100_strerror(int errnum)
 {
@@ -374,9 +337,6 @@ web100_strerror(int errnum)
 }
 
 
-/*@
-web100_attach - attach (SNMP terminology)
-@*/
 web100_agent*
 web100_attach(int method, void *data)
 {
@@ -390,9 +350,6 @@ web100_attach(int method, void *data)
 }
 
 
-/*@
-web100_detach - detach (SNMP terminology)
-@*/
 void
 web100_detach(web100_agent *agent)
 {

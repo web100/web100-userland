@@ -1,36 +1,40 @@
-.\" $Id: web100-config.1,v 1.2 2002/02/01 21:07:06 engelhar Exp $
-.TH web100-config 1 "1/14/2002" "" ""
+.\" $Id: web100-config.1,v 1.1 2002/02/27 02:19:46 engelhar Exp $
+.TH web100-config 1 "26 February 2002" "Web100 Userland" "Web100"
 .SH NAME
-web100-config - script to get information about the installed version of
-libweb100
+web100-config \- script to get information about the installed version of
+\fIlibweb100\fR
 .SH SYNOPSIS
 .B web100-config
-[\-\-prefix] [\-\-exec\-prefix] [\-\-version] [\-\-libs] [\-\-cflags]
+[\fB\-\-prefix\fR]
+[\fB\-\-exec\-prefix\fR]
+[\fB\-\-version\fR]
+[\fB\-\-libs\fR]
+[\fB\-\-cflags\fR]
 .SH DESCRIPTION
-\fIweb100-config\fP is a tool for developers that are writing software
+\fBweb100-config\fR is a tool for developers that are writing software
 which uses \fIlibweb100\fP.  It provides such information as the
 compiler and linker flags necessary to use \fIlibweb100\fP.
 .SH OPTIONS
-.l
-\fIweb100-config\fP accepts the following options:
-.TP 8
-.B  \-\-version
+\fBweb100-config\fR accepts the following options:
+.TP 4
+.B \-\-version
 Print the currently installed version of \fIlibweb100\fP on the standard
 output.
-.TP 8
-.B  \-\-libs
+.TP 4
+.B \-\-libs
 Print the linker flags that are necessary to link a \fIlibweb100\fP
 program.
-.TP 8
-.B  \-\-cflags
+.TP 4
+.B \-\-cflags
 Print the compiler flags that are necessary to compile a
 \fIlibweb100\fP program.
-.TP 8
-.B  \-\-prefix
+.TP 4
+.B \-\-prefix
 Print the prefix that \fIlibweb100\fP was installed into.
-.TP 8
-.B  \-\-exec-prefix
+.TP 4
+.B \-\-exec-prefix
 Print the exec prefix that \fIlibweb100\fP was installed into.
 .SH SEE ALSO
+.BR libweb100 (3),
 .BR web100 (7),
 .BR gtk-config (1)

@@ -1,0 +1,47 @@
+.\" $Id: util.1,v 1.1 2002/02/27 02:19:46 engelhar Exp $
+.TH util 1 "26 February 2002" "Web100 Userland" "Web100"
+.SH NAME
+util \- a \fIGTK+\fR based graphical front-end to the Web100 connection
+statistics.
+.SH SYNOPSIS
+.B util
+.I widget_name
+[\fIconnection_id\fR]
+.SH DESCRIPTION
+\fButil\fR is a graphical front end which allows users to read, monitor,
+and manipulate the values of Web100 variables on connections.
+\fButil\fR internally contains many different tools to perform these
+actions, and the parameter \fIwidget_name\fR specifies which tool you
+want to use.  You can optionally provide a connection identifier,
+\fIconnection_id\fR to specify which connection you wish to manipulate.
+
+The table below shows the allowable values of \fIwidget_name\fR followed
+by the widget's purpose.
+.TP
+\fBdtb\fR
+a universal tool box that allows you to launch the other tools
+.TP
+\fBavd_list\fR
+a continuously-updating list view of the variables in a single connection
+.TP
+\fBavd_table\fR
+a continuously-updating table view of the variables in a single connection
+.TP
+\fBcpr\fR
+monitors a few key parameters of a connection
+.TP
+\fBrtuner\fR
+allows you to manipulate the \fIRTuneMode\fR variable of a connection
+.TP
+\fBstuner\fR
+allows you to manipulate the \fISTuneMode\fR variable of a connection
+.TP
+\fBtriage\fR
+allows you to watch \fISndLimTimeSender\fR, \fISndLimTimeCwnd\fR, and
+\fISndLimTimeRwin\fR
+.SH SEE ALSO
+.BR readvar (1),
+.BR readall (1),
+.BR deltavar (1),
+.BR writevar (1),
+.BR web100 (7)
