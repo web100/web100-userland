@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.22 2002/09/10 04:23:05 jestabro Exp $
+ * $Id: web100.h,v 1.23 2003/02/12 17:59:27 jestabro Exp $
  */
 
 #ifndef _WEB100_H
@@ -165,7 +165,9 @@ const char*        web100_get_snap_group_name(web100_snapshot* _snap);
 
 web100_agent*      web100_get_connection_agent(web100_connection *_conn);
 int                web100_get_connection_cid(web100_connection* _conn);
+WEB100_ADDRTYPE    web100_get_connection_addrtype(web100_connection* _conn);
 void               web100_get_connection_spec(web100_connection* _conn, struct web100_connection_spec* _spec);
+void               web100_get_connection_spec_v6(web100_connection* _conn, struct web100_connection_spec_v6* _spec_v6);
 
 web100_log*        web100_log_open_write(char* _logname, web100_connection* _conn, web100_group* _group);
 int                web100_log_close_write(web100_log* _log);

@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.33 2003/02/06 00:03:57 jestabro Exp $
+ * $Id: web100.c,v 1.34 2003/02/12 17:59:26 jestabro Exp $
  */
 
 #include "config.h"
@@ -1058,6 +1058,8 @@ web100_delta_any(web100_var *var, web100_snapshot *s1,
 {
     unsigned long long int v1, v2, val;
     
+    v1 = v2 = val = 0;
+
     if (s1->group != s2->group) {
         web100_errno = WEB100_ERR_INVAL;
         return -WEB100_ERR_INVAL;
@@ -1292,6 +1294,12 @@ web100_get_connection_cid(web100_connection *connection)
     return connection->cid;
 }
 
+WEB100_ADDRTYPE
+web100_get_connection_addrtype(web100_connection* connection)
+{
+    return connection->addrtype;
+}
+
 
 /*@
 web100_get_connection_spec - get the connection spec from a connection
@@ -1303,6 +1311,12 @@ web100_get_connection_spec(web100_connection *connection,
     memcpy(spec, &connection->spec, sizeof (struct web100_connection_spec));
 }
 
+
+void
+web100_get_connection_spec_v6(web100_connection* connection, struct web100_connection_spec_v6* spec_v6)
+{
+    memcpy(spec_v6, &connection->spec_v6, sizeof (struct web100_connection_spec_v6)); 
+}
 
 /* Logging functionality begins here */
 
