@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.28 2002/09/04 18:02:37 jestabro Exp $
+ * $Id: web100.c,v 1.29 2002/09/05 20:26:46 engelhar Exp $
  */
 
 #include "config.h"
@@ -442,9 +442,9 @@ web100_strerror(int errnum)
 
 
 web100_agent*
-web100_attach(int method, void *data)
+web100_attach(WEB100_AGENT_TYPE type, void *data)
 {
-    switch (method) {
+    switch (type) {
     case WEB100_AGENT_TYPE_LOCAL:
         return _web100_agent_attach_local();
     default:
@@ -1184,7 +1184,7 @@ web100_value_to_textn(char* dest, size_t size, WEB100_TYPE type, void* buf)
 /*@
 web100_get_agent_type - return the type of an agent
 @*/
-int
+WEB100_AGENT_TYPE
 web100_get_agent_type(web100_agent *agent)
 {
     return agent->type;
