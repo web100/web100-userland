@@ -476,9 +476,9 @@ Gui matters:
 
 *** Several of the applications in the utils distribution use the Gtk
 *** library; these are described in the uses-guide.txt. For those
-*** interested in writing applications using Gtk, the next release will
-*** contain widget versions of the applications contained therein,
-*** suitable for invoking from applications written in a language bound to
+*** interested in writing applications using Gtk, the gui utils are
+*** provided as individual widgets, suitable
+*** for invoking from applications written in a language bound to
 *** Gtk. For those interested in using Gtk, see the documentation at
 *** www.gtk.org.
 
