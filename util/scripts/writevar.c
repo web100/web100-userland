@@ -11,7 +11,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: writevar.c,v 1.1 2002/01/14 17:50:31 jestabro Exp $
+ * $Id: writevar.c,v 1.2 2002/02/28 20:15:45 jestabro Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,6 +40,7 @@ main (int argc, char *argv[])
     web100_var* var;
     char buf[8];
     int cid;
+    int val;
 
     argv0 = argv[0];
 
@@ -65,7 +66,9 @@ main (int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if ((web100_raw_write(var, conn, argv[3])) != WEB100_ERR_SUCCESS) {
+    val = atoi(argv[3]);
+
+    if ((web100_raw_write(var, conn, &val)) != WEB100_ERR_SUCCESS) {
         web100_perror("web100_raw_write");
         exit(EXIT_FAILURE);
     }
