@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * * $Id: web100.h,v 1.6 2002/02/12 16:48:26 engelhar Exp $
+ * * $Id: web100.h,v 1.7 2002/02/15 06:07:01 engelhar Exp $
  */
 #ifndef _WEB100_H
 #define _WEB100_H
@@ -80,6 +80,7 @@ struct web100_socket_data {
 #define WEB100_ERR_HEADER          6
 #define WEB100_ERR_NOVAR           7
 #define WEB100_ERR_NOGROUP         8
+#define WEB100_ERR_SOCK            9
 
 extern int               web100_errno;
 extern const char* const web100_sys_errlist[];
@@ -112,6 +113,7 @@ web100_connection* web100_connection_head(web100_agent* _agent);
 web100_connection* web100_connection_next(web100_connection* _conn);
 web100_connection* web100_connection_find(web100_agent* _agent, struct web100_connection_spec* _spec);
 web100_connection* web100_connection_lookup(web100_agent* _agent, int _cid);
+web100_connection* web100_connection_from_socket(web100_agent* _agent, int _sockfd);
 int                web100_connection_data_copy(web100_connection* _dest, web100_connection* _src);
 
 web100_snapshot*   web100_snapshot_alloc(web100_group* _group, web100_connection* _conn);

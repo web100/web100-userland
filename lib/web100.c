@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.6 2002/02/12 16:48:25 engelhar Exp $
+ * $Id: web100.c,v 1.7 2002/02/15 06:07:00 engelhar Exp $
  */
 #include <assert.h>
 #include <stdio.h>
@@ -41,6 +41,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <netinet/in.h>
 
 #include <errno.h>
 
@@ -69,6 +70,7 @@ const char* const web100_sys_errlist[] = {
     "could not parse " WEB100_HEADER_FILE, /* WEB100_ERR_HEADER */
     "variable not found",                  /* WEB100_ERR_NOVAR */
     "group not found",                     /* WEB100_ERR_NOGROUP */
+    "socket operation failed",             /* WEB100_ERR_SOCK */
 };
 
 /*
@@ -224,7 +226,7 @@ _web100_agent_attach_local(void)
     }
     
     if (web100_errno != WEB100_ERR_SUCCESS) {
-	strcpy(web100_errstr, "_web100_agent_attach_local");
+        strcpy(web100_errstr, "_web100_agent_attach_local");
         web100_detach(agent);
         agent = NULL;
     }
@@ -265,8 +267,8 @@ refresh_connections(web100_agent *agent)
         if ((cp = (web100_connection *)malloc(sizeof (web100_connection))) == NULL)
             return WEB100_ERR_NOMEM;
         cp->agent = agent;
-       	cp->cid = cid; 
-	cp->logstate = 0; 
+        cp->cid = cid; 
+        cp->logstate = 0; 
 
         cp->info.local.next = agent->info.local.connection_head;
         agent->info.local.connection_head = cp;
@@ -645,6 +647,37 @@ web100_connection_lookup(web100_agent *agent, int cid)
 
     web100_errno = (cp == NULL ? WEB100_ERR_NOCONNECTION : WEB100_ERR_SUCCESS);
     return cp;
+}
+
+
+/*@
+web100_connection_from_socket - find connection in agent by socket
+@*/
+web100_connection*
+web100_connection_from_socket(web100_agent *agent, int sockfd)
+{
+    struct sockaddr_in ne, fe; /* near and far ends */
+    socklen_t namelen; /* may not be POSIX */
+    struct web100_connection_spec spec; /* connection tuple */
+
+    namelen = sizeof(fe);
+    if (getpeername(sockfd, (struct sockaddr*) &fe, &namelen) != 0) {
+        web100_errno = WEB100_ERR_SOCK;
+        return NULL;
+    }
+
+    namelen = sizeof(ne);
+    if (getsockname(sockfd, (struct sockaddr*) &ne, &namelen) != 0) {
+        web100_errno = WEB100_ERR_SOCK;
+        return NULL;
+    }
+
+    spec.src_addr = ne.sin_addr.s_addr;
+    spec.src_port = ntohs(ne.sin_port);
+    spec.dst_addr = fe.sin_addr.s_addr;
+    spec.dst_port = ntohs(fe.sin_port);
+
+    return web100_connection_find(agent, &spec);
 }
 
 
@@ -1051,35 +1084,36 @@ web100_socket_data_refresh(web100_agent *agent)
     cid_data = NULL;
     cp = agent->info.local.connection_head;
     while (cp) {
-	temp = malloc(sizeof (struct web100_socket_data));
-	web100_get_connection_spec(cp, &(temp->spec));
-	temp->cid = cp->cid;
+        temp = malloc(sizeof (struct web100_socket_data));
+        web100_get_connection_spec(cp, &(temp->spec));
+        temp->cid = cp->cid;
 
-	temp->next = cid_data;
-	cid_data = temp;
+        temp->next = cid_data;
+        cid_data = temp;
 
-       	cp = cp->info.local.next; 
+        cp = cp->info.local.next; 
     } 
     
     // associate IP with ino
     file = fopen("/proc/net/tcp", "r");
 
     tcp_data = NULL;
-    while(fgets(buf, sizeof(buf), file) != NULL){  
-	temp = malloc(sizeof (struct web100_socket_data));
+    while(fgets(buf, sizeof(buf), file) != NULL) { 
+        temp = malloc(sizeof (struct web100_socket_data));
 
-	if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
-			(u_int32_t *) &(temp->spec.src_addr),
-			(u_int16_t *) &(temp->spec.src_port),
-			(u_int32_t *) &(temp->spec.dst_addr),
-			(u_int16_t *) &(temp->spec.dst_port),
-			(u_int *) &(temp->state),
-			(u_int *) &(temp->uid),
-			(u_int *) &(temp->ino))) == 7) { 
-	    temp->next = tcp_data; 
-	    tcp_data = temp; 
-       	}
-       	else free(temp); 
+        if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
+                (u_int32_t *) &(temp->spec.src_addr),
+                (u_int16_t *) &(temp->spec.src_port),
+                (u_int32_t *) &(temp->spec.dst_addr),
+                (u_int16_t *) &(temp->spec.dst_port),
+                (u_int *) &(temp->state),
+                (u_int *) &(temp->uid),
+                (u_int *) &(temp->ino))) == 7) { 
+            temp->next = tcp_data; 
+            tcp_data = temp; 
+       	} else {
+            free(temp);
+        }
     }
     tcp_head = tcp_data;
     fclose(file); 
@@ -1087,13 +1121,13 @@ web100_socket_data_refresh(web100_agent *agent)
     // associate ino with pid
     if(!(dir = opendir("/proc")))
     {
-       	perror("/proc");
-       	exit(1);
+        perror("/proc");
+        exit(1);
     }
 
     fd_data = NULL;
     while((direntp = readdir(dir)) != NULL) {
-       	if((pid = atoi(direntp->d_name)) != 0)
+        if((pid = atoi(direntp->d_name)) != 0)
        	{
 	    sprintf(path, "%s/%d/%s/", "/proc", pid, "fd"); 
 	    if(fddir = opendir(path)) //else lacks permissions 

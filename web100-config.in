@@ -2,7 +2,7 @@
 
 prefix="@prefix@"
 exec_prefix="@exec_prefix@"
-cflags="-I@includedir@/@PACKAGE@-@VERSION@"
+cflags="-I@includedir@/web100-@VERSION@"
 libs="-L@libdir@ -lweb100"
 version="@VERSION@"
 

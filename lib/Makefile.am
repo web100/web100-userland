@@ -26,6 +26,7 @@ web100_c_sources = \
 libweb100_la_SOURCES = $(web100_c_sources)
 
 # Install headers into include/web100-<version>/web100
+# NOTE: If you update this, be sure to update web100-config
 libweb100includedir = $(includedir)/web100-$(VERSION)/web100
 libweb100include_HEADERS = $(web100_pub_h_sources)
 
