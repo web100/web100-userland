@@ -6,18 +6,23 @@ all_manpages := libweb100.3 \
                 web100_connection_head.3 \
                 web100_connection_lookup.3 \
                 web100_connection_next.3 \
+                web100_delta_any.3 \
                 web100_detach.3 \
                 web100_group_find.3 \
                 web100_group_head.3 \
                 web100_group_next.3 \
-		web100_log_close_read.3 \
-		web100_log_close_write.3 \
-		web100_log_open_read.3 \
-		web100_log_open_write.3 \
-		web100_log_write.3 \
+                web100_log_close_read.3 \
+                web100_log_close_write.3 \
+                web100_log_open_read.3 \
+                web100_log_open_write.3 \
+                web100_log_write.3 \
                 web100_perror.3 \
-		web100_snap_from_log.3 \
-		web100_snapshot_alloc_from_log.3 \
+                web100_snap.3 \
+                web100_snap_from_log.3 \
+                web100_snap_read.3 \
+                web100_snapshot_alloc.3 \
+                web100_snapshot_free.3 \
+                web100_snapshot_alloc_from_log.3 \
                 web100_strerror.3 \
                 web100_var_find.3 \
                 web100_var_head.3 \

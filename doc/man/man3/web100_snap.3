@@ -1,0 +1,24 @@
+.\" $Id: web100_snap.3,v 1.1 2002/09/05 21:28:04 engelhar Exp $
+.TH WEB100_SNAP 3 "5 September 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_snap, web100_snapshot_alloc, web100_snapshot_free \- take an
+atomic snapshot of a Web100 group
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "web100_snapshot* web100_snapshot_alloc(web100_group* " group ","
+.BI "                                       web100_connection* " connection ");"
+.BI "void             web100_snapshot_free(web100_snapshot* " snap ");"
+.BI "int              web100_snap(web100_snapshot* " snap ");"
+.fi
+.SH DESCRIPTION
+Description goes here...
+.SH RETURN VALUES
+Return values go here...
+.SH EXAMPLE USE
+Example use goes here
+.SH SEE ALSO
+.BR web100_snap_read (3),
+.BR web100_delta_any (3),
+.BR libweb100 (3)

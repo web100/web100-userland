@@ -9,6 +9,11 @@ Software Required
 - GTK+
 - GTK+ development tools (headers and M4)
 
+Current Tags
+============
+ALPHA_1_0 - Alpha1.0 release
+ALPHA_1_1 - Alpha1.1 release
+
 How To Make A Release
 =====================
 
@@ -41,7 +46,8 @@ How To Make A Release
   README (including version number at top)
   doc/developers-guide.txt
   doc/users-guide.txt
-  Handwritten man pages in doc/man
+  man3/libweb100.3's routine name table
+  If function definitions have changed, be sure to update the man3 page
   The User's Guide and Developer's Guide in the 'Latest Release' section of
     the documents part of the internal web site.  The files reside in
     /usr/local/sourceforge/www/ftp/docs/Latest_Release/pub on trinity.
@@ -52,15 +58,11 @@ How To Make A Release
   the tarball.
 - Do any last-minute checking of the final tarball
 - Make sure all changes are checked in
+- Update the current tags above
 - Run 'cvs tag VERSION_NUMBER' to tag the entire source code tree as version
   VERSION_NUMBER.  To see what tags already exist, use 'cvs status -v
   <file>'.  Note: This doesn't create an branch, and seems to be a fairly
   quick action.
-- Update the current tags below:
-
-  Current tags:
-    ALPHA_1_0 - Alpha1.0 release
-    ALPHA_1_1 - Alpha1.1 release
 
 Notes About libweb100 Versioning
 ================================

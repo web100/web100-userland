@@ -1,4 +1,4 @@
-.\" $Id: libweb100.3,v 1.5 2002/02/27 05:25:53 engelhar Exp $
+.\" $Id: libweb100.3,v 1.6 2002/09/05 21:28:04 engelhar Exp $
 .TH libweb100 3 "26 February 2002" "Web100 Userland" "Web100"
 .SH NAME
 libweb100 \- Web100 connection staticstics handling and manipulation library
@@ -32,11 +32,23 @@ web100_connection_from_socket    \fBweb100_connection_find\fR(3)
 web100_connection_head           \fBweb100_connection_find\fR(3)
 web100_connection_lookup         \fBweb100_connection_find\fR(3)
 web100_connection_next           \fBweb100_connection_find\fR(3)
+web100_delta_any                 \fBweb100_snap_read\fR(3)
 web100_detach                    \fBweb100_attach\fR(3)
 web100_group_find                \fBweb100_group_find\fR(3)
 web100_group_head                \fBweb100_group_find\fR(3)
 web100_group_next                \fBweb100_group_find\fR(3)
+web100_log_close_read            \fBweb100_log_open_write\fR(3)
+web100_log_close_write           \fBweb100_log_open_write\fR(3)
+web100_log_open_read             \fBweb100_log_open_write\fR(3)
+web100_log_open_write            \fBweb100_log_open_write\fR(3)
+web100_log_write                 \fBweb100_log_open_write\fR(3)
 web100_perror                    \fBweb100_perror\fR(3)
+web100_snap                      \fBweb100_snap\fR(3)
+web100_snap_from_log             \fBweb100_log_open_write\fR(3)
+web100_snap_read                 \fBweb100_snap_read\fR(3)
+web100_snapshot_alloc            \fBweb100_snap\fR(3)
+web100_snapshot_alloc_from_log   \fBweb100_log_open_write\fR(3)
+web100_snapshot_free             \fBweb100_snap\fR(3)
 web100_strerror                  \fBweb100_strerror\fR(3)
 web100_var_find                  \fBweb100_var_find\fR(3)
 web100_var_head                  \fBweb100_var_find\fR(3)
