@@ -33,16 +33,15 @@ How To Make A Release
      last release:
      LT_REVISION += 1
 - Make sure all documentation is up-to-date.  This includes:
-  Files in doc/
   AUTHORS
   COPYING
   INSTALL
   NEWS
-  README
-  ChangeLog
+  README (including version number at top)
   Automatically generated man pages within libweb100 source code
   doc/developers-guide.txt
   doc/users-guide.txt
+  Handwritten man pages in doc/man
   The 'Latest Release' section of the documents part of the web page
   ... and possibly others
 - Run autogen.sh, configure, and 'make dist'
