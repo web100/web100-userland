@@ -1,5 +1,5 @@
 bin_PROGRAMS = util
-RC_FILES = web100.rc
+RC_FILES = web100.rc lcl.rc rmt.rc
 
 INCLUDES = @STRIP_BEGIN@ \
 	@GTK_CFLAGS@ \
