@@ -1,6 +1,7 @@
 SUBDIRS = doc lib util
 
 bin_SCRIPTS = web100-config
+CLEANFILES = web100-config
 
 edit = @STRIP_BEGIN@ \
    sed -e 's,@VERSION\@,$(VERSION),g' \
