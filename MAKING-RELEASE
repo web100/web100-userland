@@ -8,11 +8,12 @@ Software Required
 - libtool
 - GTK+
 - GTK+ development tools (headers and M4)
-- doctext (http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html)
 
 How To Make A Release
 =====================
 
+- Note: "cvs diff -RN -r <OLD_TAG>" may help in seeing the different
+  between this version and the last.
 - In configure.in, change VERSION to be the appropriate web100 package
   version string.  Note: This is not the major/minor/micro version on
   libweb100 (see next).
@@ -36,7 +37,7 @@ How To Make A Release
   AUTHORS
   COPYING
   INSTALL
-  NEWS ("cvs diff -RN -r <OLD_TAG>" may help)
+  NEWS
   README (including version number at top)
   Automatically generated man pages within libweb100 source code
   doc/developers-guide.txt
