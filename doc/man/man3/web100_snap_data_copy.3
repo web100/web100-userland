@@ -1,2 +1,17 @@
-.\" $Id: web100_snap_data_copy.3,v 1.1 2002/12/12 19:54:26 engelhar Exp $
-.so man3/web100_snap_copy.3
+.\" $Id: web100_snap_data_copy.3,v 1.2 2002/12/12 20:16:59 engelhar Exp $
+.TH web100_snap_data_copy 3 "12 December 2002" "Web100 Userland "Web100"
+.SH NAME
+web100_snap_data_copy \- copy the data from one snapshot to another.
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "int web100_snap_data_copy(web100_snapshot* " dest ", web100_snapshot* " src ");"
+.fi
+.SH DESCRIPTION
+Copy the snapshot from one structure to another.
+.SH RETURN VALUES
+Returns WEB100_ERR_SUCCESS on success, and an error code on failure.
+.SH SEE ALSO
+.BR web100_snap (3),
+.BR libweb100 (3)
