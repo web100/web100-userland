@@ -9,3 +9,6 @@
 
 /* Does the system have malloc.h? */
 #undef HAVE_MALLOC_H
+
+/* Gtk2 libs */
+#undef GTK2
