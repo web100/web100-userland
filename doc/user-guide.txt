@@ -1,9 +1,4 @@
-NOTE:
-=====
 
-THIS IS THE USER GUIDE FROM THE PREVIOUS (0.3) VERSION OF WEB100.  AN
-UPDATED VERSION WILL APPEAR IN A SUBSEQUENT RELEASE OF WEB100.
-
 			WEB100 User Guide
 			=================
 
@@ -102,10 +97,10 @@ III. Tools
 	the other tools to do the monitoring and tuning.
 
 	Launch the DTB tool by running the following command in
-	util/src directory:
+	util/gui directory:
 
-		dtb &		on the local  machine;
-		dtb -r &	on the remote machine
+		util dtb &		on the local  machine;
+		util dtb -r &	on the remote machine
 
 	This brings up the DTB window.  Please see the note above on
 	"Customization" to set the colors for these windows.
@@ -258,7 +253,9 @@ III. Tools
     In addition to the GUI tools described above, the following two
     programs for creating command line interfaces are provided:
 
+         readall.c:
 	 readvar.c:
+	 deltavar.c:
 	 writevar.c:
 	     These are sample programs to illustrate use of the library
 	     API.  Once compiled using the Makefile, you can use these
