@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100-int.h,v 1.6 2002/04/15 04:26:01 jestabro Exp $
+ * $Id: web100-int.h,v 1.7 2002/05/20 20:51:14 jestabro Exp $
  */
 #ifndef _WEB100_INT_H
 #define _WEB100_INT_H
@@ -138,8 +138,5 @@ struct web100_log {
     FILE*                          fp;
 };
 
-struct web100_socket_data *socket_data;
-int socket_data_arraysize;
-int socket_data_arraylength;
 
 #endif /* _WEB100_INT_H */

@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.18 2002/04/16 02:17:24 jestabro Exp $
+ * $Id: web100.c,v 1.19 2002/05/20 20:51:14 jestabro Exp $
  */
 
 #include <assert.h>
@@ -1111,11 +1111,22 @@ web100_get_connection_spec(web100_connection *connection,
     memcpy(spec, &connection->spec, sizeof (struct web100_connection_spec));
 }
 
-int
-web100_socket_data_refresh(web100_agent *agent)
-{
-    struct web100_socket_data *cid_data, *tcp_data, *fd_data, *temp,
-                                                *tcp_head, *fd_head;
+static int
+web100_connection_info_refresh(web100_agent *agent, struct web100_connection_info **conninfo)
+{ 
+    struct tmp_connection_info {
+      int cid;
+      struct web100_connection_spec spec;
+      ino_t ino;
+      pid_t pid;
+      uid_t uid;
+      int state;
+      char cmdline[PATH_MAX];
+      struct tmp_connection_info *next;
+    } *cid_data, *tcp_data, *fd_data, *tmp, *tcp_head, *fd_head;
+
+    struct web100_connection_info *ci;
+
     web100_connection *cp;
     char buf[256], path[PATH_MAX];
     FILE *file; 
@@ -1127,52 +1138,62 @@ web100_socket_data_refresh(web100_agent *agent)
     int stno;
     pid_t pid;
     int ii=0;
+    int tcp_entry, fd_entry;
    
     // associate cid with IP
-    refresh_connections(agent);
+    if(refresh_connections(agent))
+	return web100_errno;
 
     cid_data = NULL;
     cp = agent->info.local.connection_head;
     while (cp) {
-        temp = malloc(sizeof (struct web100_socket_data));
-        web100_get_connection_spec(cp, &(temp->spec));
-        temp->cid = cp->cid;
+        if((tmp = malloc(sizeof (struct tmp_connection_info))) == NULL) {
+	    web100_errno = WEB100_ERR_NOMEM;
+	    return -WEB100_ERR_NOMEM;
+	}
+        web100_get_connection_spec(cp, &(tmp->spec));
+        tmp->cid = cp->cid;
 
-        temp->next = cid_data;
-        cid_data = temp;
+        tmp->next = cid_data;
+        cid_data = tmp;
 
         cp = cp->info.local.next; 
     } 
     
     // associate IP with ino
-    file = fopen("/proc/net/tcp", "r");
+    if((file = fopen("/proc/net/tcp", "r")) == NULL) {
+        web100_errno = WEB100_ERR_FILE;
+	return -WEB100_ERR_FILE;
+    }
 
     tcp_data = NULL;
     while(fgets(buf, sizeof(buf), file) != NULL) { 
-        temp = malloc(sizeof (struct web100_socket_data));
+        if((tmp = malloc(sizeof (struct tmp_connection_info))) == NULL) {
+	    web100_errno = WEB100_ERR_NOMEM;
+	    return -WEB100_ERR_NOMEM;
+	}
 
         if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
-                (u_int32_t *) &(temp->spec.src_addr),
-                (u_int16_t *) &(temp->spec.src_port),
-                (u_int32_t *) &(temp->spec.dst_addr),
-                (u_int16_t *) &(temp->spec.dst_port),
-                (u_int *) &(temp->state),
-                (u_int *) &(temp->uid),
-                (u_int *) &(temp->ino))) == 7) { 
-            temp->next = tcp_data; 
-            tcp_data = temp; 
+                (u_int32_t *) &(tmp->spec.src_addr),
+                (u_int16_t *) &(tmp->spec.src_port),
+                (u_int32_t *) &(tmp->spec.dst_addr),
+                (u_int16_t *) &(tmp->spec.dst_port),
+                (u_int *) &(tmp->state),
+                (u_int *) &(tmp->uid),
+                (u_int *) &(tmp->ino))) == 7) { 
+            tmp->next = tcp_data; 
+            tcp_data = tmp; 
        	} else {
-            free(temp);
+            free(tmp);
         }
     }
     tcp_head = tcp_data;
     fclose(file); 
 
     // associate ino with pid
-    if(!(dir = opendir("/proc")))
-    {
-        perror("/proc");
-        exit(1);
+    if(!(dir = opendir("/proc"))) { 
+	web100_errno = WEB100_ERR_FILE;
+       	return -WEB100_ERR_FILE;
     }
 
     fd_data = NULL;
@@ -1188,16 +1209,16 @@ web100_socket_data_refresh(web100_agent *agent)
 		    stno = stat(buf, &st); 
 		    if(S_ISSOCK(st.st_mode)) // add new list entry
 		    { 
-			if((temp = malloc(sizeof(struct web100_socket_data))) == NULL){
-			    fprintf(stderr, "Out of memory\n");
-			    exit(1);
+			if((tmp = malloc(sizeof(struct tmp_connection_info))) == NULL){
+			    web100_errno = WEB100_ERR_NOMEM;
+			    return -WEB100_ERR_NOMEM;
 		       	}
 
-			temp->ino = st.st_ino;
-		       	temp->pid = pid; 
+			tmp->ino = st.st_ino;
+		       	tmp->pid = pid; 
 
-		       	temp->next = fd_data; 
-		       	fd_data = temp; 
+		       	tmp->next = fd_data; 
+		       	fd_data = tmp; 
 
 			sprintf(buf, "/proc/%d/status", pid);
 
@@ -1223,47 +1244,113 @@ web100_socket_data_refresh(web100_agent *agent)
     closedir(dir); 
 
     //finally, collate above information
-    if(socket_data) free(socket_data);
 
-    socket_data_arraysize = 2;
-    socket_data = calloc(socket_data_arraysize, sizeof (struct web100_socket_data));
-    socket_data_arraylength = 0;
-    
-    while(cid_data) { 
-	if(ii == socket_data_arraysize) {
-	    socket_data_arraysize *= 2;
-	    socket_data = realloc(socket_data, (sizeof (struct web100_socket_data)*socket_data_arraysize));
-	}
-
-	socket_data[ii].cid = cid_data->cid; 
-	memcpy(&(socket_data[ii].spec), &cid_data->spec, sizeof (struct web100_connection_spec)); 
-	socket_data[ii].state = 0; // until we learn otherwise
-
-	tcp_data = tcp_head;
-	while(tcp_data) {
+    *conninfo = NULL;
+    while(cid_data) {
+	tcp_entry = 0;
+	for(tcp_data = tcp_head; tcp_data; tcp_data = tcp_data->next) {
 	    if(tcp_data->spec.dst_port == cid_data->spec.dst_port &&
                tcp_data->spec.dst_addr == cid_data->spec.dst_addr &&
                tcp_data->spec.src_port == cid_data->spec.src_port) { 
 
-		socket_data[ii].ino = tcp_data->ino;
-		socket_data[ii].uid = tcp_data->uid;
-		socket_data[ii].state = tcp_data->state;
-		
-		fd_data = fd_head;
-		while(fd_data) {
-		    if(fd_data->ino == tcp_data->ino) { 
-			socket_data[ii].pid = fd_data->pid;
-			strncpy(socket_data[ii].cmdline, fd_data->cmdline, PATH_MAX);
-		    } 
-		    fd_data = fd_data->next;
+		tcp_entry = 1;
+		fd_entry = 0;
+		for(fd_data = fd_head; fd_data; fd_data = fd_data->next) {
+		    if(fd_data->ino == tcp_data->ino) {//then create entry 
+			fd_entry = 1;
+
+		       	ci = (struct web100_connection_info *) malloc(sizeof (struct web100_connection_info));
+			ci->pid = fd_data->pid;
+			strncpy(ci->cmdline, fd_data->cmdline, PATH_MAX); 
+			ci->uid = tcp_data->uid;
+		       	ci->state = tcp_data->state; 
+
+			ci->cid = cid_data->cid;
+		       	memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+			ci->next = *conninfo;
+			*conninfo = ci;
+		    }
+		}
+		if(!fd_entry) { // add entry w/out cmdline 
+		    ci = (struct web100_connection_info *) malloc(sizeof (struct web100_connection_info));
+		    ci->pid = 0;
+		    strcpy(ci->cmdline, "");
+		    ci->uid = tcp_data->uid;
+		    ci->state = tcp_data->state;
+
+		    ci->cid = cid_data->cid;
+		    memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+		    ci->next = *conninfo;
+		    *conninfo = ci;
 		}
 	    } 
-	    tcp_data = tcp_data->next;
 	} 
-	socket_data_arraylength = ++ii;
+	if(!tcp_entry) { // then connection has vanished; add residual cid info
+                         // (only for consistency with entries in /proc/web100) 
+	    ci = (struct web100_connection_info *) malloc(sizeof (struct web100_connection_info));
+	    ci->cid = cid_data->cid;
+	    memcpy(&(ci->spec), &cid_data->spec, sizeof (struct web100_connection_spec));
+	    ci->next = *conninfo;
+	    *conninfo = ci;
+	}
 	cid_data = cid_data->next;
-    } 
+    }
 
+    return WEB100_ERR_SUCCESS;
+}
+
+int
+web100_get_connection_info(web100_agent *agent, const struct web100_connection_info *hints, struct web100_connection_info **res)
+{
+    struct web100_connection_info *conninfo, *tmp, *tmp2, *prev;
+
+    static int info_compar(const struct web100_connection_info *aa, const struct web100_connection_info *bb) {
+	if(aa->cid) if(aa->cid != bb->cid)
+	    return -1; 
+
+	if(aa->spec.dst_port) if(aa->spec.dst_port != bb->spec.dst_port)
+	    return -1;
+       	if(aa->spec.dst_addr) if(aa->spec.dst_addr != bb->spec.dst_addr)
+	    return -1;
+	if(aa->spec.src_port) if(aa->spec.src_port != bb->spec.src_port)
+	    return -1;
+       	if(aa->spec.src_addr) if(aa->spec.src_addr != bb->spec.src_addr)
+	    return -1;
+
+	if(aa->pid) if(aa->pid != bb->pid)
+	    return -1;
+	if(aa->uid) if(aa->uid != bb->uid)
+	    return -1;
+	if(aa->state) if(aa->state != bb->state)
+	    return -1;
+	if(aa->cmdline) if(strncmp(aa->cmdline, bb->cmdline, strlen(aa->cmdline)))
+	    return -1;
+	return 0;
+    }
+
+    if(web100_connection_info_refresh(agent, &conninfo)) {
+	*res = NULL;
+	return web100_errno;
+    }
+
+    if(hints) {
+	tmp = conninfo;
+	prev = NULL;
+       	while(tmp) { 
+	    if(info_compar(hints, tmp)) {
+		if(prev) prev->next = tmp->next;
+		else conninfo = conninfo->next;
+		tmp2 = tmp;
+		tmp = tmp->next;
+		free(tmp2);
+	    }
+	    else {
+	       	prev = tmp;
+	       	tmp = tmp->next;
+	    }
+       	} 
+    }
+    *res = conninfo;
     return WEB100_ERR_SUCCESS;
 }
 
