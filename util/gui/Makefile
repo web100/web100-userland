@@ -86,12 +86,14 @@ VERSION = alpha0.4
 bin_PROGRAMS = util
 
 INCLUDES = $(strip $(STRIP_DUMMY) \
+	-I/usr/include/gtk-1.2 -I/usr/include/glib-1.2 -I/usr/lib/glib/include -I/usr/X11R6/include \
 	-I$(top_srcdir)/lib \
 	)
 
 
 util_LDADD = \
-	$(top_builddir)/lib/libweb100.la
+	$(top_builddir)/lib/libweb100.la \
+	-L/usr/lib -L/usr/X11R6/lib -lgtk -lgdk -rdynamic -lgmodule -lglib -ldl -lXi -lXext -lX11 -lm
 
 
 util_SOURCES = \
@@ -105,6 +107,8 @@ util_SOURCES = \
 	sockdata.c \
 	rtuner_wgt.c \
 	stuner_wgt.c \
+	triage_wgt.c \
+	wcpie.c \
 	web100obj.c \
 	web100sync.c \
 	ur_launch.c
@@ -120,6 +124,8 @@ noinst_HEADERS = \
 	sockdata.h \
 	rtuner_wgt.h \
 	stuner_wgt.h \
+	triage_wgt.h \
+	wcpie.h \
 	web100obj.h \
 	web100sync.h \
 	ur_launch.h
@@ -134,15 +140,16 @@ PROGRAMS =  $(bin_PROGRAMS)
 DEFS = -DHAVE_CONFIG_H -I. -I$(srcdir) -I../..
 CPPFLAGS = 
 LDFLAGS = 
-LIBS =  -L/usr/lib -L/usr/X11R6/lib -lgtk -lgdk -rdynamic -lgmodule -lglib -ldl -lXi -lXext -lX11 -lm
+LIBS = 
 util_OBJECTS =  util.$(OBJEXT) avd_list_wgt.$(OBJEXT) \
 avd_table_wgt.$(OBJEXT) cpr_wgt.$(OBJEXT) dtb_wgt.$(OBJEXT) \
 sockset_wgt.$(OBJEXT) cnlst_wgt.$(OBJEXT) sockdata.$(OBJEXT) \
-rtuner_wgt.$(OBJEXT) stuner_wgt.$(OBJEXT) web100obj.$(OBJEXT) \
-web100sync.$(OBJEXT) ur_launch.$(OBJEXT)
+rtuner_wgt.$(OBJEXT) stuner_wgt.$(OBJEXT) triage_wgt.$(OBJEXT) \
+wcpie.$(OBJEXT) web100obj.$(OBJEXT) web100sync.$(OBJEXT) \
+ur_launch.$(OBJEXT)
 util_DEPENDENCIES =  $(top_builddir)/lib/libweb100.la
 util_LDFLAGS = 
-CFLAGS = -g -O2 -I/usr/include/gtk-1.2 -I/usr/include/glib-1.2 -I/usr/lib/glib/include -I/usr/X11R6/include
+CFLAGS = -g -O2
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)

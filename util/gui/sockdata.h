@@ -15,6 +15,7 @@ struct ProcTcp{
   u_int32_t localadd, remoteadd;
   u_int16_t localport, remoteport;
   ino_t ino;
+  uid_t uid;
   int state;
   struct ProcTcp *next, *previous;
 };
@@ -31,6 +32,7 @@ struct SockData{
   u_int32_t localadd, remoteadd;
   u_int16_t localport, remoteport;
   ino_t ino;
+  uid_t uid;
   pid_t pid;
   int state;
   char cmdline[MAXCMDNAME];

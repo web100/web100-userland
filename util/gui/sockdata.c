@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <malloc.h>
+//#include <malloc.h>
 #include <fcntl.h>
 #include <string.h>
 
@@ -70,6 +70,7 @@ void fill_socklist(void)
 	    SockPuppet[ii].remoteport = cidlist->remoteport;
 	    SockPuppet[ii].ino = tcplist->ino;
 	    SockPuppet[ii].state = tcplist->state; 
+	    SockPuppet[ii].uid = tcplist->uid;
 	    arraylength = ++ii;
 	  } 
 	}
@@ -185,12 +186,14 @@ void fill_tcplist(void)
   while(fgets(buf, sizeof(buf), file) != NULL){  
     tcplist = malloc(sizeof(struct ProcTcp));
 
-    if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %*u %*u %u",
+    if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
 	  (u_int32_t *) &(tcplist->localadd),
 	  (u_int16_t *) &(tcplist->localport),
 	  (u_int32_t *) &(tcplist->remoteadd),
 	  (u_int16_t *) &(tcplist->remoteport),
-	  (u_int *) &(tcplist->state), (u_int *) &(tcplist->ino))) == 6){
+	  (u_int *) &(tcplist->state),
+	  (u_int *) &(tcplist->uid),
+	  (u_int *) &(tcplist->ino))) == 7){
 
 
       if(TcpList) TcpList->previous = tcplist;
@@ -242,14 +245,14 @@ void fill_fdlist(void)
 
 	    fdlist->ino = st.st_ino;
             fdlist->pid = pid;
-
-/*	    sprintf(temp2, "%s/%d/%s", "/proc", pid, "cmdline");
+/*
+	    sprintf(temp2, "%s/%d/%s", "/proc", pid, "cmdline");
 
 	    if((cmd = open(temp2, O_RDONLY)) < 0)
 	      perror("cmdline");
 	    read(cmd, fdlist->cmdline, 100);
-	    close(cmd); */
-
+	    close(cmd);
+*/
 	    if(FdList) FdList->previous = fdlist;
 	    fdlist->next = FdList;
 	    fdlist->previous = NULL;
@@ -271,7 +274,7 @@ void fill_fdlist(void)
 	      fclose(file);
 	      continue;
 	    }
-	  
+
 
 
 	    fclose(file); 

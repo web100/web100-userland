@@ -86,12 +86,14 @@ VERSION = @VERSION@
 bin_PROGRAMS = util
 
 INCLUDES = @STRIP_BEGIN@ \
+	@GTK_CFLAGS@ \
 	-I$(top_srcdir)/lib \
 	@STRIP_END@
 
 
 util_LDADD = \
-	$(top_builddir)/lib/libweb100.la
+	$(top_builddir)/lib/libweb100.la \
+	@GTK_LIBS@
 
 
 util_SOURCES = \
@@ -105,6 +107,8 @@ util_SOURCES = \
 	sockdata.c \
 	rtuner_wgt.c \
 	stuner_wgt.c \
+	triage_wgt.c \
+	wcpie.c \
 	web100obj.c \
 	web100sync.c \
 	ur_launch.c
@@ -120,6 +124,8 @@ noinst_HEADERS = \
 	sockdata.h \
 	rtuner_wgt.h \
 	stuner_wgt.h \
+	triage_wgt.h \
+	wcpie.h \
 	web100obj.h \
 	web100sync.h \
 	ur_launch.h
@@ -138,8 +144,9 @@ LIBS = @LIBS@
 util_OBJECTS =  util.$(OBJEXT) avd_list_wgt.$(OBJEXT) \
 avd_table_wgt.$(OBJEXT) cpr_wgt.$(OBJEXT) dtb_wgt.$(OBJEXT) \
 sockset_wgt.$(OBJEXT) cnlst_wgt.$(OBJEXT) sockdata.$(OBJEXT) \
-rtuner_wgt.$(OBJEXT) stuner_wgt.$(OBJEXT) web100obj.$(OBJEXT) \
-web100sync.$(OBJEXT) ur_launch.$(OBJEXT)
+rtuner_wgt.$(OBJEXT) stuner_wgt.$(OBJEXT) triage_wgt.$(OBJEXT) \
+wcpie.$(OBJEXT) web100obj.$(OBJEXT) web100sync.$(OBJEXT) \
+ur_launch.$(OBJEXT)
 util_DEPENDENCIES =  $(top_builddir)/lib/libweb100.la
 util_LDFLAGS = 
 CFLAGS = @CFLAGS@

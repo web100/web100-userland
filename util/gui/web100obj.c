@@ -126,10 +126,11 @@ static void web100obj_construct (Web100Obj *web100obj,
   while (gp) { 
     snap = malloc (sizeof(struct snapshot_data));
 
+    snap->group = gp;
+    strcpy(snap->name, gp->name);
+
     snap->next = web100obj->snapshot_head;
     web100obj->snapshot_head = snap;
-
-    snap->group = gp;
 
     if ((gp = web100_group_next(gp)) == NULL &&
        	web100_errno != WEB100_ERR_SUCCESS) {

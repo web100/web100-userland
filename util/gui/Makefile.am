@@ -20,6 +20,8 @@ util_SOURCES = \
 	sockdata.c \
 	rtuner_wgt.c \
 	stuner_wgt.c \
+	triage_wgt.c \
+	wcpie.c \
 	web100obj.c \
 	web100sync.c \
 	ur_launch.c
@@ -34,6 +36,8 @@ noinst_HEADERS = \
 	sockdata.h \
 	rtuner_wgt.h \
 	stuner_wgt.h \
+	triage_wgt.h \
+	wcpie.h \
 	web100obj.h \
 	web100sync.h \
 	ur_launch.h

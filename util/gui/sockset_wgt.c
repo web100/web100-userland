@@ -5,8 +5,7 @@
 
 #include "web100.h"
 #include "web100sync.h"
-#include "web100obj.h"
-//#include "web100gui.h" 
+#include "web100obj.h" 
 #include "cnlst_wgt.h"
 #include "sockset_wgt.h"
 
@@ -106,7 +105,7 @@ static void sockset_construct (Sockset *sockset,
   gtk_widget_show (frame);
 
   sockset->sessentry = gtk_entry_new();
-  gtk_widget_set_usize(sockset->sessentry, 150, 20);
+  gtk_widget_set_usize(sockset->sessentry, 200, 20);
 //  gtk_signal_connect(GTK_OBJECT(sessentry), "activate",
 //                     GTK_SIGNAL_FUNC(sessentry_callback), NULL);
   gtk_container_add(GTK_CONTAINER(frame), sockset->sessentry);

@@ -10,12 +10,13 @@
 #include "dtb_wgt.h" 
 #include "rtuner_wgt.h"
 #include "stuner_wgt.h"
+#include "triage_wgt.h"
 
 
 void ur_launch_util (char *name, Web100Obj *web100obj,
                      gboolean malleable, gboolean master)
 {
-static  GtkWidget *window, *vbox, *ur_sockset, *avd_list, *avd, *cpr, *dtb, *rtuner, *stuner;
+static  GtkWidget *window, *vbox, *ur_sockset, *avd_list, *avd, *cpr, *dtb, *rtuner, *stuner, *triage;
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_policy (GTK_WINDOW(window), TRUE, TRUE, FALSE); 
@@ -114,6 +115,18 @@ static  GtkWidget *window, *vbox, *ur_sockset, *avd_list, *avd, *cpr, *dtb, *rtu
                         "web100obj_changed",
                         GTK_SIGNAL_FUNC (stuner_sockset_listen),
                         stuner); 
+
+  } 
+  if (!strncmp ("triage", name, 6)) {
+    triage = triage_new (web100obj);
+    gtk_box_pack_start (GTK_BOX(vbox), triage, TRUE, TRUE, 0);
+    gtk_widget_show (triage);
+
+    if (malleable)
+    gtk_signal_connect (GTK_OBJECT (ur_sockset),
+                        "web100obj_changed",
+                        GTK_SIGNAL_FUNC (triage_sockset_listen),
+                        triage); 
 
   }
   gtk_widget_show (window);

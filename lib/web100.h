@@ -9,12 +9,13 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.3 2002/01/23 18:53:05 jestabro Exp $
+ * $Id: web100.h,v 1.4 2002/01/25 19:08:25 jestabro Exp $
  */
 #ifndef _WEB100_H
 #define _WEB100_H
 
 #include <sys/types.h>
+#include <sys/param.h>
 
 typedef enum {
     WEB100_TYPE_INTEGER = 0,

@@ -4,7 +4,7 @@
 
 #include <gdk/gdk.h>
 #include <gtk/gtkvbox.h> 
-#include <gtk/gtkobject.h>
+#include <gtk/gtkobject.h> 
 #include "web100obj.h"
 
 #ifdef __cplusplus
@@ -23,6 +23,9 @@ struct _Triage
   GtkVBox vbox;
   
   Web100Obj *web100obj;
+
+  web100_var *wv[3];
+  GtkWidget  *pie, *clist;
 };
 
 struct _TriageClass
@@ -33,7 +36,8 @@ struct _TriageClass
 GtkType     triage_get_type       (void); 
 GtkWidget*  triage_new            (Web100Obj *);
 void        triage_update         (GtkObject *, gpointer *);
-void        triage_set_web100obj (Triage *, Web100Obj *);
+void        triage_set_web100obj  (Triage *, Web100Obj *);
+void        triage_sockset_listen (GtkObject *, gpointer);
 
 
 #ifdef __cplusplus
