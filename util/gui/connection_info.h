@@ -2,7 +2,7 @@
 #define __CONNECTION_INFO_H__
 
 #include <sys/types.h> 
-#include <web100/web100.h>
+#include "web100.h"
 
 
 struct connection_info*   connection_info_head(web100_agent* _agent);

@@ -1,5 +1,5 @@
 #include <sys/types.h>
-#include <web100/web100.h>
+#include "web100.h"
 #include "connection_info.h"
 
 struct connection_info {

@@ -5,7 +5,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <web100/web100.h>
+#include "web100.h"
 #include "connection_info-int.h"
 
 

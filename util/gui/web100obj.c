@@ -203,7 +203,7 @@ void web100obj_snap_update (Web100Obj *web100obj)
 { 
   g_return_if_fail (web100obj != NULL);
   g_return_if_fail (IS_WEB100_OBJ (web100obj));
-
+  
   gtk_signal_emit (GTK_OBJECT (web100obj), web100obj_signals[SNAP_UPDATE]); 
 } 
 
