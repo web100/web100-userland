@@ -186,7 +186,7 @@ void fill_tcplist(void)
   while(fgets(buf, sizeof(buf), file) != NULL){  
     tcplist = malloc(sizeof(struct ProcTcp));
 
-    if((scan = sscanf(buf, "%*u: %x:%x %x:%x %x %*x:%*x %*x:%*x %*x %u %*u %u",
+    if((scan = sscanf(buf, "%*u: %x:%hx %x:%hx %x %*x:%*x %*x:%*x %*x %u %*u %u",
 	  (u_int32_t *) &(tcplist->localadd),
 	  (u_int16_t *) &(tcplist->localport),
 	  (u_int32_t *) &(tcplist->remoteadd),

@@ -16,6 +16,24 @@
 #include "triage_wgt.h"
 #include "vdt_wgt.h"
 
+#if 0	/* For debugging unaligned traps on alpha */
+#include <asm/sysinfo.h>
+#include <asm/unistd.h>
+
+static int setsysinfo(unsigned long op, void *buffer, unsigned long size,
+		      int *start, void *arg, unsigned long flag)
+{
+	syscall(__NR_osf_setsysinfo, op, buffer, size, start, arg, flag);
+}
+
+void trap_unaligned(void)
+{
+	unsigned int buf[2];
+	buf[0] = SSIN_UACPROC;
+	buf[1] = UAC_SIGBUS | UAC_NOPRINT;
+	setsysinfo(SSI_NVPAIRS, buf, 1, 0, 0, 0);
+}
+#endif
 
 Web100Sync *web100sync;
 Web100Obj *web100obj;
@@ -133,7 +151,7 @@ int main(int argc, char *argv[] )
 { 
   extern int optind;
   int option;
-
+  
   gtk_init(&argc, &argv);
 
   gtk_rc_parse(WEB100_CONF_DIR "/web100.rc");
