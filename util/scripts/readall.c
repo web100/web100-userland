@@ -11,7 +11,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: readall.c,v 1.3 2002/09/05 20:21:29 jheffner Exp $
+ * $Id: readall.c,v 1.4 2002/09/10 21:01:23 jheffner Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     web100_group *group;
     web100_group *read_grp;
     web100_var *addr_type, *laddr, *raddr, *lport, *rport;
+    int old_kernel = 0;
 
     if ((agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL)) == NULL) {
         web100_perror("web100_attach");
@@ -35,16 +36,15 @@ int main(int argc, char *argv[])
         web100_perror("web100_group_find: read");
         exit(EXIT_FAILURE);
     }
-    if ((addr_type =
-         web100_var_find(read_grp, "LocalAddressType")) == NULL) {
-        web100_perror("web100_var_find: LocalAddressType");
-        exit(EXIT_FAILURE);
+    if ((addr_type = web100_var_find(read_grp, "LocalAddressType")) == NULL) {
+        /* We have an old (1.x) kernel */
+        old_kernel = 1;
     }
     if ((laddr = web100_var_find(read_grp, "LocalAddress")) == NULL) {
         web100_perror("web100_var_find: LocalAddress");
         exit(EXIT_FAILURE);
     }
-    if ((raddr = web100_var_find(read_grp, "RemAddress")) == NULL) {
+    if ((raddr = web100_var_find(read_grp, old_kernel ? "RemoteAddress" : "RemAddress")) == NULL) {
         web100_perror("web100_var_find: RemAddress");
         exit(EXIT_FAILURE);
     }
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
         web100_perror("web100_var_find: LocalPort");
         exit(EXIT_FAILURE);
     }
-    if ((rport = web100_var_find(read_grp, "RemPort")) == NULL) {
+    if ((rport = web100_var_find(read_grp, old_kernel ? "RemotePort" : "RemPort")) == NULL) {
         web100_perror("web100_var_find: RemPort");
         exit(EXIT_FAILURE);
     }
@@ -76,16 +76,17 @@ int main(int argc, char *argv[])
             cid = web100_get_connection_cid(conn);
             printf("Connection %d (", cid);
 
-            if (web100_raw_read(addr_type, conn, buf) !=
-                WEB100_ERR_SUCCESS) {
-                web100_perror("web100_raw_read");
-                exit(EXIT_FAILURE);
+            if (old_kernel) {
+                type = WEB100_ADDRTYPE_IPV4;
+            } else {
+                if (web100_raw_read(addr_type, conn, buf) !=
+                    WEB100_ERR_SUCCESS) {
+                    web100_perror("web100_raw_read");
+                    exit(EXIT_FAILURE);
+                }
+                type = *(int *) buf;
             }
-            type = *(int *) buf;
-            type =
-                (type ==
-                 WEB100_ADDRTYPE_IPV4 ? WEB100_TYPE_INET_ADDRESS_IPV4 :
-                 WEB100_TYPE_INET_ADDRESS_IPV6);
+            type = (type == WEB100_ADDRTYPE_IPV4 ? WEB100_TYPE_INET_ADDRESS_IPV4 : WEB100_TYPE_INET_ADDRESS_IPV6);
             if (web100_raw_read(laddr, conn, buf) != WEB100_ERR_SUCCESS) {
                 web100_perror("web100_raw_read");
                 exit(EXIT_FAILURE);

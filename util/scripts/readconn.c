@@ -13,7 +13,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: readconn.c,v 1.3 2002/09/05 20:21:30 jheffner Exp $
+ * $Id: readconn.c,v 1.4 2002/09/10 21:01:24 jheffner Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     web100_connection *conn;
     web100_group *read_grp;
     web100_var *addr_type, *laddr, *raddr, *lport, *rport;
+    int old_kernel = 0;
 
     char buf[8];
     int cid;
@@ -62,8 +63,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     if ((addr_type = web100_var_find(read_grp, "LocalAddressType")) == NULL) {
-        web100_perror("web100_var_find: LocalAddressType");
-        exit(EXIT_FAILURE);
+        /* We have a 1.x kernel */
+        old_kernel = 1;
     }
     if ((laddr = web100_var_find(read_grp, "LocalAddress")) == NULL) {
         web100_perror("web100_var_find: LocalAddress");
@@ -81,13 +82,17 @@ int main(int argc, char *argv[])
         web100_perror("web100_var_find: RemPort");
         exit(EXIT_FAILURE);
     }
-
-    if (web100_raw_read(addr_type, conn, buf) !=
-        WEB100_ERR_SUCCESS) {
-        web100_perror("web100_raw_read");
-        exit(EXIT_FAILURE);
+    
+    if (old_kernel) {
+        type = WEB100_ADDRTYPE_IPV4;
+    } else {
+        if (web100_raw_read(addr_type, conn, buf) !=
+            WEB100_ERR_SUCCESS) {
+            web100_perror("web100_raw_read");
+            exit(EXIT_FAILURE);
+        }
+        type = *(int *) buf;
     }
-    type = *(int *) buf;
     type = (type ==
             WEB100_ADDRTYPE_IPV4 ? WEB100_TYPE_INET_ADDRESS_IPV4 :
             WEB100_TYPE_INET_ADDRESS_IPV6);
