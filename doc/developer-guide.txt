@@ -44,7 +44,7 @@ reading a single variable, or a group of variables.  The advantage of
 reading the variable as a group is that when the values of the
 variables are read as group, all the values in that group are read
 atomically.  This operation is called a "snap", and there are routines
-provided to get "snap shot"s of groups.
+provided to get "snapshot"s of groups.
 
 The kernel API consists of a few essential data structures, and a good
 understanding of these data structures is very helpful in writing web100
@@ -82,9 +82,9 @@ below:
       A variable is descriptor that contains the name of the variable
       and the necessary information to get its value from the kernel.
 
-   Snap shot - web100_snapshot
+   Snapshot - web100_snapshot
 
-      A snap shot contains a connection, a group, and all the values
+      A snapshot contains a connection, a group, and all the values
       for that combination of connection and group at a particular
       time.
 
@@ -97,7 +97,7 @@ The hierarchy of the objects is as follows:
     Group
        Variable			- a descriptor pointing into
 				  /proc/web100/<cid>/<group>
-    Snap Shot
+    Snapshot
        Connection
        Group
        Data for this group and connection				  
@@ -109,15 +109,76 @@ Please consult the man pages for details about a particular routine.
 Expample Code Illustrating the Use of the Library
 =================================================
 
-The use of the web100 library is explained with the help of a simple
-example, HelloWeb100.  This exmaple code gets a connection ID (=
-directory name in /proc/web100 referring to the connection) as an
-argument, and prints all the variables for that particular connection, 
-organized by groups.
+The use of the web100 library is explained with the help of two simple
+examples, readvar and HelloWeb100.  Other tools and utilities provided
+with the distribution should help you understand the library usage
+once you have gone through these examples.
 
-Other tools and utilities such as readvar and deltavar provided with the 
-distribution should help you understand the library usage once you have 
-gone through this example.
+readvar:
+This is the simplest example illustrating the use of the web100 library.
+What is included here is the stripped down version of the actual code,
+readvar.c, included in the distribution.  All the error checking code
+has been removed for clarity;  please see the code in the distribution
+for complete details.
+
+This example code takes 2 arguments, a connection ID and the name of a
+Web100 variable, as its arguments and prints the value of that
+variable for that connection.
+
+You can choose a connection ID by getting a listing of directories in
+the directory "/proc/web100" and selecting one of the numbered
+directories.  It should be noted that these directories are transient,
+and may disappear once the TCP connection associated with that CID
+is closed.
+
+You can choose a variable name by doing:
+ 
+   more /proc/web100/header
+
+and selecting variable from the list.
+
+/*
+ * readvar: read the current value of a web100 variable in one connection.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+
+#include "web100/web100.h"
+
+int main(int argc, char *argv[])
+{
+    web100_agent       *agent;
+    web100_connection  *conn;
+    web100_group       *group;
+    web100_var         *var;
+    char buf[8];
+    int cid;
+
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <connection id> <var name>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    cid = atoi(argv[1]);
+    
+    agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL);   // Get an Agent object
+    conn  = web100_connection_lookup(agent, cid);           // Get a connection object
+// 
+// Get a variable object from the name (which is a string)
+//
+    web100_agent_find_var_and_group(agent, argv[2], &group, &var);
+
+    web100_raw_read(var, conn, buf);  // This needs a var object and conn object
+    printf("%s: %s\n", argv[2], web100_value_to_text(web100_get_var_type(var), buf));
+    
+    return 0;
+}
+
+HelloWeb100:
+This example gets a connection ID (= directory name in /proc/web100
+referring to the connection) as an argument, and prints all the 
+variables for that particular connection, organized by groups.
 
 Please note that the part about "spec" in the code below may be skipped
 without any loss of continuity.
@@ -131,7 +192,7 @@ without any loss of continuity.
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "web100.h"
+#include "web100/web100.h"
 
 static const char* argv0 = NULL;
 
@@ -235,9 +296,11 @@ The code starts off by getting a pointer to an agent by doing:
 
     agent = web100_attach(WEB100_AGENT_LOCAL,NULL);
 
-Currently WEB100_AGENT_LOCAL is the only agent supported.  Since this
-agent contains the list of connections and groups, a pointer to a connection
-object of interest is obtained by doing:
+Currently WEB100_AGENT_LOCAL and WEB100_AGENT_LOG are the only agents
+supported.  Logging functionality of the library is described in a
+later section.  Since this agent contains the list of connections and
+groups, a pointer to a connection object of interest is obtained by
+doing:
       
     conn = web100_connection_lookup(agent, cid);
 
@@ -257,7 +320,7 @@ It should be noted that unlike reading one variable at a time, taking
 snap gets the values of all the variables atomically at one instant
 and stores them as a snapshot.
 
-Once the snap shot is taken, the values are printed out one variable
+Once the snapshot is taken, the values are printed out one variable
 at a time.  Since the value are already stored in snapshot, the values
 are read out of the snapshot using web100_snap_read.
 
@@ -268,7 +331,141 @@ files:
 		    connection.
 
 	deltavar.c - prints out delta of a selected variable by taking
-	             a snap shot every second.
+	             a snapshot every second.
+
+Logging functionality of the web100 library:
+============================================
+
+In the process of network performance testing there are times when the
+length of the tests can be quite long.  These tests produce a lot of
+information, and it may not be practical to analyze all the
+information while the test is running, and it is often times necessary
+to go back and look at different combinations of variables.  The
+logging functionality of the library enables you to do this.
+
+Typically, there is one data collection run where a log file is written,
+and then at a later time, the data from this log file may be analyzed
+multiple times.
+
+The basic structure of the logfile is shown below:
+
+    header			   (a copy of the /proc/web100/header)
+    date/time of log created
+    group-name
+    connection-spec
+    snap1
+    snap2
+    ...
+
+The logging functionality is provided with the help of the web100_log
+structure and its associated functions.  The web100_log structure 
+(and the log file) are specific to a particular group and connection.
+So if you wish to log two groups of variables, you would have to open
+one log file for each group, though typically only the "read" group
+is the group that is saved in a log file for post processing.
+
+Using the logging functionality of the library is best illustrated
+with a simple example.  In the example below, we will only elaborate
+on the logging aspects of this example.
+
+Once we have an agent, group, and a connection (as illustated in the
+simple examples above), a log file is opend for writing with:
+
+    log = web100_log_open_write("logtest.txt", conn, group);
+
+then anytime a snapshot for this particular combination
+of group/connection needs to be written out, it written out
+with:
+
+    web100_log_write(log, snap);
+
+once all the snapshots are written out, the log file is closed
+with:
+
+    web100_log_close_write(log);
+
+This is the end of process of creating a log file.  In typical
+applicatioins one would not normally write a log file and read it
+in the same execution, but that is what is being is done here for
+illustration purposes.
+
+The second half of the program illustrates the process of reading
+a log file, which is fairly self explnatory.
+
+/************************************************************
+ * File:      logtest.c					    *
+ * Author(s): John Estebrook, NCSA, jestabro@ncsa.uiuc.edu  *
+ *            Raghu Reddy, PSC,     rreddy@psc.edu	    *
+ * Date:      6/28/2002                                     *
+ ************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include "web100.h"
+//
+// Note: Error checking not coded for brevity
+//
+int main(int argc, char **argv)
+{
+    web100_agent      *agent;
+    web100_group      *group;
+    web100_connection *conn;
+    web100_snapshot   *snap;
+    web100_log 	      *log;
+    web100_var 	      *var = NULL;
+
+    char buf[8];
+    int ii;
+
+    if(argc<2) {
+	printf("Usage: logtest cid\n");
+	exit(EXIT_FAILURE);
+    }
+
+    agent = web100_attach(WEB100_AGENT_TYPE_LOCAL, NULL);
+    group = web100_group_find(agent, "read");
+    conn  = web100_connection_lookup(agent, atoi(argv[1]));
+    snap  = web100_snapshot_alloc(group, conn); 
+
+    log = web100_log_open_write("logtest.txt", conn, group);
+
+    for(ii=0;ii<3;ii++) {
+	web100_snap(snap);
+	web100_log_write(log, snap);
+	printf("writing snapshot %d\n", ii);
+	sleep(1);
+    }
+
+    web100_log_close_write(log);
+    web100_snapshot_free(snap); 
+    snap = NULL;
+    log = NULL;
+    //
+    // Now post process; Normally a different run
+    //
+    log   = web100_log_open_read("logtest.txt");
+
+    agent = web100_get_log_agent(log);
+    group = web100_get_log_group(log);
+    conn  = web100_get_log_connection(log);
+    snap  = web100_snapshot_alloc(group, conn);
+
+    var   = web100_var_find(group, "CurrTime");
+
+    for(ii=0;ii<3;ii++) { 
+       	web100_snap_from_log(snap, log); 
+       	web100_snap_read(var, snap, &buf);
+       	printf("CurrTime is: %s\n", 
+	       web100_value_to_text(WEB100_TYPE_COUNTER32, &buf));
+    }
+
+    web100_log_close_read(log);
+
+    return;
+}
+
+Please see the man pages for these routines for details about
+their usage.
 
 Gui matters:
 
