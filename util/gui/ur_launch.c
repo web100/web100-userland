@@ -40,7 +40,7 @@ static  GtkWidget *window, *vbox, *ur_sockset, *avd_list, *avd, *cpr, *dtb, *rtu
   ur_sockset = sockset_new (web100obj, malleable);
   gtk_box_pack_start (GTK_BOX(vbox), ur_sockset, FALSE, FALSE, 0);
   gtk_widget_show (ur_sockset);
-#if 0
+
   if (!strncmp ("avd_list", name, 8)) {
     avd_list = avd_list_new (web100obj);
     gtk_box_pack_start (GTK_BOX(vbox), avd_list, TRUE, TRUE, 0);
@@ -56,7 +56,7 @@ static  GtkWidget *window, *vbox, *ur_sockset, *avd_list, *avd, *cpr, *dtb, *rtu
     }
 
   }
-
+#if 0
   if (!strncmp ("avd_table", name, 9)) {
     avd = avd_table_new (web100obj);
     gtk_box_pack_start (GTK_BOX(vbox), avd, TRUE, TRUE, 0);
