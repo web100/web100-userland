@@ -4,7 +4,7 @@ all_manpages := libweb100.3 \
                 web100_connection_from_socket.3 \
                 web100_connection_head.3 \
                 web100_connection_lookup.3 \
-                web100_connection_next.3
+                web100_connection_next.3 \
                 web100_detach.3 \
                 web100_group_find.3 \
                 web100_group_head.3 \
