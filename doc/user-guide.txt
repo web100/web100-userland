@@ -59,7 +59,9 @@ III. Tools
 	for customizing the colors and fonts of the windows that are
 	opened by the tools:
 
-	     web100.rc - the .rc file used by the tools by default
+	     web100.2.rc (respectively, web100.1.rc)
+                       - the GTK2 (respectively, GTK1) .rc file used by
+		         the tools by default
 	     lcl.rc    - the .rc file used by the tools with "-l" option
 	     rmt.rc    - the .rc file used by the tools when "-r" option
 
@@ -71,21 +73,25 @@ III. Tools
 	Alternatively, one can simply edit "web100.rc" on different
 	machine so that tools bring up windows in different colors.
 
+	The .rc files are installed in ${prefix}/etc/web100 upon a
+	"make install"; one may override the use of the default .rc files
+	by setting the environment variables WEB100_RC_FILE,
+	WEB100_RC_FILE_LOCAL, WEB100_RC_FILE_REMOTE.
+
     The current tool set consists of the following GUI tools/applications
-    based on GTK (Version 1.27):
+    based on GTK2 (Version 2.06):
 
-	Diagnostic Tool Builder (DTB)
+	Toolbox                                     [toolbox]
 
-	Connection Properties Display
-	All Variables Display
-	Congestion Pie Chart (also referred to as Triage Pie Chart)
-	Variable Display
-	Sender Tuning Control
-	Receiver Tuning Control
+	All Variables List                          [variablelist]
+	Congestion Pie Chart (aka Triage Pie Chart) [triage]
+	Single Variable Display                     [display]
+	Sender Tuning Control                       [sndtuner]
+	Receiver Tuning Control                     [rcvtuner]
 	
     A brief description of the tools is given below.
 
-    Diagnostic Tool Builder:
+    Toolbox:
 
 	This is typically the first tool that is started in the
 	process of trouble-shooting a TCP connection.  The primary
@@ -93,40 +99,38 @@ III. Tools
 	connection of interest to the user and launch one or more of
 	the other tools to do the monitoring and tuning.
 
-	Launch the DTB tool by running the following command in
+	Launch the toolbox by running the following command in
 	util/gui directory:
 
-		gutil dtb &		on the local  machine;
-		gutil dtb -r &	        on the remote machine 
+		gutil &		on the local  machine;
+		gutil -r &      on the remote machine 
 
-	This brings up the DTB windows.  Please see the note above on
+	This brings up the Toolbox windows.  Please see the note above on
 	"Customization" to set the colors for these windows.
 
-	The titlebar of the DTB window has the name of the host on
+	The titlebar of the Toolbox window has the name of the host on
 	which this command is being run.  In an optimal environment,
-	one would run one dtb session on the local host, and another
-	session on the remote host (provided the remote host also has
-	the web100 kernel).
+	one would run one session on the local host, and another session
+	on the remote host (provided the remote host also has the web100
+	kernel).
 
-	The set of two text boxes in the top section the DTB window
-	are for the TCP session, identified by the four-tuple of a TCP
-	connection, and a "Connection ID" (CID). The CID is a unique
-	identifier that is assigned by web100 for each TCP connection
-	on the host.  Initially these text boxes will be empty.  The
-	first thing a user should do is to select a connection of
-	interest for monitoring and tuning by clicking the "Select TCP
-	session" button.
+	The set of two text boxes in the top section of the window 
+	are for the TCP session, identified by the remote address:port
+	of a TCP connection, and a "Connection ID" (CID). The CID is a
+	unique identifier that is assigned by web100 for each TCP
+	connection on the host.  Initially these text boxes will be empty.
+	The first thing a user should do is to select a connection of
+	interest for monitoring and tuning by clicking the "Select" button.
 
-	Clicking the "Select TCP Session" button in the DTB window
-	brings up a "Connection-selector" window with a list of all
-	the TCP sessions on the that host.  The format of the list is
-	as follows:
+	Clicking the "Select" button in the Toolbox window brings up a
+	"Connection-selector" window with a list of all the TCP sessions
+	on the that host.  The format of the list is as follows:
 
-	Local-IP Port		Remote-IP Port	  CID
-	-------- ----		--------- ----	  ---
+	Cmdline  PID  UID  Local-IP Port  Remote-IP Port  CID  State
+	-------  ---  ---  -------- ----  --------- ----  ---  -----
 
 	Please note the interpretation of "Local" and "Remote" is with
-	reference to the host on which DTB is running.
+	reference to the host on which the Toolbox is running.
 
 	Select a connection by clicking the connection that you are
 	interested in.  Once the connection is selected, you may close
@@ -139,74 +143,39 @@ III. Tools
 	diagnosing/tuning this connection, you should look for this IP
 	address under the "Remote-IP" column and select the
 	appropriate line by double-clicking on that line.  Once a
-	connection is selected, the TCP Session name and CID boxes in
-	the DTB window will be filled in with the information for the
+	connection is selected, the IP Address and CID boxes in the
+	Toolbox window will be filled in with the information for the
 	selected connection.
 
-	Please note that "TCP session name" and "CID" entries on main
-	window (dtb) are editable and are useful in narrowing down the
-	list of connections displayed in the Connection-selector
-	mentioned above; typing in CID (and pressing return) sets the
-	session; typing in a 4-tuple, Local-IP:Port;Remote-IP:Port,
-	perhaps with wild-cards, opens a window with all matching
-	sessions (via fnmatch).  However, it is necessary to adhere to
-	the punctuation, e.g., *:*;141*104*:* will list all
-	connections with remote ip containing 141*104*.
-
 	Once a connection is selected, you proceed with the
-	trouble-shooting process using the tools from the list of tools
-	listed in the tool box.
-
-	The remaining two major items in the DTB window are the tool
-	box and the variable list.  The tool box contains all the
-	tools that can be launched by the DTB.  Please note that some
-	of these tools work on specific variables, so it may be
-	necessary to select a variable from the variable list before
-	launching a tool.
+	trouble-shooting process using the tools indicated on the
+	buttons of the Toolbox.
 
     First we will describe tools that don't require you to select a
     variable.  It is assumed that a connection has been selected as
     described above.
 
-    All Variables Display: Once a TCP connection is selected in the
-	DTB "Session" window, You can use this tool to view the values
-	of all the variables from the TCP-KIS for that connection.
+    All Variables List ("List" button): this gives a list of all the
+    variables from the TCP-KIS and associated values for the chosen
+    connection.
 
-	Simply select this tool from the the "Tool box" list and click
-	on "Open window" button.  Alternatively, one can simply
-	double-click on "All Variables Display" to start this tool.
-
-	Please note the comment above about the search path if DTB
-	fails to open a new display.
-	
-	The "All variables display" consists of three columns.  The
+	The "All Variables List" consists of three columns.  The
 	first column is the variable name, the second is the value of
 	that variable, and the third column is the "delta" of that
-	variable over a certain sampling interval "delta-t."  The
-	slider at the bottom of the window indicates the delta-t that
-	is currently in use.  This sampling interval can be changed by
-	moving the slider.  Please note that not all variables have
-	values in the "delta" column because it only makes sense to
-	take delta for certain variables referred to as "Counters" in
-	the TCP-KIS document.
+	variable over a certain sampling interval "delta-t"; only those
+	variables of type Counter32 or Counter64 (as specified in the
+	tcp-kis.txt, included in the distribution) have deltas calculated.
 	
+	One may change the length of the sampling interval by selecting
+	"Update Interval" under the "View" menu, and adjusting the slider
+	accordingly. The interval may be set from 0.1--3 seconds, the
+	default being 1; the choice of interval length will pertain to any
+	tools launched from the Toolbox.
+
 	If you are interested in monitoring one of the variables from
-	this list, you can open the "Variable Display Tool" (described
-	below) for that variable by double-clicking on that particular
-	variable.
-
-    Connection Properties Display: Select this tool to display a
-	subset of variables documented under the category "STATE" in
-	the TCP-KIS document.  As an example, whether or not SACK is
-	enabled is a STATE variable and would be displayed in this
-	list.  Another example would be the value of "window-scale"
-	option that is used for the selected connection.  Use the
-	"update" to get the latest value.
-
-	The variables in this category usually don't change all that
-	often, so once you check the variables of interest (for
-	example, is SACK Enabled?) you can either close this window or
-	icon it.
+	this list, you can open the "Single Variable Display tool"
+	(described below) for that variable by double-clicking (or
+	right-clicking) on that particular variable.
 
     Congestion Pie Chart (Triage Pie Chart): This tool is helpful in
 	classifying the performance problem of a TCP connection into
@@ -220,35 +189,37 @@ III. Tools
 	variables to concentrate on for further trouble-shooting.
 
     Variable Display Tool: Use this tool for looking at the value of a
-	particular TCP-KIS variable on a particular connection.  So it
-	is necessary to select a variable before launching this tool.
-	This is where the expertise of the user in TCP protocols will
-	be very helpful.  Selecting the right set of variables to
-	monitor can be useful in the tuning process.
+	particular TCP-KIS variable on a particular connection.
+	Selecting the right set of variables to monitor can be useful
+	in the tuning process.
 
 	The variable display window has the identifying information
 	such as the name of the local host, the connection selected,
-	and the name of the variable.
+	and the name of the variable. The choice of variable may be
+	changed by choosing from the drop-down menu or typing directly
+	into the "Variable name" window.
 
-	The slider indicates the sampling interval for the "delta" and
-	can be changed by moving the slider.  Next to the slider is
-	the box that has the values for the variable, the delta, and
-	an average.  The largest part of the window is the gauge
-	indicating the rate of change of the selected variable.
-	
-	The rate can be viewed either as a meter or as a scrolling
-	strip chart by selecting the appropriate radio button.  Use
-	the "smooth" checkbox to plot the actual delta values or
-	smoothed values.
+	The "smooth" checkbox determines whether the plot is of the
+	actual values or of an exponential moving weight average (of
+	default weight 0.4).
 
     Sender Tuning Control: Select this tool for tuning the sender
-	buffers.  These controls will be enhanced in future releases.
+	buffer, LimCwnd, and for toggling autotuning for the selected
+	connection.
 
     Receiver Tuning Control: Select this tool for tuning the receiver
-	buffers.  These controls will be enhanced in future releases.
+	buffer, LimRwin, and for toggling autotuning for the selected
+	connection.
 
-    In addition to the GUI tools described above, the following two
-    programs for creating command line interfaces are provided:
+    Each of the aforementioned tools may be run in a stand-alone mode
+    by running, e.g.,
+    	gutil variablelist &
+    The general usage of gutil is:
+    	gutil [tool name [tool args]] [CID] [-l|-r]
+
+
+    In addition to the GUI tools described above, the following command
+    line interfaces are provided:
 
          readall.c:
 	 readvar.c:
