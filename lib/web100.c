@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.15 2002/03/19 19:09:35 jestabro Exp $
+ * $Id: web100.c,v 1.16 2002/03/28 01:23:51 rreddy Exp $
  */
 
 #include <assert.h>
@@ -323,7 +323,12 @@ web100_log(web100_snapshot *snap)
 void
 web100_perror(const char* str)
 {
-    fprintf(stderr, "%s: %s\n", str, web100_strerror(web100_errno));
+  if( strlen(web100_errstr) == 0 )
+      fprintf(stderr, "%s: %s\n", str, web100_strerror(web100_errno));
+  else {
+      fprintf(stderr, "%s: %s - %s\n", str, web100_strerror(web100_errno), web100_errstr);
+      strcpy(web100_errstr,"");     // Clear the error string
+  }
 }
 
 
@@ -1282,3 +1287,438 @@ web100_diagnose_define(char *script)
     return WEB100_ERR_SUCCESS;
 }
 
+/* Logging functionality begins here */
+
+#define END_OF_HEADER_MARKER "----End-Of-Header---- -1 -1"
+#define BEGIN_SNAP_DATA      "----Begin-Snap-Data----"
+#define MAX_TMP_BUF_SIZE    80
+#define WEB100_LOG_CID      -1       /* A dummy CID  */
+
+web100_group* 
+web100_get_snapfile_group(web100_snapfile *snapfile)
+{
+    return snapfile->group;
+}
+
+web100_connection*
+web100_get_snapfile_connection(web100_snapfile *snapfile)
+{
+    return snapfile->connection;
+}
+
+web100_snapfile*
+web100_snapfile_openw(char *logname, web100_connection *conn,
+		      web100_group *group)
+{
+    FILE      *header;
+    int       c;
+    struct tm *tmp;
+    time_t    timep;
+    char      tmpbuf[MAX_TMP_BUF_SIZE];
+    
+    web100_snapfile *snapfile=NULL;
+
+    if(!conn) {
+	web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Invalid Connection: "); 
+	goto Cleanup;
+    }
+
+    if(!group) {
+	web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Invalid Group: "); 
+	goto Cleanup;
+    }
+
+    if ((snapfile = (web100_snapfile *)malloc(sizeof (web100_snapfile))) == NULL) {
+        web100_errno = WEB100_ERR_NOMEM;
+	strcpy(web100_errstr, "Memory Allocation Failed: "); 
+	goto Cleanup;
+    }
+
+    if ((header = fopen(WEB100_HEADER_FILE, "r")) == NULL) {
+        web100_errno = WEB100_ERR_HEADER;
+	strcpy(web100_errstr, "fopen header: "); 
+        goto Cleanup;
+    }
+
+    snapfile->group       = group;
+    snapfile->connection  = conn;
+    snapfile->fp          = NULL;
+
+    if((snapfile->fp = fopen(logname, "w")) == NULL) {
+	web100_errno = WEB100_ERR_FILE;
+	strcpy(web100_errstr, "fopen logfile: "); 
+	goto Cleanup;
+    }
+
+    while ( (c=fgetc(header)) != EOF ){
+      if( fputc( c, snapfile->fp ) != c ){
+	web100_errno = WEB100_ERR_FILE;
+	strcpy(web100_errstr, "fputc: "); 
+	goto Cleanup;
+      }
+    }
+
+    if( fclose( header )) { 
+	web100_errno = WEB100_ERR_FILE;
+	strcpy(web100_errstr, "fclose header:"); 
+	goto Cleanup;
+    } 
+    //
+    // Put and end of HEADER marker
+    //
+    fprintf(snapfile->fp, "%s\n", END_OF_HEADER_MARKER);
+    //
+    // Put Date and Time
+    //
+    timep          = time(NULL);
+    tmp            = localtime(&timep);
+
+    fprintf(snapfile->fp, "%4.4d_%2.2d_%2.2d.%2.2d:%2.2d:%2.2d\n",
+	    tmp->tm_year+1900,tmp->tm_mon, tmp->tm_mday,
+	    tmp->tm_hour,  tmp->tm_min, tmp->tm_sec);
+    //
+    // Put in group name
+    //
+    fprintf(snapfile->fp, "%s\n", group->name);
+    //
+    // Put in connection spec-ascii
+    //
+    if( web100_value_to_textn(tmpbuf, MAX_TMP_BUF_SIZE, WEB100_TYPE_IP_ADDRESS,
+			      &(conn->spec.src_addr)) < 0 )
+    {
+        web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Invalid datatype: "); 
+	goto Cleanup;
+    }
+    fprintf(snapfile->fp, "<%s:", tmpbuf);
+
+    if( web100_value_to_textn(tmpbuf, MAX_TMP_BUF_SIZE, WEB100_TYPE_UNSIGNED16,
+			      &(conn->spec.src_port)) < 0 )
+    {
+        web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Invalid datatype: "); 
+	goto Cleanup;
+    }
+    fprintf(snapfile->fp, "%s>", tmpbuf);
+
+    if( web100_value_to_textn(tmpbuf, MAX_TMP_BUF_SIZE, WEB100_TYPE_IP_ADDRESS,
+			      &(conn->spec.dst_addr)) < 0 )
+    {
+        web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Invalid datatype: "); 
+	goto Cleanup;
+    }
+    fprintf(snapfile->fp, "<%s:", tmpbuf);
+
+    if( web100_value_to_textn(tmpbuf, MAX_TMP_BUF_SIZE, WEB100_TYPE_UNSIGNED16,
+			      &(conn->spec.dst_port)) < 0 )
+    {
+        web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Invalid datatype: "); 
+	goto Cleanup;
+    }
+    fprintf(snapfile->fp, "%s>\n", tmpbuf);
+    //
+    // Put in connection spec (in binary)
+    //
+    fwrite(&(conn->spec), sizeof(struct web100_connection_spec), 1, 
+	   snapfile->fp);
+
+    web100_errno = WEB100_ERR_SUCCESS;
+
+Cleanup:
+    if(web100_errno != WEB100_ERR_SUCCESS) { 
+	strcat(web100_errstr, "web100_snapfile_open "); 
+	if(snapfile->fp != NULL)
+  	    fclose(snapfile->fp);
+	free(snapfile);
+	return NULL;
+    } 
+    return snapfile;
+}
+int
+web100_snapfile_closew(web100_snapfile *snapfile)
+{
+    
+    if( fclose( snapfile->fp ) != 0 ) { 
+	web100_errno = WEB100_ERR_FILE;
+	strcpy(web100_errstr, "web100_snapfile_closew"); 
+	free(snapfile);
+	return -web100_errno;
+    } 
+    free(snapfile);
+    return WEB100_ERR_SUCCESS;
+}
+
+int
+web100_snapfile_write(web100_snapfile *snapfile, web100_snapshot *snap)
+{
+    int count;
+
+    if( snapfile->fp == NULL ){
+	web100_errno = WEB100_ERR_FILE;
+	strcpy(web100_errstr, "web100_snapfile_write: File not open"); 
+	goto Cleanup;
+    }        
+
+    if( snapfile->group != snap->group ){
+	web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "web100_snapfile_write: Group mismatch"); 
+	goto Cleanup;
+    }        
+
+    if( snapfile->connection != snap->connection ){
+	web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "web100_snapfile_write: Connection mismatch"); 
+	goto Cleanup;
+    }        
+
+    fprintf(snapfile->fp, "%s\n", BEGIN_SNAP_DATA);
+    count = fwrite(snap->data, snap->group->size, 1, snapfile->fp); 
+
+    web100_errno = WEB100_ERR_SUCCESS;
+    return count;
+
+Cleanup:
+    if(web100_errno != WEB100_ERR_SUCCESS) { 
+	strcat(web100_errstr, "web100_snapfile_write"); 
+	return -web100_errno;
+    } 
+}
+web100_snapfile*
+web100_snapfile_openr(char *logname, web100_agent *agent)
+{
+    int           c, c2;
+    web100_group  *gp;
+    web100_var    *vp;
+    int           discard;
+    char      	  tmpbuf[MAX_TMP_BUF_SIZE];
+    char          group_name[WEB100_GROUPNAME_LEN_MAX];
+    web100_connection             *cp;
+    struct web100_connection_spec spec; /* connection tuple */
+    
+    web100_snapfile *snapfile=NULL;
+
+    if ((snapfile = (web100_snapfile *)malloc(sizeof (web100_snapfile))) == NULL) {
+        web100_errno = WEB100_ERR_NOMEM;
+	strcpy(web100_errstr, "Memory Allocation Failed: "); 
+	goto Cleanup;
+    }
+
+    if( agent )
+        free(agent);
+
+    if ((agent = malloc(sizeof(web100_agent))) == NULL) {
+        web100_errno = WEB100_ERR_NOMEM;
+	goto Cleanup;
+    }
+
+    /* agent must be 0-filled to get the correct list adding semantics */
+    bzero(agent, sizeof(web100_agent));
+
+    agent->type = WEB100_AGENT_TYPE_LOCAL;
+    
+    if ((snapfile->fp = fopen(logname, "r")) == NULL) {
+        web100_errno  = WEB100_ERR_HEADER;
+        goto Cleanup;
+    }
+    
+    if (fscanf(snapfile->fp, "%[^\n]", agent->version) != 1) {
+        web100_errno = WEB100_ERR_HEADER;
+        goto Cleanup;
+    }
+
+    /* XXX: Watch out for failure cases, be sure to deallocate memory
+     * properly */
+    
+    IFDEBUG(printf("_web100_agent_attach_local: version = %s\n", agent->version));
+   
+    gp = NULL; 
+    while (!feof(snapfile->fp) && !ferror(snapfile->fp)) {
+        while (isspace(c = fgetc(snapfile->fp)))
+            ;
+        
+        if (c < 0) {
+            break;
+        } else if (c == '/') {
+            if (gp && discard)
+                free(gp);
+            
+            if ((gp = (web100_group*) malloc(sizeof(web100_group))) == NULL) {
+                web100_errno = WEB100_ERR_NOMEM;
+                goto Cleanup;
+            }
+                
+            gp->agent = agent;
+            
+            if (fscanf(snapfile->fp, "%s", gp->name) != 1) {
+                web100_errno = WEB100_ERR_HEADER;
+                goto Cleanup;
+            }
+            
+            IFDEBUG(printf("_web100_agent_attach_local: new group: %s\n", gp->name));
+            
+            gp->size = 0;
+            gp->nvars = 0;
+            
+            if (strcmp(gp->name, "spec") == 0) {
+                discard = 1;
+            } else {
+                discard = 0;
+                gp->info.local.var_head = NULL;
+                gp->info.local.next = agent->info.local.group_head;
+                agent->info.local.group_head = gp;
+            }
+        } else {
+            ungetc(c, snapfile->fp);
+            
+            if (gp == NULL) {
+                web100_errno = WEB100_ERR_HEADER;
+                goto Cleanup;
+            }
+            
+            if ((vp = (web100_var *)malloc(sizeof (web100_var))) == NULL) {
+                web100_errno = WEB100_ERR_NOMEM;
+                goto Cleanup;
+            }
+
+            vp->group = gp;
+            
+	    if( fgets(tmpbuf, MAX_TMP_BUF_SIZE, snapfile->fp) == NULL ) {
+                web100_errno = WEB100_ERR_HEADER;
+                goto Cleanup;
+	    }
+
+	    if ( strncmp(tmpbuf, END_OF_HEADER_MARKER,strlen(END_OF_HEADER_MARKER)) == 0 ) {
+	        free(vp);
+	        goto Done;
+	    }
+
+            if (sscanf(tmpbuf, "%s%d%d", vp->name, &vp->offset, &vp->type) != 3) {
+                web100_errno = WEB100_ERR_HEADER;
+                goto Cleanup;
+            }
+
+            IFDEBUG(printf("_web100_agent_attach_local: new var: %s %d %d\n", vp->name, vp->offset, vp->type));
+            
+            gp->size += size_from_type(vp->type);
+            gp->nvars++;
+            
+            vp->info.local.next = gp->info.local.var_head;
+            gp->info.local.var_head = vp;
+        }
+    }
+ Done:
+    fgets( tmpbuf, MAX_TMP_BUF_SIZE, snapfile->fp );
+    //    fprintf(stderr, "Date and Time: %s", tmpbuf);
+
+    //fgets( group_name , MAX_TMP_BUF_SIZE, snapfile->fp );
+    fscanf(snapfile->fp, "%s[^\n]", group_name);
+    while( (c2=fgetc(snapfile->fp)) != '\n' )
+        ;    // Cleanup the line
+
+    //fprintf(stderr, "Group name   : %s\n", group_name);
+
+    fgets( tmpbuf, MAX_TMP_BUF_SIZE, snapfile->fp );
+    //fprintf(stderr, "Conn-spec    : %s\n", tmpbuf);
+
+    fread( &spec, sizeof(struct web100_connection_spec), 1, snapfile->fp );
+
+    //
+    // Set up connection information - similar to refresh_connections
+    //
+    if ((cp = (web100_connection *)malloc(sizeof (web100_connection))) == NULL) {
+        web100_errno = WEB100_ERR_NOMEM;
+	goto Cleanup;
+    }
+    cp->agent    = agent;
+    cp->cid      = WEB100_LOG_CID; 
+    cp->logstate = 0; 
+
+    cp->info.local.next = NULL;
+    agent->info.local.connection_head = cp;
+    cp->spec = spec;
+
+    snapfile->connection = cp;
+    snapfile->group      = web100_group_find(agent, group_name);
+
+    return snapfile;
+
+ Cleanup:
+
+    if (snapfile != NULL) {
+        if (snapfile->fp != NULL) {
+	    fclose(snapfile->fp);
+	}
+    }
+    
+    strcpy(web100_errstr, "_web100_agent_attach_local");
+    web100_detach(agent);
+    agent = NULL;
+    
+    return NULL;
+}
+int
+web100_snapfile_closer(web100_snapfile *snapfile, web100_agent *agent)
+{
+    if( snapfile != NULL ) {
+        if( fclose( snapfile->fp ) != 0 ) { 
+	    web100_errno = WEB100_ERR_FILE;
+	    strcpy(web100_errstr, "web100_snapfile_close"); 
+	    return -web100_errno;
+	} 
+    }
+    free(snapfile);
+    web100_detach(agent);
+
+    return WEB100_ERR_SUCCESS;
+}
+
+int
+web100_snapfile_read(web100_snapfile *snapfile, web100_snapshot *snap)
+{
+    int count;
+    char tmpbuf[MAX_TMP_BUF_SIZE];
+
+    if( snapfile->fp == NULL ){
+	web100_errno = WEB100_ERR_FILE;
+	strcpy(web100_errstr, "File not open"); 
+	goto Cleanup;
+    }        
+
+    if( snapfile->group != snap->group ){
+	web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Group mismatch"); 
+	goto Cleanup;
+    }        
+
+    if( snapfile->connection != snap->connection ){
+	web100_errno = WEB100_ERR_INVAL;
+	strcpy(web100_errstr, "Connection mismatch"); 
+	goto Cleanup;
+    }        
+
+    fscanf(snapfile->fp, "%s[^\n]", tmpbuf);
+    while( (fgetc(snapfile->fp)) != '\n' )
+        ;    // Cleanup the line
+
+    if( strcmp(tmpbuf,BEGIN_SNAP_DATA) != 0 ){
+        web100_errno = 1001;         // User error - outside of errorlist range
+	strcpy(web100_errstr, "SNAP DATA Magic Mismatch"); 
+	goto Cleanup;
+    }        
+        
+    count = fread(snap->data, snap->group->size, 1, snapfile->fp); 
+
+    web100_errno = WEB100_ERR_SUCCESS;
+    return count;
+
+Cleanup:
+
+    if(web100_errno != WEB100_ERR_SUCCESS) { 
+	strcat(web100_errstr, "web100_snapfile_read"); 
+    } 
+    return -web100_errno;
+}

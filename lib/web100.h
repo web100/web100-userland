@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.13 2002/03/19 19:09:36 jestabro Exp $
+ * $Id: web100.h,v 1.14 2002/03/28 01:23:52 rreddy Exp $
  */
 
 #ifndef _WEB100_H
@@ -94,6 +94,7 @@ typedef struct web100_group       web100_group;
 typedef struct web100_var         web100_var;
 typedef struct web100_connection  web100_connection;
 typedef struct web100_snapshot    web100_snapshot;
+typedef struct web100_snapfile    web100_snapfile;
 
 void               web100_perror(const char* _str);
 const char*        web100_strerror(int _errnum);
@@ -124,6 +125,13 @@ web100_snapshot*   web100_snapshot_alloc(web100_group* _group, web100_connection
 void               web100_snapshot_free(web100_snapshot* _snap);
 int                web100_snap(web100_snapshot* _snap);
 
+web100_snapfile*   web100_snapfile_openr(char *logname, web100_agent *agent);
+web100_snapfile*   web100_snapfile_openw(char *logname, web100_connection *conn, web100_group *group);
+int                web100_snapfile_read(web100_snapfile *snapfile, web100_snapshot *snap);
+int                web100_snapfile_write(web100_snapfile *snapfile, web100_snapshot *snap);
+int                web100_snapfile_closer(web100_snapfile *snapfile, web100_agent *agent);
+int                web100_snapfile_closew(web100_snapfile *snapfile);
+
 web100_group*      web100_snap_group(web100_snapshot* _snap);
 
 int                web100_raw_read(web100_var* _var, web100_connection* _conn, void* _buf);
@@ -148,6 +156,9 @@ int                web100_get_var_type(web100_var* _var);
 
 web100_group*      web100_get_snap_group(web100_snapshot* _snap);
 const char*        web100_get_snap_group_name(web100_snapshot* _snap);
+
+web100_group*      web100_get_snapfile_group(web100_snapfile *snapfile);
+web100_connection* web100_get_snapfile_connection(web100_snapfile *snapfile);
 
 web100_agent*      web100_get_connection_agent(web100_connection *_conn);
 int                web100_get_connection_cid(web100_connection* _conn);
