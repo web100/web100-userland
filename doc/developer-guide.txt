@@ -1,9 +1,3 @@
-NOTE
-====
-
-THIS IS THE DEVELOPER'S GUIDE FROM A PREVIOUS VERSION OF WEB100 (0.3).  AN
-UPDATED VERSION WILL APPEAR IN A SUBSEQUENT RELEASE OF WEB100.
-
 Introduction
 ============
 
@@ -289,4 +283,5 @@ Gui matters:
 
 API reference:
 
-Please see the man pages for details on the routines.
+Please see the man pages for details on the routines.  "man libweb100"
+for more information.

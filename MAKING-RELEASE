@@ -39,7 +39,6 @@ How To Make A Release
   INSTALL
   NEWS
   README (including version number at top)
-  Automatically generated man pages within libweb100 source code
   doc/developers-guide.txt
   doc/users-guide.txt
   Handwritten man pages in doc/man

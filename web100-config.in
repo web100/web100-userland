@@ -1,9 +1,9 @@
 #!/bin/sh
 
-prefix="@prefix@"
-exec_prefix="@exec_prefix@"
-cflags="-I@includedir@/web100-@VERSION@"
-libs="-L@libdir@ -lweb100"
+prefix="@PREFIX@"
+exec_prefix="@EXEC_PREFIX@"
+cflags="-I@WEB100_INCLUDE_DIR@"
+libs="-L@LIBDIR@ -lweb100"
 version="@VERSION@"
 
 usage()

@@ -4,5 +4,17 @@ News
     This document gives an overview of the major changes of the software since
 the last release.
 
+  Alpha 1.1:
+    o GUI fixes: Renamed "util" to "gutil", fixed the vdt display,
+      consolidation of code, miscellaneous bug and display fixes.
+    o writevar fixed so that it works for integers
+    o Added web100_connection_from_socket() and web100_value_to_textn()
+      to libweb100.
+    o Bug fixes in libweb100, such as for _find() and _lookup()
+      functions.
+    o Documentation updates and additions, such as the developer's
+      guide, user's guide, and man pages for some libweb100 API
+      functions (see "man libweb100").
+
   Alpha 1.0:
     o First public release

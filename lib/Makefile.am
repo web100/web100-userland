@@ -22,7 +22,7 @@ libweb100_la_LDFLAGS = @STRIP_BEGIN@ \
 	@STRIP_END@
 libweb100_la_SOURCES = $(web100_c_sources) $(web100_pub_h_sources) $(web100_pri_h_sources)
 
-# Install headers into include/web100-<version>/web100
+# Install headers into include/web100
 # NOTE: If you update this, be sure to update web100-config
-libweb100includedir = $(includedir)/web100-$(VERSION)/web100
+libweb100includedir = $(WEB100_INCLUDE_DIR)/web100
 libweb100include_HEADERS = $(web100_pub_h_sources)

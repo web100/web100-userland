@@ -1,3 +1,19 @@
 SUBDIRS = doc lib util
 
 bin_SCRIPTS = web100-config
+
+edit = @STRIP_BEGIN@ \
+   sed -e 's,@VERSION\@,$(VERSION),g' \
+       -e 's,@PREFIX\@,$(prefix),g' \
+       -e 's,@EXEC_PREFIX\@,$(exec_prefix),g' \
+       -e 's,@WEB100_INCLUDE_DIR\@,$(WEB100_INCLUDE_DIR),g' \
+       -e 's,@LIBDIR\@,$(libdir),g' \
+       @STRIP_END@
+
+web100-config: $(srcdir)/web100-config.in
+	rm -f web100-config web100-config.tmp
+	$(edit) $(srcdir)/web100-config.in > web100-config.tmp
+	chmod +x web100-config.tmp
+	mv web100-config.tmp web100-config
+
+EXTRA_DIST = web100-config.in

@@ -1,12 +1,12 @@
 AC_INIT(lib/web100.c)
 
 PACKAGE=web100_userland
-VERSION=alpha1.0
+VERSION=alpha1.1
 
 dnl libweb100 libtool versioning
-LT_CURRENT=0
+LT_CURRENT=1
 LT_REVISION=0
-LT_AGE=0
+LT_AGE=1
 
 AC_SUBST(LT_CURRENT)
 AC_SUBST(LT_REVISION)
@@ -28,11 +28,13 @@ AC_ARG_ENABLE(warnings, [  --enable-warnings       turn on compile warnings [def
 AC_ARG_ENABLE(debug,    [  --enable-debug          turn on debugging compiler options [default=no]],,enable_debug=no)
 
 dnl Define directories
-WEB100_DOC_DIR=${prefix}/doc/web100-${VERSION}
+WEB100_DOC_DIR=${prefix}/doc/web100
 WEB100_CONF_DIR=${sysconfdir}
+WEB100_INCLUDE_DIR=${includedir}
 
 AC_SUBST(WEB100_DOC_DIR)
 AC_SUBST(WEB100_CONF_DIR)
+AC_SUBST(WEB100_INCLUDE_DIR)
 
 dnl Check for programs
 AC_PROG_CC
@@ -93,7 +95,6 @@ dnl checks for system services
 
 AC_OUTPUT([
 Makefile
-web100-config
 doc/Makefile
 doc/man/Makefile
 doc/man/man1/Makefile
@@ -103,4 +104,4 @@ lib/Makefile
 util/Makefile
 util/scripts/Makefile
 util/gui/Makefile
-], [chmod +x web100-config])
+])
