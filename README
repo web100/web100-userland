@@ -44,6 +44,15 @@ Installation
 
     Please see the file 'INSTALL' for installation information.
 
+Documentation
+=============
+
+    This package contains a user's guide, user-guide.txt, which explains
+how to use the tools contained within, and a developer's guide,
+developer-guide.txt, which explains how to develop software for the
+Web100 library.  These documents are installed along with the rest of
+the software.
+
 Support
 =======
 
