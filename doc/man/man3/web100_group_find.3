@@ -1,8 +1,8 @@
-.\" $Id: web100_group_find.3,v 1.1 2002/02/27 03:39:50 engelhar Exp $
+.\" $Id: web100_group_find.3,v 1.2 2002/02/27 04:11:44 engelhar Exp $
 .TH WEB100_GROUP 3 "26 February 2002" "Web100 Userland" "Web100"
 .SH NAME
 web100_group_head, web100_group_next, web100_group_find \- find or
-iterate over groups within a web100_agent
+iterate over Web100 groups
 .SH SYNOPSIS
 .B #include <web100/web100.h>
 .PP
@@ -32,4 +32,5 @@ error or there are no groups left.
 \fBweb100_group_find()\fR returns the group with the specified name, or
 \fBNULL\fR is the group is not found.
 .SH SEE ALSO
+.BR web100_agent_find_var_and_group (3),
 .BR libweb100 (3)

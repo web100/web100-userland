@@ -1,4 +1,4 @@
-.\" $Id: libweb100.3,v 1.2 2002/02/27 03:39:50 engelhar Exp $
+.\" $Id: libweb100.3,v 1.3 2002/02/27 04:11:44 engelhar Exp $
 .TH libweb100 3 "26 February 2002" "Web100 Userland" "Web100"
 .SH NAME
 libweb100 \- Web100 connection staticstics handling and manipulation library
@@ -20,7 +20,8 @@ way to ensure that the library is found and linked in correctly.
 .PP
 .SS Routine Name Index
 The following table lists each \fBlibweb100\fR routine and the name of
-the manual page on which it is described.
+the master manual page on which it is described (man "\fIroutine
+name\fR" redirects to this page):
 .PP
 .nf
 \fBlibweb100\fR Routine Name   Manual Page Name
@@ -28,10 +29,13 @@ the manual page on which it is described.
 web100_attach            \fBweb100_attach\fR(3)
 web100_detach            \fBweb100_attach\fR(3)
 web100_group_find        \fBweb100_group_find\fR(3)
-web100_group_head        \fBweb100_group_head\fR(3)
-web100_group_next        \fBweb100_group_next\fR(3)
+web100_group_head        \fBweb100_group_find\fR(3)
+web100_group_next        \fBweb100_group_find\fR(3)
 web100_perror            \fBweb100_perror\fR(3)
 web100_strerror          \fBweb100_strerror\fR(3)
+web100_var_find          \fBweb100_var_find\fR(3)
+web100_var_head          \fBweb100_var_find\fR(3)
+web100_var_next          \fBweb100_var_find\fR(3)
 .fi
 .SH SEE ALSO
 .BR web100-config (1),
