@@ -1,4 +1,4 @@
-bin_PROGRAMS = gutil infotest
+bin_PROGRAMS = gutil
 RC_FILES = web100.rc lcl.rc rmt.rc
 
 INCLUDES = @STRIP_BEGIN@ \
@@ -47,14 +47,6 @@ gutil_SOURCES = \
 	web100obj.h \
 	web100sync.c \
 	web100sync.h
-
-infotest_LDADD = \
-	$(top_builddir)/lib/libweb100.la
-
-infotest_SOURCES = \
-	infotest.c \
-	connection_info.c \
-	connection_info.h
 
 confdir = $(WEB100_CONF_DIR)
 conf_DATA = $(RC_FILES)
