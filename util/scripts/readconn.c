@@ -13,7 +13,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: readconn.c,v 1.4 2002/09/10 21:01:24 jheffner Exp $
+ * $Id: readconn.c,v 1.5 2003/04/03 16:08:50 jheffner Exp $
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     web100_var *addr_type, *laddr, *raddr, *lport, *rport;
     int old_kernel = 0;
 
-    char buf[8];
+    char buf[64];
     int cid;
     int type;
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         web100_perror("web100_raw_read");
         exit(EXIT_FAILURE);
     }
-    printf("%s ", web100_value_to_text(type, buf));
+    printf("(%s ", web100_value_to_text(type, buf));
     if (web100_raw_read(lport, conn, buf) != WEB100_ERR_SUCCESS) {
         web100_perror("web100_raw_read");
         exit(EXIT_FAILURE);
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     } else {                    // only interested in this group
         group = web100_group_find(agent, argv[2]);
     }
-
+    
     while (group) {
         web100_var *var;
         web100_snapshot *snap;
