@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.14 2002/03/28 01:23:52 rreddy Exp $
+ * $Id: web100.h,v 1.15 2002/04/15 04:26:02 jestabro Exp $
  */
 
 #ifndef _WEB100_H
@@ -43,6 +43,11 @@ typedef enum {
     WEB100_TYPE_UNSIGNED16
 } WEB100_TYPE;
 
+typedef enum {
+    WEB100_AGENT_TYPE_LOCAL = 1<<0,
+    WEB100_AGENT_TYPE_LOG   = 1<<1
+} WEB100_AGENT_TYPE;
+
 struct web100_connection_spec {
     u_int16_t dst_port;
     u_int32_t dst_addr;
@@ -62,7 +67,7 @@ struct web100_socket_data {
 };
 
 /* Agent types */
-#define WEB100_AGENT_TYPE_LOCAL 0
+//#define WEB100_AGENT_TYPE_LOCAL 0
 
 #define WEB100_VERSTR_LEN_MAX       64
 #define WEB100_GROUPNAME_LEN_MAX    32
@@ -95,6 +100,7 @@ typedef struct web100_var         web100_var;
 typedef struct web100_connection  web100_connection;
 typedef struct web100_snapshot    web100_snapshot;
 typedef struct web100_snapfile    web100_snapfile;
+typedef struct web100_log         web100_log;
 
 void               web100_perror(const char* _str);
 const char*        web100_strerror(int _errnum);
@@ -165,6 +171,19 @@ int                web100_get_connection_cid(web100_connection* _conn);
 void               web100_get_connection_spec(web100_connection* _conn, struct web100_connection_spec* _spec);
 
 int                web100_socket_data_refresh(web100_agent* _agent);
+web100_log*        web100_log_open_write(char* _logname, web100_connection* _conn, web100_group* _group);
+int                web100_log_close_write(web100_log* _log);
+int                web100_log_write(web100_log* _log, web100_snapshot* _snap);
+web100_log*        web100_log_open_read(char* _logname);
+int                web100_log_close_read(web100_log* _log);
+web100_snapshot*   web100_snapshot_alloc_from_log(web100_log* _log);
+int                web100_snap_from_log(web100_snapshot* _snap, web100_log* _log);
+
+web100_agent*      web100_get_log_agent(web100_log* _log);
+web100_group*      web100_get_log_group(web100_log* _log);
+web100_connection* web100_get_log_connection(web100_log* _log);
+time_t             web100_get_log_time(web100_log* _log);
+int                web100_log_eof(web100_log* _log);
 
 #define DEF_GAUGE(name, type)\
 int web100_get_##name(web100_snapshot* a, void* buf) {\
