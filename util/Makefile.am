@@ -1,1 +1,7 @@
-SUBDIRS = scripts gui
+if BUILD_GTK_TOOLS
+GTKSUBDIRS = gui
+else
+GTKSUBDIRS =
+endif
+
+SUBDIRS = scripts $(GTKSUBDIRS)
