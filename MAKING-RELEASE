@@ -42,8 +42,9 @@ How To Make A Release
   doc/developers-guide.txt
   doc/users-guide.txt
   Handwritten man pages in doc/man
-  The 'Latest Release' section of the documents part of the web page
-  ... and possibly others
+  The User's Guide and Developer's Guide in the 'Latest Release' section of
+    the documents part of the internal web site.  The files reside in
+    /usr/local/sourceforge/www/ftp/docs/Latest_Release/pub on trinity.
 - Run autogen.sh, configure, and 'make dist'.  Use the --enable-warnings
   option to configure to make sure you catch and clean up any compiler
   warnings.
