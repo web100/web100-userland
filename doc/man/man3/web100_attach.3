@@ -1,5 +1,5 @@
-.\" $Id: web100_attach.3,v 1.5 2002/02/28 17:29:53 engelhar Exp $
-.TH WEB100_ATTACH 3 "26 February 2002" "Web100 Userland" "Web100"
+.\" $Id: web100_attach.3,v 1.6 2002/09/05 21:38:03 engelhar Exp $
+.TH WEB100_ATTACH 3 "5 September 2002" "Web100 Userland" "Web100"
 .SH NAME
 web100_attach, web100_detach \- attach to and detach from a Web100 data
 source (SNMP terminology)
@@ -7,19 +7,21 @@ source (SNMP terminology)
 .B #include <web100/web100.h>
 .PP
 .nf
-.BI "web100_agent* web100_attach(int " method ", void* " data ");"
+.BI "web100_agent* web100_attach(WEB100_AGENT_TYPE " type", void* " data ");"
 .BI "void          web100_detach(web100_agent* " agent ");"
 .fi
 .SH DESCRIPTION
 The \fBweb100_attach()\fR function attaches to a Web100 data source.
-The data source may be the local or (in the future) a remote machine.
-It is typically the first function called by users of \fIlibweb100\fR,
-and it returns a \fIweb100_agent\fR which may be used by subsequent
-functions.
+Most commonly, the data source is the local machine, but future versions
+of Web100 may support remote machines as a data source.  It is typically
+the first function called by users of \fIlibweb100\fR, and it returns a
+\fIweb100_agent\fR which may be used by subsequent functions.
 .PP
 The argument \fImethod\fR denotes how the data will be gathered.  Each
-\fImethod\fR has its own requirements for the contents of \fIdata\fR,
-which is enumerated below.  Choose \fImethod\fR from the following:
+\fImethod\fR has its own requirements for the contents of \fIdata\fR.
+These requirements are explained below.
+.PP
+Choose \fImethod\fR from the following:
 .TP
 \fBWEB100_AGENT_TYPE_LOCAL\fR
 The Web100 data source is the local machine, as it is running a
