@@ -1,4 +1,4 @@
-.\" $Id: web100_group_find.3,v 1.2 2002/02/27 04:11:44 engelhar Exp $
+.\" $Id: web100_group_find.3,v 1.3 2002/02/27 04:52:42 engelhar Exp $
 .TH WEB100_GROUP 3 "26 February 2002" "Web100 Userland" "Web100"
 .SH NAME
 web100_group_head, web100_group_next, web100_group_find \- find or
@@ -12,17 +12,16 @@ iterate over Web100 groups
 .BI "web100_group* web100_group_find(web100_agent* " agent ", const char* " name ");"
 .fi
 .SH DESCRIPTION
-The statistics from a \fIWeb100\fR data source are divided into groups,
-which is represented by a \fIweb100_group\fR.  A \fIweb100_agent\fR
-contains a number of these groups, and these functions enable either the
-iteration over the groups or the search of a specific one by name.
-Conceptually, you can consider an agent as having a linked list of these
-groups, and these functions allow the searching and traversal of the
-list.
+The statistics from a Web100 data source are divided into groups, which
+is represented by a \fIweb100_group\fR.  A \fIweb100_agent\fR contains a
+number of these groups, and these functions enable either the iteration
+over the groups or the search of a specific one by name.  Conceptually,
+you can consider an agent as having a linked list of these groups, and
+these functions allow the searching and traversal of the list.
 .PP
 \fBweb100_group_head()\fR obtains the first group in \fIagent\fR.
 \fBweb100_group_next()\fR returns the next group in the agent after
-\fIgroup\fR.  \fBweb100_group_find\fR searches for a specific group in
+\fIgroup\fR.  \fBweb100_group_find()\fR searches for a specific group in
 \fIagent\fR that has the name \fIname\fR.
 .SH RETURN VALUES
 For \fBweb100_group_head()\fR and \fBweb100_group_next()\fR, the value
@@ -30,7 +29,7 @@ returned is the next group in the sequence, or \fBNULL\fR if there is an
 error or there are no groups left.
 .PP
 \fBweb100_group_find()\fR returns the group with the specified name, or
-\fBNULL\fR is the group is not found.
+\fBNULL\fR if there is an error or the group is not found.
 .SH SEE ALSO
 .BR web100_agent_find_var_and_group (3),
 .BR libweb100 (3)

@@ -1,4 +1,4 @@
-.\" $Id: web100_var_find.3,v 1.1 2002/02/27 04:11:44 engelhar Exp $
+.\" $Id: web100_var_find.3,v 1.2 2002/02/27 04:52:42 engelhar Exp $
 .TH WEB100_VAR 3 "26 February 2002" "Web100 Userland" "Web100"
 .SH NAME
 web100_var_head, web100_var_next, web100_var_find \- find or iterate over
@@ -19,7 +19,7 @@ the list of variables within a group.
 .PP
 \fBweb100_var_head()\fR obtains the first variable in \fIgroup\fR.
 \fBweb100_var_next()\fR returns the next group in the agent after
-\fIvar\fR.  \fBweb100_var_find\fR searches for a specific variable in
+\fIvar\fR.  \fBweb100_var_find()\fR searches for a specific variable in
 \fIgroup\fR that has the name \fIname\fR.
 .SH RETURN VALUES
 For \fBweb100_var_head()\fR and \fBweb100_var_next()\fR, the value
@@ -27,7 +27,7 @@ returned is the next variable in the sequence, or \fBNULL\fR if there is
 an error or there are no variables left.
 .PP
 \fBweb100_var_find()\fR returns the variable with the specified name, or
-\fBNULL\fR is the variable is not found.
+\fBNULL\fR if there is an error or the variable is not found.
 .SH SEE ALSO
 .BR web100_agent_find_var_and_group (3),
 .BR libweb100 (3)

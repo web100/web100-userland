@@ -1,0 +1,61 @@
+.\" $Id: web100_connection_find.3,v 1.1 2002/02/27 04:52:41 engelhar Exp $
+.TH WEB100_CONNECTION 3 "26 February 2002" "Web100 Userland" "Web100"
+.SH NAME
+web100_connection_head, web100_connection_next, web100_connection_find,
+web100_connection_lookup, web100_connection_from_socket \- search for or
+iterate over Web100 connections
+.SH SYNOPSIS
+.B #include <web100/web100.h>
+.PP
+.nf
+.BI "web100_connection* web100_connection_head(web100_agent* " agent ");"
+.BI "web100_connection* web100_connection_next(web100_connection* " conn ");"
+.BI "web100_connection* web100_connection_find(web100_agent* " agent ", struct web100_connection_spec* " spec ");"
+.BI "web100_connection* web100_connection_lookup(web100_agent* " agent ", int " cid ");"
+.BI "web100_connection* web100_connection_from_socket(web100_agent* " agent ", int " sockfd ");"
+.fi
+.SH DESCRIPTION
+Statistics for a Web100 variable only make sense when you measure them
+for a particular connection.  This connection is represented by
+\fIweb100_connection\fR, and these functions allow one to find a
+particular connection or iterate over all connections in the system.
+.PP
+\fBweb100_connection_head()\fR obtains the first connection in
+\fIagent\fR, and \fBweb100_connection_next()\fR returns the next
+connection in the sequence after \fIconn\fR.
+.PP
+\fBweb100_connection_find()\fR searches for a connection within
+\fIagent\fR that fits the properties described in \fIspec\fR.  The
+\fIweb100_connection_spec\fR structure is defined as follows:
+.PP
+.RS
+.nf
+struct web100_connection_spec {
+    u_int16_t dst_port; /* port on the destination machine */
+    u_int32_t dst_addr; /* address of the destination machine
+                           in host byte order */
+    u_int16_t src_port; /* port on the source machine */
+    u_int32_t src_addr; /* address of the source machine in
+                           host byte order */
+};
+.fi
+.RE
+.PP
+\fBweb100_connection_lookup()\fR searches for a connection within
+\fIagent\fR with a Web100 connection identifier of \fIcid\fR.  On Linux,
+a Web100 connection identifier corresponds to a directory in
+\fI/proc/web100\fR.
+.PP
+\fBweb100_connection_from_socket()\fR searches for a connection within
+\fIagent\fR that corresponds to an connected socket \fIsockfd\fR.
+.SH RETURN VALUES
+For \fBweb100_connection_head()\fR and \fBweb100_connection_next()\fR,
+the value returned is the next connection in the sequence, or \fBNULL\fR
+if there is an error or there are no connections left.
+.PP
+\fBweb100_connection_find()\fR, \fBweb100_connection_lookup()\fR, and
+\fBweb100_connection_from_socket()\fR all return the connection
+corresponding to the search parameters, or \fBNULL\fR if there is an
+error or the connection is not found.
+.SH SEE ALSO
+.BR libweb100 (3)

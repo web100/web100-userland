@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.11 2002/02/27 03:39:53 engelhar Exp $
+ * $Id: web100.c,v 1.12 2002/02/27 04:52:44 engelhar Exp $
  */
 
 #include <assert.h>
@@ -434,9 +434,6 @@ web100_group_find(web100_agent *agent, const char *name)
 }
 
 
-/*@
-web100_var_head - obtain first var in a group
-@*/
 web100_var*
 web100_var_head(web100_group *group)
 {
@@ -450,9 +447,6 @@ web100_var_head(web100_group *group)
 }
 
 
-/*@
-web100_var_next - obtain next var in a list of vars
-@*/
 web100_var*
 web100_var_next(web100_var *var)
 {
@@ -466,9 +460,6 @@ web100_var_next(web100_var *var)
 }
 
 
-/*@
-web100_var_find - find a var by name in a group
-@*/
 web100_var*
 web100_var_find(web100_group *group, const char *name)
 {
@@ -517,9 +508,6 @@ web100_agent_find_var_and_group(web100_agent* agent, const char* name,
 }
 
 
-/*@
-web100_connection_head - obtain the first connection in an agent
-@*/
 web100_connection*
 web100_connection_head(web100_agent *agent)
 {
@@ -535,9 +523,6 @@ web100_connection_head(web100_agent *agent)
 }
 
 
-/*@
-web100_connection_next - obtain next connection in list
-@*/
 web100_connection*
 web100_connection_next(web100_connection *connection)
 {
@@ -551,9 +536,6 @@ web100_connection_next(web100_connection *connection)
 }
 
 
-/*@
-web100_connection_find - find connection in agent by spec
-@*/
 web100_connection*
 web100_connection_find(web100_agent *agent,
                        struct web100_connection_spec *spec)
@@ -583,9 +565,6 @@ web100_connection_find(web100_agent *agent,
 }
 
 
-/*@
-web100_connection_lookup - find connection in agent by connection id
-@*/
 web100_connection*
 web100_connection_lookup(web100_agent *agent, int cid)
 {
@@ -616,15 +595,14 @@ web100_connection_lookup(web100_agent *agent, int cid)
 }
 
 
-/*@
-web100_connection_from_socket - find connection in agent by socket
-@*/
 web100_connection*
 web100_connection_from_socket(web100_agent *agent, int sockfd)
 {
     struct sockaddr_in ne, fe; /* near and far ends */
     socklen_t namelen; /* may not be POSIX */
     struct web100_connection_spec spec; /* connection tuple */
+
+    /* XXX TODO XXX: Should we only allow local agents? */
 
     namelen = sizeof(fe);
     if (getpeername(sockfd, (struct sockaddr*) &fe, &namelen) != 0) {
