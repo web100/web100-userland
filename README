@@ -53,6 +53,11 @@ developer-guide.txt, which explains how to develop software for the
 Web100 library.  These documents are installed along with the rest of
 the software.
 
+    The kernel portion of the Web100 software (packaged separately)
+contains additional documentation, such as the current RFC submission
+which describes the MIB extensions, and the documentation of variables
+for the Web100 TCP Kernel Instrument Set (KIS).
+
 Support
 =======
 
