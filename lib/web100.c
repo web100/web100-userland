@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.10 2002/02/27 02:19:51 engelhar Exp $
+ * $Id: web100.c,v 1.11 2002/02/27 03:39:53 engelhar Exp $
  */
 
 #include <assert.h>
@@ -386,9 +386,6 @@ web100_detach(web100_agent *agent)
 }
 
 
-/*@
-web100_group_head - obtain first group in agent
-@*/
 web100_group*
 web100_group_head(web100_agent *agent)
 {
@@ -402,9 +399,6 @@ web100_group_head(web100_agent *agent)
 }
 
 
-/*@
-web100_group_next - obtain next group in group list
-@*/
 web100_group*
 web100_group_next(web100_group *group)
 {
@@ -418,11 +412,8 @@ web100_group_next(web100_group *group)
 }
 
 
-/*@
-web100_group_find - find a specific group in the agent by name
-@*/
 web100_group*
-web100_group_find(web100_agent *agent, char *name)
+web100_group_find(web100_agent *agent, const char *name)
 {
     web100_group *gp;
     

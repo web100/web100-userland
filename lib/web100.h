@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.10 2002/02/27 02:19:51 engelhar Exp $
+ * $Id: web100.h,v 1.11 2002/02/27 03:39:54 engelhar Exp $
  */
 
 #ifndef _WEB100_H
@@ -105,7 +105,7 @@ int                web100_agent_find_var_and_group(web100_agent* _agent, const c
 
 web100_group*      web100_group_head(web100_agent* _agent);
 web100_group*      web100_group_next(web100_group* _group);
-web100_group*      web100_group_find(web100_agent* _agent, char* _name);
+web100_group*      web100_group_find(web100_agent* _agent, const char* _name);
 
 web100_var*        web100_var_head(web100_group* _group);
 web100_var*        web100_var_next(web100_var* _var);
