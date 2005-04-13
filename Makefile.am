@@ -1,4 +1,4 @@
-SUBDIRS = doc lib util
+SUBDIRS = doc lib util python
 
 bin_SCRIPTS = web100-config
 CLEANFILES = web100-config
