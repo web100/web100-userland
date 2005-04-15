@@ -1,3 +1,5 @@
+EXTRA_DIST=Web100.py libweb100.i libweb100.py libweb100_wrap.c readall.py setup.py web100_readbuf.h
+
 all-am: Makefile python-build
 
 
