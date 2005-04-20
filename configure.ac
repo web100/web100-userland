@@ -52,7 +52,7 @@ AC_ARG_ENABLE(gtk-tools,
               AC_HELP_STRING([--disable-gtk-tools],
                              [do not build the GTK+-based testing tools]),
               enable_gtk_tools=$enableval,
-              enable_gtk_tools=no)
+              enable_gtk_tools=yes)
 AC_ARG_ENABLE(gtk2,
               AC_HELP_STRING([--disable-gtk2],
                              [do not build the GTK2-based testing tools]),
