@@ -3,7 +3,7 @@ from distutils.core import setup, Extension
 setup(name="libweb100",
       description="SWIG wrapper for libweb100",
       url="http://www.web100.org/",
-      ext_modules=[Extension("_libweb100", ["libweb100_wrap.c"], \
+      ext_modules=[Extension("_libweb100", ["libweb100_wrap.cxx"], \
                              include_dirs=["../lib"], \
                              library_dirs=["../lib/.libs"], libraries=["web100"])],
       py_modules=['libweb100'])
