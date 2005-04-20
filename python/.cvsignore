@@ -1,0 +1,8 @@
+.libs
+Makefile.in
+Makefile
+libweb100_wrap.cxx
+libweb100.py
+build
+*.pyc
+
