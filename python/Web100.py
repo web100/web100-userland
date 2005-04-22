@@ -153,6 +153,17 @@ class Web100Agent:
 			    fnmatch.fnmatch(c.read('RemAddress'), remote_address)):
 				match.append(c)
 		return match
+	
+	def var_is_counter(self, varname):
+		"""Determine whether variable has a counter type"""
+		
+		try:
+			v = self.read_vars[varname]
+		except:
+			return False
+		
+		return (v._type == libweb100.WEB100_TYPE_COUNTER32 or
+	                v._type == libweb100.WEB100_TYPE_COUNTER64)
 
 
 class Web100Connection:
