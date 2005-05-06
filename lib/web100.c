@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.35 2004/04/29 17:19:51 mathis Exp $
+ * $Id: web100.c,v 1.36 2005/05/06 19:59:19 jheffner Exp $
  */
 
 #include "config.h"
@@ -1137,6 +1137,7 @@ web100_value_to_textn(char* dest, size_t size, WEB100_TYPE type, void* buf)
     }
     case WEB100_TYPE_INTEGER:
     case WEB100_TYPE_INTEGER32:
+        return snprintf(dest, size, "%d", *(int32_t *) buf);
     case WEB100_TYPE_COUNTER32: 
     case WEB100_TYPE_GAUGE32: 
     case WEB100_TYPE_UNSIGNED32:
