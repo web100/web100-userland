@@ -93,7 +93,9 @@ class Web100Agent:
 		self.bufp = libweb100.new_bufp()
 	
 	def __del__(self):
-		libweb100.delete_bufp(self.bufp)
+		try:
+			libweb100.delete_bufp(self.bufp)
+		except: pass
 	
 	def all_connections(self):
 		"""All current connections from this agent.
