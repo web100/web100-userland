@@ -49,16 +49,6 @@ def libweb100_err():
 	raise error("libweb100: %s"%libweb100.web100_strerror(libweb100.cvar.web100_errno))
 
 
-def make_vardict(_group):
-	vars = {}
-	_cur = libweb100.web100_var_head(_group)
-	while _cur != None:
-		var = Web100Var(_cur, _group)
-		vars[str(var)] = var
-		_cur = libweb100.web100_var_next(_cur)
-	return vars
-
-
 class Web100Agent:
 	"""Corresponds to an SNMP agent.
 	
@@ -78,24 +68,30 @@ class Web100Agent:
 		self._tune_group = libweb100.web100_group_find(_agent, "tune")
 		if self._tune_group == None:
 			libweb100_err()
+		self.write_vars = {}
+		_cur = libweb100.web100_var_head(self._tune_group)
+		while _cur != None:
+			var = Web100Var(_cur, self._tune_group)
+			self.write_vars[str(var)] = var
+			_cur = libweb100.web100_var_next(_cur)
+		
+		self.read_vars = {}
+		for (name, var) in self.write_vars.items():
+			self.read_vars[name] = var
+		
 		self._read_group = libweb100.web100_group_find(_agent, "read")
 		if self._read_group == None:
 			libweb100_err()
-		
-		self.write_vars = make_vardict(self._tune_group)
-		self.read_vars = make_vardict(self._read_group)
-		for (name, var) in self.write_vars.items():
-			try:
-				self.read_vars[name]
-			except:
-				self.read_vars[name] = var
+		_cur = libweb100.web100_var_head(self._read_group)
+		while _cur != None:
+			var = Web100Var(_cur, self._read_group)
+			self.read_vars[str(var)] = var
+			_cur = libweb100.web100_var_next(_cur)
 		
 		self.bufp = libweb100.new_bufp()
 	
 	def __del__(self):
-		try:
-			libweb100.delete_bufp(self.bufp)
-		except: pass
+		libweb100.delete_bufp(self.bufp)
 	
 	def all_connections(self):
 		"""All current connections from this agent.
@@ -238,53 +234,10 @@ class Web100Connection:
 			var = self.agent.write_vars[name]
 		except KeyError:
 			raise error("No writable variable '%s' found."%name)
-		var.valtobuf(val, self.agent.bufp)
-		if libweb100.web100_raw_write(var._var, self._connection, self.agent.bufp) != \
+		buf = var.valtobuf(val, self.agent.bufp)
+		if libweb100.web100_raw_write(var._var, self._connection, buf) != \
 		   libweb100.WEB100_ERR_SUCCESS:
 			libweb100_err()
-
-
-class Web100ReadLog:
-	def __init__(self, logname):
-		self._log = libweb100.web100_log_open_read(logname)
-		if self._log == None:
-			libweb100_err()
-		self._snap = libweb100.web100_snapshot_alloc_from_log(self._log)
-		if self._snap == None:
-			libweb100_err()
-		
-		self.vars = make_vardict(libweb100.web100_get_log_group(self._log))
-		
-		self.bufp = libweb100.new_bufp()
-	
-	def __del__(self):
-		libweb100.delete_bufp(self.bufp)
-	
-	def read(self):
-		if libweb100.web100_snap_from_log(self._snap, self._log) != \
-		   libweb100.WEB100_ERR_SUCCESS:
-			return None
-		snap = {}
-		for (name, var) in self.vars.items():
-			if libweb100.web100_snap_read(var._var, self._snap, self.bufp) != \
-			   libweb100.WEB100_ERR_SUCCESS:
-				libweb100_err()
-			snap[name] = var.val(self.bufp)
-		return snap
-
-
-class Web100WriteLog:
-	def __init__(self, logname, conn, _snap):
-		self.conn = conn
-		self._snap = _snap
-		self._log = libweb100.web100_log_open_write(logname, conn._connection, libweb100.web100_get_snap_group(_snap))
-		if self._log == None:
-			libweb100_err()
-	
-	def write(self):
-		if libweb100.web100_log_write(self._log, self._snap) != \
-		   libweb100.WEB100_ERR_SUCCESS:
-		   	libweb100_err()
 
 
 class Web100Var:
@@ -312,21 +265,20 @@ class Web100Var:
 			return libweb100.u32p_value(libweb100.bufp_to_u32p(bufp))
 		elif self._type == libweb100.WEB100_TYPE_COUNTER64:
 			return libweb100.u64p_value(libweb100.bufp_to_u64p(bufp))
-		elif self._type == libweb100.WEB100_TYPE_INET_ADDRESS_IPV4 or \
-		     self._type == libweb100.WEB100_TYPE_IP_ADDRESS or \
-		     self._type == libweb100.WEB100_TYPE_INET_ADDRESS_IPV6 or \
-		     self._type == libweb100.WEB100_TYPE_INET_ADDRESS:
-			return libweb100.web100_value_to_text(self._type, bufp)
 		else:
-			raise error("Unknown Web100 type: %d"%self._type)
+			return libweb100.web100_value_to_text(self._type, bufp)
 	
 	def valtobuf(self, val, bufp):
 		if self._type == libweb100.WEB100_TYPE_INTEGER or \
 		   self._type == libweb100.WEB100_TYPE_INTEGER32:
 			libweb100.s32p_assign(libweb100.bufp_to_s32p(bufp), val)
+			return bufp
 		elif self._type == libweb100.WEB100_TYPE_GAUGE32 or \
 		     self._type == libweb100.WEB100_TYPE_UNSIGNED32:
 			libweb100.u32p_assign(libweb100.bufp_to_u32p(bufp), val)
+			return bufp
+		elif self._type == libweb100.WEB100_TYPE_STR32:
+			return libweb100.str_to_bufp(val)
 		else:
 			raise error("Unknown or unwritable type: %d"%self._type)
 

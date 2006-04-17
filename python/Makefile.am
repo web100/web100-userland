@@ -14,7 +14,7 @@ python-install:
 python-clean:
 	$(PYTHON) $(srcdir)/setup.py clean
 
-libweb100.py libweb100_wrap.c: $(top_srcdir)/python/libweb100.i $(top_srcdir)/python/web100_readbuf.h
+libweb100.py libweb100_wrap.c: $(top_srcdir)/python/libweb100.i
 	$(SWIG) -python -I$(top_srcdir)/lib -o libweb100_wrap.c $(srcdir)/libweb100.i
 
 SWIG_OUTPUTS = libweb100.py libweb100_wrap.c
@@ -37,4 +37,4 @@ install-exec-hook: python-install
 
 uninstall-local: python-clean
 
-EXTRA_DIST=Web100.py libweb100.i libweb100.py libweb100_wrap.c readall.py setup.py web100_readbuf.h
+EXTRA_DIST=Web100.py libweb100.i libweb100.py libweb100_wrap.c readall.py setup.py
