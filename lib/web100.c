@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.36 2005/05/06 19:59:19 jheffner Exp $
+ * $Id: web100.c,v 1.37 2006/04/17 18:24:56 jheffner Exp $
  */
 
 #include "config.h"
@@ -125,6 +125,8 @@ size_from_type(WEB100_TYPE type)
     case WEB100_TYPE_INET_ADDRESS:
     case WEB100_TYPE_INET_ADDRESS_IPV6:
         return 17;
+    case WEB100_TYPE_STR32:
+        return 32;
     default:
         return 0;
     }
@@ -1189,6 +1191,9 @@ web100_value_to_textn(char* dest, size_t size, WEB100_TYPE type, void* buf)
         	pos = size;
         return pos;
     }
+    case WEB100_TYPE_STR32:
+        return snprintf(dest, size, "%s", (char *)buf);
+        break;
     default:
         return snprintf(dest, size, "%s", "unknown type");
     }
