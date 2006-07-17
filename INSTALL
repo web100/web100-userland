@@ -51,6 +51,49 @@ The simplest way to compile this package is:
      all sorts of other programs in order to regenerate files that came
      with the distribution.
 
+Library Paths
+=============
+
+   To use the Web100 shared library and python library, the library
+search paths will need to be set to they can be found.  By default,
+the shared library is installed at /usr/local/lib/libweb100.so.  Many
+distributions have this directory in the standard search path; however,
+some don't, notably Red Hat and Fedora.  If you get an error such as
+this:
+
+     error while loading shared libraries: libweb100.so.0: cannot open
+     shared object file: No such file or directory
+
+then the loader can't find the library.  If you have root privileges,
+you can fix this system-wide by adding the library's install directory
+(by default /usr/local/lib) to /etc/ld.so.conf, then running ldconfig.
+Otherwise, add this path to your LD_LIBRARY_PATH environment variable.
+
+   The python library nees to be in python's search path.  If you get
+an error such as this:
+
+     ImportError: No module named Web100
+
+then python can't find the Web100 python module.  You can set your
+PYTHONPATH environment variable to include the module's install
+directory (by default /usr/local/python<ver>/site-packages).
+
+   Some have encountered a problem when the shared C library is
+installed in the python path.  The python interpreter will attempt to
+load this library, expecting a wrapper.  If you get this error:
+
+     ImportError: dynamic module does not define init function
+     (initlibweb100)
+
+then this is what has happened.  You'll need to ensure that the C
+library, libweb100.so, is *not* in the python path.  To see your
+python path, run this command:
+
+     python -c "import sys; print sys.path"
+
+Note that the wrapper library, _libweb100.so (same as the C library, but
+with a leading underscore) *must* be in the python path.
+
 Compilers and Options
 =====================
 
