@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.37 2006/04/17 18:24:56 jheffner Exp $
+ * $Id: web100.c,v 1.38 2006/08/25 19:09:13 jestabro Exp $
  */
 
 #include "config.h"
@@ -705,7 +705,7 @@ web100_connection_find_v6(web100_agent *agent,
     
     cp = agent->info.local.connection_head;
     while (cp) {
-        if (memcmp(&cp->spec_v6, spec_v6, sizeof (spec_v6)) != 0)
+        if (memcmp(&cp->spec_v6, spec_v6, sizeof (spec_v6)) == 0)
             break;
         cp = cp->info.local.next;
     }
