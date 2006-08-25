@@ -3,7 +3,7 @@ AC_INIT(web100_userland, 1.5)
 
 dnl libweb100 libtool versioning
 LT_CURRENT=3
-LT_REVISION=0
+LT_REVISION=1
 LT_AGE=3
 
 AC_SUBST(LT_CURRENT)
@@ -47,11 +47,6 @@ AC_ARG_ENABLE(debug,
                              [turn on debugging compiler options]),
               enable_debug=$enableval,
               enable_debug=no)
-AC_ARG_ENABLE(gtk-tools,
-              AC_HELP_STRING([--disable-gtk-tools],
-                             [do not build the GTK+-based testing tools]),
-              enable_gtk_tools=$enableval,
-              enable_gtk_tools=yes)
 AC_ARG_ENABLE(gtk2,
               AC_HELP_STRING([--disable-gtk2],
                              [do not build the GTK2-based testing tools]),
@@ -76,41 +71,21 @@ AC_SUBST(WEB100_IMAGE_DIR)
 
 dnl Checks for libraries
 
-dnl - GTK
+dnl - GTK 
 build_gtk_tools="no"
-if test "x$enable_gtk_tools" = "xyes" ; then
-    if test "x$enable_gtk2" = "xyes" ; then
-        AM_PATH_GTK_2_0(2.0.0, [have_gtk2="yes"], [have_gtk2="no"])
-        if test "x$have_gtk2" = "xyes" ; then
-            AC_SUBST(GTK_LIBS)
-            AC_SUBST(GTK_CFLAGS)
-            AC_DEFINE([GTK2], 1,
-                      [Define if GTK2 libs are found on system.])
-            build_gtk_tools="yes"
-        else
-            AC_MSG_WARN([GTK2 not found.])
-            AM_PATH_GTK(1.2.0, [have_gtk="yes"], [have_gtk="no"])
-            if test "x$have_gtk" = "xyes" ; then
-                AC_SUBST(GTK_LIBS)
-                AC_SUBST(GTK_CFLAGS)
-                build_gtk_tools="yes"
-            else
-                AC_MSG_WARN([GTK+ not found.  The GUI tools will not be built.])
-            fi 
-        fi
-    else 
-        AM_PATH_GTK(1.2.0, [have_gtk="yes"], [have_gtk="no"])
-        if test "x$have_gtk" = "xyes" ; then
-            AC_SUBST(GTK_LIBS)
-            AC_SUBST(GTK_CFLAGS)
-            build_gtk_tools="yes"
-        else
-            AC_MSG_WARN([GTK+ not found.  The GUI tools will not be built.])
-        fi
+if test "x$enable_gtk2" = "xyes" ; then
+    AM_PATH_GTK_2_0(2.0.0, [have_gtk2="yes"], [have_gtk2="no"])
+    if test "x$have_gtk2" = "xyes" ; then
+        AC_SUBST(GTK_LIBS)
+        AC_SUBST(GTK_CFLAGS)
+        AC_DEFINE([GTK2], 1,
+                  [Define if GTK2 libs are found on system.])
+        build_gtk_tools="yes"
+    else
+        AC_MSG_WARN([GTK2 not found.])
     fi
 fi
 AM_CONDITIONAL(BUILD_GTK_TOOLS, [test "x$build_gtk_tools" = "xyes"])
-
 
 dnl Checks for header files
 AC_CHECK_HEADER(malloc.h,
