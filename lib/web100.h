@@ -22,7 +22,7 @@
  * collaborate with all of the users.  So for the time being, please refer
  * potential users to us instead of redistributing web100.
  *
- * $Id: web100.h,v 1.25 2006/04/17 18:24:56 jheffner Exp $
+ * $Id: web100.h,v 1.26 2007/08/13 04:22:30 jheffner Exp $
  */
 
 #ifndef _WEB100_H
@@ -50,6 +50,7 @@ typedef enum {
     WEB100_TYPE_INET_ADDRESS,
     WEB100_TYPE_INET_ADDRESS_IPV6,
     WEB100_TYPE_STR32,
+    WEB100_TYPE_OCTET
 } WEB100_TYPE;
 
 typedef enum {
