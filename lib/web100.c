@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.39 2007/08/13 04:22:30 jheffner Exp $
+ * $Id: web100.c,v 1.40 2008/04/14 04:00:41 jheffner Exp $
  */
 
 #include "config.h"
@@ -754,6 +754,9 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
     socklen_t namelen; /* may not be POSIX */
     struct web100_connection_spec spec; /* connection tuple */
     struct web100_connection_spec_v6 spec6;
+    struct sockaddr_in *ne4 = (struct sockaddr_in *)&ne6;
+    struct sockaddr_in *fe4 = (struct sockaddr_in *)&fe6;
+
 
     /* XXX TODO XXX: Should we only allow local agents? */
     
@@ -772,9 +775,6 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
     switch (((struct sockaddr *)&fe6)->sa_family) {
     case AF_INET:
     {
-        struct sockaddr_in *ne4 = (struct sockaddr_in *)&ne6;
-        struct sockaddr_in *fe4 = (struct sockaddr_in *)&fe6;
-        
         spec.src_addr = ne4->sin_addr.s_addr;
         spec.src_port = ntohs(ne4->sin_port);
         spec.dst_addr = fe4->sin_addr.s_addr;
@@ -782,9 +782,14 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
         return web100_connection_find(agent, &spec);
     }
     case AF_INET6:
-        memcpy(&spec6.src_addr, &ne6.sin6_addr, 16);
+        if (IN6_IS_ADDR_V4MAPPED(&fe6.sin6_addr)) {
+            memcpy(&spec.src_addr, &ne6.sin6_addr.s6_addr[12], 4);
+            memcpy(&spec.dst_addr, &fe6.sin6_addr.s6_addr[12], 4);
+        } else {
+            memcpy(&spec6.src_addr, &ne6.sin6_addr, 16);
+            memcpy(&spec6.dst_addr, &fe6.sin6_addr, 16);
+        }
         spec6.src_port = ntohs(ne6.sin6_port);
-        memcpy(&spec6.dst_addr, &fe6.sin6_addr, 16);
         spec6.dst_port = ntohs(fe6.sin6_port);
         return web100_connection_find_v6(agent, &spec6);
     default:
