@@ -4,6 +4,15 @@ News
     This document gives an overview of the major changes of the software since
 the last release.
 
+  1.7:
+    o Added and "octet" type.
+    o Fixed v4 mapped address bug in web100_connection_from_socket().
+
+  1.6:
+    o Switched to gtk2-only.
+    o Added a "str32" type.
+    o Fix a bug in web100_connection_find_v6() causing incorrect matches.
+
   1.5:
     o Fixed a flush bug on variable writing.
     o Removed some non-existant function declarations in web100.h.

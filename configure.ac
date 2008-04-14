@@ -1,5 +1,5 @@
 AC_PREREQ(2.52)
-AC_INIT(web100_userland, 1.6)
+AC_INIT(web100_userland, 1.7)
 
 dnl libweb100 libtool versioning
 LT_CURRENT=3
