@@ -3,7 +3,7 @@ AC_INIT(web100_userland, 1.6)
 
 dnl libweb100 libtool versioning
 LT_CURRENT=3
-LT_REVISION=1
+LT_REVISION=2
 LT_AGE=3
 
 AC_SUBST(LT_CURRENT)
