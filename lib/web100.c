@@ -25,7 +25,7 @@
  * See http://www-unix.mcs.anl.gov/~gropp/manuals/doctext/doctext.html for
  * documentation format.
  *
- * $Id: web100.c,v 1.40 2008/04/14 04:00:41 jheffner Exp $
+ * $Id: web100.c,v 1.41 2008/04/20 07:03:23 jheffner Exp $
  */
 
 #include "config.h"
@@ -754,9 +754,6 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
     socklen_t namelen; /* may not be POSIX */
     struct web100_connection_spec spec; /* connection tuple */
     struct web100_connection_spec_v6 spec6;
-    struct sockaddr_in *ne4 = (struct sockaddr_in *)&ne6;
-    struct sockaddr_in *fe4 = (struct sockaddr_in *)&fe6;
-
 
     /* XXX TODO XXX: Should we only allow local agents? */
     
@@ -775,6 +772,9 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
     switch (((struct sockaddr *)&fe6)->sa_family) {
     case AF_INET:
     {
+        struct sockaddr_in *ne4 = (struct sockaddr_in *)&ne6;
+        struct sockaddr_in *fe4 = (struct sockaddr_in *)&fe6;
+        
         spec.src_addr = ne4->sin_addr.s_addr;
         spec.src_port = ntohs(ne4->sin_port);
         spec.dst_addr = fe4->sin_addr.s_addr;
@@ -782,14 +782,30 @@ web100_connection_from_socket(web100_agent *agent, int sockfd)
         return web100_connection_find(agent, &spec);
     }
     case AF_INET6:
+    	/* V4 mapped addresses are kind of tricky.  It turns out that
+    	 * if we create a v6 socket and initiate a connection, it will
+    	 * have an v6 addrtype.  However, if we listen on a v6 socket
+    	 * and accept a connection from a v4 addr, we will have a v6
+    	 * socket but a v4 addrtype.  This can be viewed as a bug
+    	 * in the web100 kernel, but now we have o work around that.
+    	 *
+    	 * The solution here is to just try to find both v4 and v6
+    	 * when we see a mapped address.
+    	 */
         if (IN6_IS_ADDR_V4MAPPED(&fe6.sin6_addr)) {
+            web100_connection* conn;
+            
             memcpy(&spec.src_addr, &ne6.sin6_addr.s6_addr[12], 4);
+            spec.src_port = ntohs(ne6.sin6_port);
             memcpy(&spec.dst_addr, &fe6.sin6_addr.s6_addr[12], 4);
-        } else {
-            memcpy(&spec6.src_addr, &ne6.sin6_addr, 16);
-            memcpy(&spec6.dst_addr, &fe6.sin6_addr, 16);
+            spec.dst_port = ntohs(fe6.sin6_port);
+            conn = web100_connection_find(agent, &spec);
+            if (conn)
+            	return conn;
         }
+        memcpy(&spec6.src_addr, &ne6.sin6_addr, 16);
         spec6.src_port = ntohs(ne6.sin6_port);
+        memcpy(&spec6.dst_addr, &fe6.sin6_addr, 16);
         spec6.dst_port = ntohs(fe6.sin6_port);
         return web100_connection_find_v6(agent, &spec6);
     default:
